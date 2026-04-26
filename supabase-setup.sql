@@ -71,3 +71,6 @@ alter table characters add column if not exists ship_id uuid references ships(id
 
 -- Salvada de Armadura (añadida en v2)
 alter table characters add column if not exists armor_save int not null default 25;
+
+-- Parche (añadida en v3)
+alter table characters add column if not exists patch text;

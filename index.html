@@ -293,6 +293,17 @@
     .stk-btn.starting { border-color:rgba(0,255,65,.4); color:rgba(0,255,65,.65); cursor:default; }
     .stk-btn.locked { opacity:.2; cursor:not-allowed; }
     .stk-btn.broke { opacity:.45; cursor:not-allowed; }
+    /* Baratija y Parche */
+    .roll-items-row { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+    .roll-item-card { border:1px solid var(--border); padding:.8rem 1rem; display:flex; flex-direction:column; gap:.4rem; }
+    .ri-title { font-size:.6rem; letter-spacing:.35em; color:var(--dim); }
+    .ri-note { color:var(--dim); font-size:.55rem; letter-spacing:.2em; }
+    .ri-result { font-size:.72rem; color:rgba(0,255,65,.7); line-height:1.4; min-height:2.4em; }
+    .ri-result.rolling { animation:blink .3s infinite; }
+    .ri-roll-num { font-size:.6rem; letter-spacing:.3em; color:var(--dim); }
+    .ri-btn { background:none; border:1px solid var(--border); color:rgba(0,255,65,.6); font-family:'Share Tech Mono',monospace; font-size:.7rem; letter-spacing:.2em; padding:.3rem .8rem; cursor:pointer; align-self:flex-start; margin-top:.2rem; }
+    .ri-btn:hover { border-color:var(--green); color:var(--green); }
+    .ri-btn.done { border-color:rgba(0,255,65,.4); color:rgba(0,255,65,.5); }
     .generate-btn {
       width:100%; padding:1rem; border:1px solid var(--green); background:rgba(0,255,65,.05);
       color:var(--green); font-family:'Share Tech Mono',monospace; font-size:.9rem;
@@ -519,6 +530,22 @@
 
     <!-- Equipo -->
     <div class="skills-list"><div class="list-title">EQUIPO INICIAL</div><ul id="equip-ul"></ul></div>
+
+    <!-- Baratija y Parche -->
+    <div class="roll-items-row">
+      <div class="roll-item-card">
+        <div class="ri-title">BARATIJA PERSONAL <span class="ri-note">D100</span></div>
+        <div class="ri-result" id="trinket-result">—</div>
+        <div class="ri-roll-num" id="trinket-num"></div>
+        <button class="ri-btn" id="trinket-btn" onclick="rollTrinket()">⚄ TIRAR</button>
+      </div>
+      <div class="roll-item-card">
+        <div class="ri-title">PARCHE <span class="ri-note">D100</span></div>
+        <div class="ri-result" id="patch-result">—</div>
+        <div class="ri-roll-num" id="patch-num"></div>
+        <button class="ri-btn" id="patch-btn" onclick="rollPatch()">⚄ TIRAR</button>
+      </div>
+    </div>
 
     <button class="generate-btn" id="gen-btn" onclick="generateSheet()" disabled>GENERAR FICHA Y GUARDAR →</button>
   </div>
@@ -950,17 +977,212 @@ function updateCarousel() {
 }
 
 
+// D100 BARATIJAS (del manual Mothership 0e, págs. 19)
 const TRINKETS = [
-  'Foto desgastada de alguien que no recuerdas',
-  'Moneda de un planeta que ya no existe',
-  'Diente de un ser que nadie ha catalogado',
-  'Carta sin abrir, sin remitente',
-  'Reloj analógico que siempre va cinco minutos adelantado',
-  'Piedra negra perfectamente esférica, ligeramente cálida',
-  'Grabación de audio borrada a medias',
-  'Anillo de compromiso sin pareja conocida',
-  'Manual de supervivencia con páginas arrancadas',
-  'Peluche quemado por la mitad',
+  'Aberración Insectoide Preservada',           // 0
+  'Ficha de Póker Verde Desvaída',              // 1
+  'Pagaré Corporativo Antiguo (Mina Asteroides)',// 2
+  'Muñeca de Piel Desecada',                   // 3
+  'Flor Alienígena Prensada (común)',           // 4
+  'Collar de Casquillos',                      // 5
+  'Núcleo Lógico de Androide Corroído',        // 6
+  'Folleto: Señales de Infección Parasitaria', // 7
+  'Manual: Trata tu Rifle como a una Dama',    // 8
+  'Cuchillo de Hueso',                         // 9
+  'Calendario: Arte Alienígena Pin-Up',        // 10
+  'Chapas de Identificación (Reliquia)',       // 11
+  'Bailarina Holográfica Serpentina',          // 12
+  'Whisky de Serpiente',                       // 13
+  'Recipiente Médico, Polvo Morado',           // 14
+  'Pastillas: Mejora Masculina, Dudosas',      // 15
+  'Baraja de Cartas de Casino',                // 16
+  'Pata de Conejo',                            // 17
+  'Anillo de Piedra Lunar',                    // 18
+  'Manual: Seguridad Minera y Tú',             // 19
+  'Folleto: Contra los Simulacros Humanos',    // 20
+  'Cráneo Animal, 3 Ojos, Cuernos Curvos',    // 21
+  'Certificado de Barman (Caducado)',          // 22
+  'Llave Inglesa Doblada',                     // 23
+  'Taza de Prospector, Abollada',              // 24
+  'Máscara Inquietante',                       // 25
+  'Canica Vantanegra',                         // 26
+  'Dados de Marfil',                           // 27
+  'Cartas del Tarot, Desgastadas, Bordes Dorados',// 28
+  'Bolsa de Dientes Variados',                 // 29
+  'Cenizas (Un Familiar)',                     // 30
+  'Colgante Baliza DNR',                       // 31
+  'Cigarrillos (Calavera Sonriente)',          // 32
+  'Pastillas: Nuez de Areca',                  // 33
+  'Solicitud Rechazada (Nave Colonia)',         // 34
+  'Folleto: Señores Androides',                // 35
+  'Revista Sediciosa: El Capitán, Dominante',  // 36
+  'Llave (Casa de la Infancia)',               // 37
+  'Manual: Pánico: Heraldo de la Catástrofe',  // 38
+  'Ficha: "¿Está Mejorando tu Moral?"',        // 39
+  'Bengalas Fosforescentes, Neón',             // 40
+  'Folleto: Las Estrellas Indiferentes',       // 41
+  'Calendario: Batallas Militares',            // 42
+  'Manual: Capitán Rico, Capitán Pobre',       // 43
+  'Cartel Electoral (Planeta Natal)',          // 44
+  'Colgante: Fragmentos de Concha en Plástico',// 45
+  'Palillo de Dientes de Titanio',             // 46
+  'Guantes de Cuero (Piel de Xenomorfo)',      // 47
+  'Folleto: Zen y el Arte de Ordenar la Carga',// 48
+  'Pornografía Impresa, Muy Manoseada',        // 49
+  'Nudillos de Latón',                         // 50
+  'Esposas de Peluche',                        // 51
+  'Diario de Rencores',                        // 52
+  'Pitillera Estilizada',                      // 53
+  'Ovillo de Cable de Varios Calibres',        // 54
+  'Llave Inglesa',                             // 55
+  'Navaja de Bolsillo, Ornamental',            // 56
+  'Cuerno de Xenomorfo en Polvo',              // 57
+  'Bonsái',                                   // 58
+  'Palo de Golf (Putter)',                     // 59
+  'Fósil de Trilobites',                       // 60
+  'Folleto: Una Chica en Cada Puerto',         // 61
+  'Mono de Trabajo Remendado, Personalizado',  // 62
+  'Cosa Carnosa Sellada en un Tarro Turbio',   // 63
+  'Brazalete de Pinchos',                      // 64
+  'Armónica',                                  // 65
+  'Manual: Almanaque del Viajero Espacial (Anticuado)',// 66
+  'Fotografía Desvaída, Un Páramo Azotado',    // 67
+  'Pelota Antiestrés: "Cero Estrés en Cero G"',// 68
+  'Manual: Destilar con Aceite de Arma',       // 69
+  'Giroscopio Doblado, de Latón',              // 70
+  'Taza Desportillada: "LA FELICIDAD ES OBLIGATORIA"',// 71
+  'Dardos Magnéticos',                         // 72
+  'Pintura en Spray',                          // 73
+  'Cartel de Se Busca, Desgastado',            // 74
+  'Medallón con Trenza de Cabello',            // 75
+  'Pico Miniatura',                            // 76
+  'Manta Ignífuga',                            // 77
+  'Anorak con Capucha, Forro Polar',           // 78
+  'Pistola de Balines',                        // 79
+  'Hacha de Pedernal',                         // 80
+  'Colgante: Dos Astronautas Forman una Calavera',// 81
+  'Cubo de Rubik',                             // 82
+  'Manual: Supervivencia: Come la Sopa con un Cuchillo',// 83
+  'Pin del Sputnik',                           // 84
+  'Ushanka',                                   // 85
+  'Gorra Camionero, Red, Logo Alienígena',     // 86
+  'Bálsamo de Mentol',                         // 87
+  'Salacot de Corcho',                         // 88
+  'Lona 10×10',                                // 89
+  'I Ching, Varillas Perdidas',                // 90
+  'Kukri',                                     // 91
+  'Pala de Trinchera',                         // 92
+  'Shiv: Cuchillo de Mantequilla Afilado',     // 93
+  'Gato Disecado',                             // 94
+  'Folleto: Interpretando Sueños de Ovejas',   // 95
+  'Par de Chupitos, Cartuchos de Escopeta',    // 96
+  'Prismáticos de Ópera',                      // 97
+  'Folleto: La Reliquia de Carne',             // 98
+  'Ajedrez Miniatura de Hueso, Piezas Perdidas',// 99
+];
+
+// D100 PARCHES (del manual Mothership 0e, pág. 20)
+const PATCHES = [
+  '"Trabajador Nº 1"',                                    // 0
+  'Parche de Guardia de Seguridad',                       // 1
+  'Tipo Sanguíneo (Parche de Referencia)',                // 2
+  'Logo Camisa Roja',                                     // 3
+  '"No Corras, Solo Morirás Cansado" (Espaldera)',        // 4
+  'Mano del Muerto (Póker)*',                            // 5
+  'Símbolo de Riesgo Biológico',                         // 6
+  'Mr. Yuck',                                            // 7
+  'Símbolo Nuclear',                                     // 8
+  '"Come a los Ricos"',                                  // 9
+  '"Seguro: Doble Tiro"',                                // 10
+  'Emoji de Fuego',                                      // 11
+  'Cara Sonriente (Fluorescente)',                       // 12
+  '"Sonríe: El Gran Hermano te Observa"',                // 13
+  'Jolly Roger',                                         // 14
+  'Calavera Vikinga',                                    // 15
+  '"DEPREDADOR APEX" (Calavera de Dientes de Sable)',    // 16
+  'Pin-Up (As de Espadas)',                              // 17
+  'Reina de Corazones',                                  // 18
+  'Pin-Up (Mecánica)',                                   // 19
+  'BOHICA**',                                            // 20
+  '"Orientado al Enemigo" (Mina Claymore)',              // 21
+  'Pin-Up (Cabalgando un Misil)',                        // 22
+  'FUBAR',                                               // 23
+  '"Soy una Máquina (del Amor)"',                        // 24
+  'Parche de Médico (Calavera y Huesos Cruzados)',       // 25
+  '"HOLA ME LLAMO:"',                                    // 26
+  '"Funciono a Base de Café"',                           // 27
+  '"Llévame con Tu Líder" (OVNI)',                       // 28
+  '"HAZ TU TRABAJO"',                                    // 29
+  '"Quítame la Vida (Por Favor)"',                       // 30
+  '"Ya No Me Quedan Fucks" (Astronauta, Bolsillos Vacíos)',// 31
+  '"Alérgico a la Mierda" (Estilo Médico)',              // 32
+  '"Arréglame Primero" (Caduceo)',                       // 33
+  '"Ciudadano Ejemplar"',                                // 34
+  'Logo NASA',                                           // 35
+  '"Vaquero al Poder" (Revólveres Cruzados)',            // 36
+  'Paloma en la Mira',                                   // 37
+  'Cthulhu Chibi',                                       // 38
+  '"Bienvenido a la ZONA DE PELIGRO"',                  // 39
+  'Calavera y Llaves Inglesas Cruzadas',                 // 40
+  'Pin-Up (Súcubo)',                                     // 41
+  '"¿Y a mí qué?"',                                     // 42
+  '"BEBE / PELEA / FOLLA"',                              // 43
+  '"Trabaja Duro / Fiesta Más Fuerte"',                  // 44
+  'Chica del Guardabarros',                              // 45
+  'Medidor de Diversión (marcando: Mal Momento)',        // 46
+  '"GAME OVER" (Novios)',                                // 47
+  'Corazón',                                             // 48
+  '"MEJORA / ADÁPTATE / SUPERA"',                        // 49
+  '"AGUANTA"',                                           // 50
+  'HMFIC***',                                            // 51
+  '"Solucionador de Problemas"',                         // 52
+  '"SI CORRO, MANTÉN EL RITMO" (Espaldera)',             // 53
+  'Martillos Cruzados con Alas',                         // 54
+  '"Mantén una Buena Lubricación"',                      // 55
+  'Hoz y Martillo Soviéticos',                           // 56
+  '"Juega Bien con los Demás"',                          // 57
+  '"Vive Libre y Muere"',                                // 58
+  'Pin-Up (Enfermera): "Cuanto Más Gritas, Más Rápido Llego"',// 59
+  '"Saco de Carne"',                                     // 60
+  '"No Soy un Robot"',                                   // 61
+  'Engranaje Rojo',                                      // 62
+  '"No Puedo Arreglar la Estupidez"',                    // 63
+  '"El Espacio ES mi Hogar" (Astronauta Triste)',        // 64
+  'El Ojo que Todo lo Ve',                               // 65
+  '"¿Parezco un Experto?"',                              // 66
+  '"NÓMADA"',                                            // 67
+  '"No Soy Científico Espacial / Pero Eres Idiota"',    // 68
+  '"SOLITARIO"',                                         // 69
+  '"Soy el Guardián de mi Hermano"',                     // 70
+  '"Mamá lo Intentó"',                                   // 71
+  'Araña Viuda Negra',                                   // 72
+  '"Mi Otro Vehículo te Casó"',                          // 73
+  '"Talla Única" (Granada)',                             // 74
+  'Espaldera: La Muerte con Guadaña',                    // 75
+  'отъебись (A Tomar por Culo, Ruso)',                   // 76
+  '"Operador Suave"',                                    // 77
+  'Símbolo del Átomo',                                   // 78
+  '"¡Por la Ciencia!"',                                  // 79
+  '"En Realidad, SÍ SOY Científico Espacial"',          // 80
+  '"Se Busca Personal"',                                 // 81
+  'Princesa',                                            // 82
+  '"Me Gustan mis Herramientas Limpias / y mis Amantes Sucias"',// 83
+  '"BUEN CHICO"',                                        // 84
+  'Dados (Doble Uno)',                                   // 85
+  '"Viaja a Lugares Exóticos / Conoce Cosas Raras / Que te Devoren"',// 86
+  '"Bueno" (Cerebro)',                                   // 87
+  '"Chica Mala"',                                        // 88
+  '"Demasiado Guapa para Morir"',                        // 89
+  '"Joder para Siempre" (Rosas)',                        // 90
+  'Ícaro',                                               // 91
+  '"El Mejor Amigo de la Chica" (Diamante)',             // 92
+  'Símbolo de Riesgo Eléctrico',                         // 93
+  'Cruz Invertida',                                      // 94
+  '"¿Firmas mis Nóminas?" (Espaldera)',                  // 95
+  '"Me ♥ a Mí Mismo"',                                  // 96
+  'Doble Cereza',                                        // 97
+  '"Voluntario"',                                        // 98
+  '"Solve et Coagula" (Baphomet)',                       // 99
 ];
 
 // ══ CUESTIONARIO ════════════════════════════════════════════════════
@@ -1112,16 +1334,20 @@ let charData={}, selectedGender=null, selectedPortraitKey=null, selectedBackgrou
 let portraitList=[], portraitIndex=0;
 let rollsLeft=3;
 // Skill state
-let charSkills    = new Set();   // all skill IDs the character has
-let paidSkills    = new Map();   // skillId → cost (only bought with free points)
-let startChosen   = new Set();   // chosen optional starting skills (free)
-let skillPoints   = 0;           // remaining free points to spend
+let charSkills    = new Set();
+let paidSkills    = new Map();
+let startChosen   = new Set();
+let skillPoints   = 0;
+// Baratija y parche
+let selectedTrinket = null;
+let selectedPatch   = null;
 
 function initChargen(cls){
   charData={class:cls, quizAnswers};
   selectedGender=null; selectedPortraitKey=null; selectedBackground=null;
   rollsLeft=3;
   charSkills=new Set(); paidSkills=new Map(); startChosen=new Set();
+  selectedTrinket=null; selectedPatch=null;
   const info=CLASSES[cls];
 
   document.getElementById('cg-ship-badge').textContent = selectedShip ? `ENROLADO EN: ${selectedShip.name}` : '—';
@@ -1150,6 +1376,12 @@ function initChargen(cls){
   document.getElementById('equip-ul').innerHTML=info.equipment.map(e=>`<li>${e}</li>`).join('');
 
   document.getElementById('cg-special-rule').textContent = info.specialRule;
+  // Reset baratija y parche
+  ['trinket','patch'].forEach(t=>{
+    document.getElementById(`${t}-result`).textContent='—';
+    document.getElementById(`${t}-num`).textContent='';
+    document.getElementById(`${t}-btn`).className='ri-btn';
+  });
   // Reset stats
   ['str','spd','int','com'].forEach(s=>{ const el=document.getElementById(`st-${s}`); el.textContent='—'; el.classList.remove('rolling'); });
   ['body','fear','san','armor'].forEach(s=>document.getElementById(`sv-${s}`).textContent='—');
@@ -1205,7 +1437,40 @@ function checkGenBtn(){
   const hasStats    = !!charData.strength;
   const choicesDone = startingChoicesDone();
   const ptsSpent    = skillPoints === 0;
-  document.getElementById('gen-btn').disabled = !(hasBg && hasPortrait && hasGender && hasStats && choicesDone && ptsSpent);
+  const hasTrinket  = selectedTrinket !== null;
+  const hasPatch    = selectedPatch !== null;
+  document.getElementById('gen-btn').disabled = !(hasBg && hasPortrait && hasGender && hasStats && choicesDone && ptsSpent && hasTrinket && hasPatch);
+}
+
+// ── BARATIJA Y PARCHE ──
+async function rollTrinket(){
+  const btn=document.getElementById('trinket-btn');
+  const res=document.getElementById('trinket-result');
+  const num=document.getElementById('trinket-num');
+  btn.disabled=true;
+  res.className='ri-result rolling'; res.textContent='???';
+  await sleep(600);
+  const idx=Math.floor(Math.random()*100);
+  selectedTrinket=TRINKETS[idx];
+  res.className='ri-result'; res.textContent=selectedTrinket;
+  num.textContent=`D100 → ${String(idx).padStart(2,'0')}`;
+  btn.disabled=false; btn.className='ri-btn done'; btn.textContent='⚄ RETIRAR';
+  checkGenBtn();
+}
+
+async function rollPatch(){
+  const btn=document.getElementById('patch-btn');
+  const res=document.getElementById('patch-result');
+  const num=document.getElementById('patch-num');
+  btn.disabled=true;
+  res.className='ri-result rolling'; res.textContent='???';
+  await sleep(600);
+  const idx=Math.floor(Math.random()*100);
+  selectedPatch=PATCHES[idx];
+  res.className='ri-result'; res.textContent=selectedPatch;
+  num.textContent=`D100 → ${String(idx).padStart(2,'0')}`;
+  btn.disabled=false; btn.className='ri-btn done'; btn.textContent='⚄ RETIRAR';
+  checkGenBtn();
 }
 
 function startingChoicesDone(){
@@ -1422,10 +1687,11 @@ async function generateSheet(){
   if(!charData.strength){ alert('Primero tira los dados.'); return; }
 
   const info=CLASSES[charData.class];
-  const trinket=TRINKETS[Math.floor(Math.random()*TRINKETS.length)];
   const bg=BACKGROUNDS[charData.class][selectedBackground];
   const genderLabel={'M':'Sr.','F':'Sra.','N':'Sre.','A':''}[selectedGender]||'';
   const credits=Array.from({length:5},()=>Math.ceil(Math.random()*10)).reduce((a,b)=>a+b,0)*10;
+  const trinket=selectedTrinket;
+  const patch=selectedPatch;
 
   const record={
     player_name:playerName, char_name:charName, class:charData.class,
@@ -1433,13 +1699,13 @@ async function generateSheet(){
     sanity_save:charData.sanity_save, fear_save:charData.fear_save, body_save:charData.body_save,
     max_stress:20, armor_save:charData.armor_save,
     skills:Array.from(charSkills).map(id=>`${SKILL_TREE[id].es} [${TIER_LABEL[SKILL_TREE[id].tier]}]`),
-    equipment:info.equipment, trinket, quiz_answers:charData.quizAnswers,
+    equipment:info.equipment, trinket, patch, quiz_answers:charData.quizAnswers,
     ship_id: selectedShip?.id || null,
   };
 
   try { await supaInsert(record); } catch(e){ console.warn('Supabase error:',e); }
 
-  renderSheet({...record, background:bg, portraitPath:selectedPortraitKey||'', genderLabel, shipName:selectedShip?.name||'', credits, specialRule:info.specialRule});
+  renderSheet({...record, background:bg, portraitPath:selectedPortraitKey||'', genderLabel, shipName:selectedShip?.name||'', credits, specialRule:info.specialRule, patch});
   showScreen('sheet');
 }
 
@@ -1488,7 +1754,8 @@ function renderSheet(r){
         return `<li>${m[1]} <span style="color:${colors[m[2]]};font-size:.65em">${m[2]} ${bonuses[m[2]]}</span></li>`;
       }).join('')}</ul></div>
       <div class="sheet-section"><div class="sec-title">EQUIPO INICIAL</div><ul>${r.equipment.map(e=>`<li>${e}</li>`).join('')}</ul></div>
-      <div class="trinket-box"><div class="sec-title">OBJETO PERSONAL</div>${r.trinket}</div>
+      <div class="trinket-box"><div class="sec-title">BARATIJA PERSONAL</div>${r.trinket}</div>
+      <div class="trinket-box"><div class="sec-title">PARCHE</div>${r.patch||'—'}</div>
       <div class="stress-track">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.4rem">
           <div class="sec-title" style="margin:0">ESTRÉS (MAX 20)</div>
