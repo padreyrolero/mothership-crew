@@ -193,7 +193,10 @@
     }
     .ship-proceed:hover { background:rgba(0,255,65,.07); box-shadow:0 0 15px rgba(0,255,65,.2); }
     .ship-proceed:disabled { opacity:.3; cursor:not-allowed; }
-    .ship-enrolled { font-size:.65rem; letter-spacing:.3em; color:var(--dim); border:1px solid var(--border); padding:.5rem 1rem; }
+    .ship-crew-badge { font-size:.65rem; letter-spacing:.2em; color:var(--amber); white-space:nowrap; }
+    .ship-crew-badge.full { color:#aa2200; }
+    .ship-opt.full { opacity:.4; cursor:not-allowed; }
+    .ship-opt:disabled { cursor:not-allowed; }
 
     /* Trasfondos */
     .bg-grid { display:flex; flex-direction:column; gap:.6rem; }
@@ -298,7 +301,7 @@
     /* ── PRINT ────────────────────────────────────────────────────── */
     @media print {
       body::after, .sheet-actions { display:none !important; }
-      #splash,#recruitment,#quiz,#chargen { display:none !important; }
+      #splash,#ship-select,#recruitment,#quiz,#chargen { display:none !important; }
       #sheet { display:block !important; padding:0; }
       .screen { display:block; }
       body { background:white; color:black; }
@@ -319,11 +322,21 @@
     <div class="date">08 · 05 · 2026</div>
     <div class="time">19:00 H · HORA LOCAL</div>
   </div>
-  <button class="splash-btn" onclick="showScreen('recruitment')">INICIAR PROCESO DE SELECCIÓN</button>
+  <button class="splash-btn" onclick="showScreen('ship-select'); loadShips()">INICIAR PROCESO DE SELECCIÓN</button>
   <div class="splash-warning">
     ARMACORP LOGISTICS INC. · REF. MISIÓN ALX-7734 · SECTOR RHONDI<br>
     Al continuar aceptas los términos del contrato de tripulación.<br>
     ARMACORP no se responsabiliza de eventos acontecidos durante la misión.
+  </div>
+</div>
+
+<!-- ══ SELECCIÓN DE NAVE ═══════════════════════════════════════════ -->
+<div id="ship-select" class="screen">
+  <div class="ship-sel-wrap">
+    <div class="ship-sel-title">SELECCIÓN DE NAVE</div>
+    <div class="ship-sel-sub">Elige la nave a la que deseas enrolarte</div>
+    <div class="ship-list" id="ship-list">Cargando naves disponibles...</div>
+    <button class="ship-proceed" id="ship-proceed-btn" onclick="showRecruitment()" disabled>CONTINUAR →</button>
   </div>
 </div>
 
@@ -342,7 +355,7 @@
     <div class="doc-title">CONVOCATORIA DE TRIPULACIÓN</div>
     <div class="doc-ref">MISIÓN DE RECUPERACIÓN ARQUEOLÓGICA — SECTOR RHONDI</div>
     <div class="doc-body">
-      <p>ARMACORP Logistics busca personal cualificado para incorporarse a la tripulación de la <strong>A.R.V. Alexis</strong>, buque de investigación arqueológica actualmente en órbita sobre un cuerpo celeste de interés científico en el sector Rhondi.</p>
+      <p>ARMACORP Logistics busca personal cualificado para incorporarse a la tripulación de la <strong id="recruit-ship-name">—</strong>, buque de investigación arqueológica actualmente en órbita sobre un cuerpo celeste de interés científico en el sector Rhondi.</p>
       <p>La misión consiste en la localización, catalogación y recuperación de un artefacto de origen desconocido detectado en la luna adyacente al objetivo. Se estima una duración de entre 72 y 96 horas operativas.</p>
       <p>ARMACORP ofrece compensación económica competitiva, seguro de vida estándar y bonificación por recuperación exitosa del artefacto. El contrato incluye cláusula de confidencialidad obligatoria.</p>
     </div>
@@ -371,16 +384,6 @@
       <div class="quiz-progress" id="quiz-progress"></div>
     </div>
     <div id="question-container"></div>
-  </div>
-</div>
-
-<!-- ══ SELECCIÓN DE NAVE ═══════════════════════════════════════════ -->
-<div id="ship-select" class="screen">
-  <div class="ship-sel-wrap">
-    <div class="ship-sel-title">SELECCIÓN DE NAVE</div>
-    <div class="ship-sel-sub">Elige la nave a la que deseas enrolarte</div>
-    <div class="ship-list" id="ship-list">Cargando naves disponibles...</div>
-    <button class="ship-proceed" id="ship-proceed-btn" onclick="proceedToChargen()" disabled>ENROLAR →</button>
   </div>
 </div>
 
@@ -904,30 +907,47 @@ function selectOption(cls,idx){
 function finishQuiz(){
   const counts={Marine:0,Teamster:0,Scientist:0,Android:0};
   quizAnswers.forEach(c=>counts[c]++);
-  determinedClass = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
-  showScreen('ship-select');
-  loadShips();
+  const cls = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
+  showScreen('chargen');
+  initChargen(cls);
 }
 
 // ══ SELECCIÓN DE NAVE ════════════════════════════════════════════════
 let selectedShip = null, determinedClass = null;
 
+const MAX_CREW = 5;
+
 async function loadShips(){
   const el = document.getElementById('ship-list');
   el.innerHTML = '<div style="color:var(--dim);font-size:.7rem;letter-spacing:.3em">CONSULTANDO REGISTRO DE NAVES...</div>';
   try {
-    const res = await fetch(`${SUPA_URL}/rest/v1/ships?select=*&order=created_at.asc`,
-      { headers:{ 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}` } });
-    const ships = await res.json();
+    const [shipsRes, charsRes] = await Promise.all([
+      fetch(`${SUPA_URL}/rest/v1/ships?select=*&order=created_at.asc`, { headers:{ 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}` } }),
+      fetch(`${SUPA_URL}/rest/v1/characters?select=ship_id`, { headers:{ 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}` } }),
+    ]);
+    const ships = await shipsRes.json();
+    const chars = await charsRes.json();
+
     if (!ships.length) {
       el.innerHTML = '<div style="color:var(--dim);font-size:.75rem;letter-spacing:.2em;padding:1rem 0">NO HAY NAVES REGISTRADAS. EL GM DEBE CREAR UNA PRIMERO.</div>';
       return;
     }
-    el.innerHTML = ships.map(s=>`
-      <button class="ship-opt" onclick="selectShipOpt('${s.id}','${s.name.replace(/'/g,"\\'")}',this)">
-        <div class="ship-opt-name">${s.name}</div>
-        ${s.description ? `<div class="ship-opt-desc">${s.description}</div>` : ''}
-      </button>`).join('');
+
+    const countByShip = {};
+    chars.forEach(c => { if(c.ship_id) countByShip[c.ship_id] = (countByShip[c.ship_id]||0)+1; });
+
+    el.innerHTML = ships.map(s => {
+      const count = countByShip[s.id] || 0;
+      const full = count >= MAX_CREW;
+      return `
+        <button class="ship-opt${full?' full':''}" ${full?'disabled':''} onclick="selectShipOpt('${s.id}','${s.name.replace(/'/g,"\\'")}',this)">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="ship-opt-name">${s.name}</div>
+            <div class="ship-crew-badge${full?' full':''}">${count}/${MAX_CREW}${full?' · COMPLETA':''}</div>
+          </div>
+          ${s.description ? `<div class="ship-opt-desc">${s.description}</div>` : ''}
+        </button>`;
+    }).join('');
   } catch(e) {
     el.innerHTML = '<div style="color:var(--dim)">ERROR AL CARGAR NAVES.</div>';
   }
@@ -940,10 +960,10 @@ function selectShipOpt(id, name, el){
   document.getElementById('ship-proceed-btn').disabled = false;
 }
 
-function proceedToChargen(){
+function showRecruitment(){
   if (!selectedShip) return;
-  showScreen('chargen');
-  initChargen(determinedClass);
+  document.getElementById('recruit-ship-name').textContent = selectedShip.name;
+  showScreen('recruitment');
 }
 
 // ══ CHARGEN ══════════════════════════════════════════════════════════
