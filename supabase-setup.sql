@@ -74,3 +74,6 @@ alter table characters add column if not exists armor_save int not null default 
 
 -- Parche (añadida en v3)
 alter table characters add column if not exists patch text;
+
+-- Ruta del retrato para bloquear duplicados (añadida en v4)
+alter table characters add column if not exists portrait_path text;

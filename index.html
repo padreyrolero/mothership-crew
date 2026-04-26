@@ -171,6 +171,7 @@
       overflow:hidden; position:relative; background:#000;
     }
     .carousel-frame img { display:block; width:100%; height:100%; object-fit:cover; }
+    .portrait-taken-overlay { position:absolute; inset:0; background:rgba(0,0,0,.65); display:flex; align-items:center; justify-content:center; font-size:.75rem; letter-spacing:.4em; color:#aa4444; border:2px solid #aa4444; pointer-events:none; }
     .carousel-meta { display:flex; justify-content:space-between; width:180px; font-size:.6rem; letter-spacing:.2em; color:var(--dim); }
 
     /* Selección de nave */
@@ -638,15 +639,15 @@ function startAmbient() {
       o.connect(lp); lp.connect(g); g.connect(master); o.start();
     });
 
-    // — CAPA 4: Textura metálica alta con barrido lento —
-    const metal = ac.createOscillator(); metal.type = 'sawtooth'; metal.frequency.value = 528;
-    const metalHP = ac.createBiquadFilter(); metalHP.type = 'highpass'; metalHP.frequency.value = 900; metalHP.Q.value = 4;
-    const metalLFO = ac.createOscillator(); metalLFO.type = 'sine'; metalLFO.frequency.value = 0.06;
-    const metalLFOG = ac.createGain(); metalLFOG.gain.value = 55;
+    // — CAPA 4: Resonancia de sala grave con barrido —
+    const metal = ac.createOscillator(); metal.type = 'triangle'; metal.frequency.value = 92;
+    const metalLP = ac.createBiquadFilter(); metalLP.type = 'lowpass'; metalLP.frequency.value = 320; metalLP.Q.value = 1.2;
+    const metalLFO = ac.createOscillator(); metalLFO.type = 'sine'; metalLFO.frequency.value = 0.04;
+    const metalLFOG = ac.createGain(); metalLFOG.gain.value = 18;
     metalLFO.connect(metalLFOG); metalLFOG.connect(metal.frequency);
     const metalG = ac.createGain(); metalG.gain.value = 0;
-    metalG.gain.linearRampToValueAtTime(0.013, t + 14);
-    metal.connect(metalHP); metalHP.connect(metalG); metalG.connect(master);
+    metalG.gain.linearRampToValueAtTime(0.07, t + 14);
+    metal.connect(metalLP); metalLP.connect(metalG); metalG.connect(master);
     metal.start(); metalLFO.start();
 
     // — CAPA 5: Pulso cardíaco irregular —
@@ -699,23 +700,25 @@ function scheduleEvent() {
 }
 
 function ambientClang() {
+  // Golpe de tubería grave — sin frecuencias agudas
   const ac = ambientCtx, now = ac.currentTime;
-  const buf = ac.createBuffer(1, ac.sampleRate * 0.6, ac.sampleRate);
+  const buf = ac.createBuffer(1, ac.sampleRate * 0.9, ac.sampleRate);
   const d = buf.getChannelData(0);
-  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ac.sampleRate * 0.07));
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ac.sampleRate * 0.18));
   const src = ac.createBufferSource(); src.buffer = buf;
-  const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1100 + Math.random() * 900; f.Q.value = 3.5;
-  const g = ac.createGain(); g.gain.setValueAtTime(0.055, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+  const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 180 + Math.random() * 220; f.Q.value = 1.2;
+  const g = ac.createGain(); g.gain.setValueAtTime(0.04, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
   src.connect(f); f.connect(g); g.connect(ambientNodes.master); src.start(now);
 }
 
 function ambientBlip() {
+  // Pitido de terminal descendente — tono suave
   const ac = ambientCtx, now = ac.currentTime;
   const osc = ac.createOscillator(); osc.type = 'sine';
-  osc.frequency.setValueAtTime(600 + Math.random() * 800, now);
-  osc.frequency.exponentialRampToValueAtTime(150 + Math.random() * 150, now + 0.35);
-  const g = ac.createGain(); g.gain.setValueAtTime(0.028, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
-  osc.connect(g); g.connect(ambientNodes.master); osc.start(now); osc.stop(now + 0.35);
+  osc.frequency.setValueAtTime(280 + Math.random() * 180, now);
+  osc.frequency.exponentialRampToValueAtTime(80 + Math.random() * 60, now + 0.5);
+  const g = ac.createGain(); g.gain.setValueAtTime(0.018, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+  osc.connect(g); g.connect(ambientNodes.master); osc.start(now); osc.stop(now + 0.5);
 }
 
 function ambientRumble() {
@@ -911,11 +914,20 @@ function labelFromPath(path) {
   return g === 'm' ? `SR. ${n}` : `SRA. ${n}`;
 }
 
+async function getUsedPortraits() {
+  try {
+    const res = await fetch(`${SUPA_URL}/rest/v1/characters?select=portrait_path`, {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` }
+    });
+    const data = await res.json();
+    return new Set(Array.isArray(data) ? data.map(r=>r.portrait_path).filter(Boolean) : []);
+  } catch(e) { return new Set(); }
+}
+
 async function renderPortraits(cls, gender) {
   const grid = document.getElementById('portrait-grid');
   grid.innerHTML = '<div style="color:var(--dim);font-size:.7rem;letter-spacing:.3em;padding:1rem">ESCANEANDO ARCHIVOS...</div>';
 
-  // Filtrar candidatos por género
   const base = cls.toLowerCase();
   let candidates = [];
   if (cls === 'Android') {
@@ -927,30 +939,49 @@ async function renderPortraits(cls, gender) {
         candidates.push(`portraits/${base}-${g}-${n}.jpg`);
   }
 
-  const results = await Promise.all(candidates.map(probeImage));
-  const found = results.filter(Boolean).map(p => ({path:p, label:labelFromPath(p)}));
+  const [results, usedSet] = await Promise.all([
+    Promise.all(candidates.map(probeImage)),
+    getUsedPortraits()
+  ]);
+
+  const found = results.filter(Boolean).map(p => ({
+    path: p,
+    label: labelFromPath(p),
+    taken: usedSet.has(p)
+  }));
+
+  const available = found.filter(p => !p.taken);
 
   if (!found.length) {
     grid.innerHTML = '<div style="color:var(--dim);font-size:.7rem;letter-spacing:.2em;padding:1rem">SIN RETRATOS DISPONIBLES</div>';
     return;
   }
 
+  // Start at first available portrait
   portraitList = found;
-  portraitIndex = 0;
-  selectedPortraitKey = found[0].path;
+  portraitIndex = found.findIndex(p => !p.taken);
+  if (portraitIndex < 0) portraitIndex = 0;
+
+  const first = found[portraitIndex];
+  selectedPortraitKey = first.taken ? null : first.path;
+
+  const takenCount = found.length - available.length;
+  const takenNote = takenCount > 0 ? `<span style="font-size:.6rem;color:#aa4444;letter-spacing:.2em"> · ${takenCount} EN USO</span>` : '';
 
   grid.innerHTML = `
     <div class="portrait-carousel">
       <button class="carousel-arrow" onclick="prevPortrait()">◀</button>
-      <div class="carousel-frame"><img id="carousel-img" src="${found[0].path}" alt="${found[0].label}"></div>
+      <div class="carousel-frame" id="carousel-frame">
+        <img id="carousel-img" src="${first.path}" alt="${first.label}">
+        ${first.taken ? '<div class="portrait-taken-overlay">EN USO</div>' : ''}
+      </div>
       <button class="carousel-arrow" onclick="nextPortrait()">▶</button>
     </div>
     <div class="carousel-meta">
-      <span id="carousel-label">${found[0].label}</span>
-      <span id="carousel-counter">1 / ${found.length}</span>
+      <span id="carousel-label">${first.label}${first.taken?' <span style="color:#aa4444;font-size:.7em">EN USO</span>':''}</span>
+      <span id="carousel-counter">${portraitIndex+1} / ${found.length}${takenNote}</span>
     </div>`;
 
-  // Auto-mostrar trasfondos al tener retrato
   document.getElementById('bg-section').style.display = 'block';
   renderBackgrounds(cls);
   checkGenBtn();
@@ -970,12 +1001,23 @@ function nextPortrait() {
 
 function updateCarousel() {
   const p = portraitList[portraitIndex];
-  selectedPortraitKey = p.path;
+  selectedPortraitKey = p.taken ? null : p.path;
   document.getElementById('carousel-img').src = p.path;
-  document.getElementById('carousel-label').textContent = p.label;
-  document.getElementById('carousel-counter').textContent = `${portraitIndex + 1} / ${portraitList.length}`;
+  document.getElementById('carousel-label').innerHTML = p.label + (p.taken ? ' <span style="color:#aa4444;font-size:.7em">EN USO</span>' : '');
+  const takenCount = portraitList.filter(x=>x.taken).length;
+  const takenNote = takenCount > 0 ? ` · <span style="color:#aa4444">${takenCount} EN USO</span>` : '';
+  document.getElementById('carousel-counter').innerHTML = `${portraitIndex+1} / ${portraitList.length}${takenNote}`;
+  // Overlay
+  const frame = document.getElementById('carousel-frame');
+  const existing = frame.querySelector('.portrait-taken-overlay');
+  if(p.taken && !existing){
+    const ov = document.createElement('div'); ov.className='portrait-taken-overlay'; ov.textContent='EN USO';
+    frame.appendChild(ov);
+  } else if(!p.taken && existing){
+    existing.remove();
+  }
+  checkGenBtn();
 }
-
 
 // D100 BARATIJAS (del manual Mothership 0e, págs. 19)
 const TRINKETS = [
@@ -1634,9 +1676,11 @@ function updateRollCounter(){
   } else if(rollsLeft === 1){
     el.textContent = '1 tirada restante — última oportunidad';
     el.className = 'roll-counter warn';
+    btn.disabled = false;
   } else {
     el.textContent = `${rollsLeft} tiradas restantes`;
     el.className = 'roll-counter';
+    btn.disabled = false;
   }
 }
 
@@ -1698,6 +1742,7 @@ async function generateSheet(){
     strength:charData.strength, speed:charData.speed, intellect:charData.intellect, combat:charData.combat,
     sanity_save:charData.sanity_save, fear_save:charData.fear_save, body_save:charData.body_save,
     max_stress:20, armor_save:charData.armor_save,
+    portrait_path: selectedPortraitKey || null,
     skills:Array.from(charSkills).map(id=>`${SKILL_TREE[id].es} [${TIER_LABEL[SKILL_TREE[id].tier]}]`),
     equipment:info.equipment, trinket, patch, quiz_answers:charData.quizAnswers,
     ship_id: selectedShip?.id || null,
