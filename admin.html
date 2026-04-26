@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ARMACORP — Panel GM</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700&display=swap');
 
@@ -37,160 +38,134 @@
       z-index: 9999;
     }
 
+    /* ── HEADER ── */
     .admin-header {
-      max-width: 1100px;
-      margin: 0 auto 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 1rem;
-      flex-wrap: wrap;
-      gap: 1rem;
+      max-width: 1100px; margin: 0 auto 2rem;
+      display: flex; justify-content: space-between; align-items: flex-end;
+      border-bottom: 1px solid var(--border); padding-bottom: 1rem;
+      flex-wrap: wrap; gap: 1rem;
     }
-
-    .admin-header h1 {
-      font-family: 'Orbitron', monospace;
-      font-size: clamp(1rem, 2.5vw, 1.5rem);
-      color: var(--green);
-      letter-spacing: 0.3em;
-    }
-
-    .admin-header .sub {
-      font-size: 0.65rem;
-      letter-spacing: 0.3em;
-      color: var(--dim);
-      margin-top: 0.3rem;
-    }
-
-    .admin-actions { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+    .admin-header h1 { font-family: 'Orbitron', monospace; font-size: clamp(1rem, 2.5vw, 1.5rem); letter-spacing: .3em; }
+    .admin-header .sub { font-size: .65rem; letter-spacing: .3em; color: var(--dim); margin-top: .3rem; }
+    .admin-actions { display: flex; gap: .8rem; flex-wrap: wrap; }
 
     .btn {
-      padding: 0.5rem 1.2rem;
-      border: 1px solid var(--dim);
-      background: transparent;
-      color: var(--dim);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.75rem;
-      letter-spacing: 0.2em;
-      cursor: pointer;
-      transition: all 0.2s;
+      padding: .5rem 1.2rem; border: 1px solid var(--dim); background: transparent;
+      color: var(--dim); font-family: 'Share Tech Mono', monospace; font-size: .75rem;
+      letter-spacing: .2em; cursor: pointer; transition: all .2s;
     }
     .btn:hover, .btn.primary { border-color: var(--green); color: var(--green); }
     .btn.primary { text-shadow: 0 0 6px var(--green); }
+    .btn.danger { border-color: #550000; color: #aa2200; }
+    .btn.danger:hover { border-color: #ff4400; color: #ff4400; }
 
-    #status {
-      max-width: 1100px;
-      margin: 0 auto 1.5rem;
-      font-size: 0.75rem;
-      color: var(--dim);
-      letter-spacing: 0.2em;
+    #status { max-width: 1100px; margin: 0 auto 1.5rem; font-size: .75rem; color: var(--dim); letter-spacing: .2em; }
+
+    /* ── SECCIÓN CREAR NAVE ── */
+    .section-block {
+      max-width: 1100px; margin: 0 auto 2.5rem;
+      border: 1px solid var(--border); padding: 1.5rem;
+      background: rgba(0,255,65,.01);
+    }
+    .section-block-title {
+      font-family: 'Orbitron', monospace; font-size: .8rem; letter-spacing: .4em;
+      color: var(--green); margin-bottom: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: .6rem;
+    }
+    .create-ship-form { display: flex; gap: .8rem; flex-wrap: wrap; }
+    .create-ship-form input {
+      flex: 1; min-width: 180px; background: transparent; border: 1px solid var(--border);
+      color: var(--green); font-family: 'Share Tech Mono', monospace; font-size: .85rem;
+      padding: .6rem .9rem; outline: none; transition: border-color .2s;
+    }
+    .create-ship-form input:focus { border-color: var(--green); }
+    .create-ship-form input::placeholder { color: var(--border); }
+
+    /* ── NAVES ── */
+    .ships-container { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 2.5rem; }
+
+    .ship-section { border: 1px solid var(--border); }
+    .ship-section-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border);
+      background: rgba(0,255,65,.02); flex-wrap: wrap; gap: .5rem;
+    }
+    .ship-section-name { font-family: 'Orbitron', monospace; font-size: 1.1rem; color: var(--green); }
+    .ship-section-desc { font-size: .7rem; color: var(--dim); margin-top: .2rem; }
+    .ship-section-meta { font-size: .6rem; letter-spacing: .2em; color: rgba(0,255,65,.35); text-align: right; }
+    .ship-crew-count { font-family: 'Orbitron', monospace; font-size: .75rem; color: var(--amber); }
+
+    /* Sub-grid de personajes dentro de la nave */
+    .ship-chars { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border); }
+    .ship-chars-empty { font-size: .7rem; color: rgba(0,255,65,.3); letter-spacing: .2em; padding: .5rem 0; }
+    .chars-subgrid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1rem;
     }
 
-    /* Grid de fichas */
-    #chars-grid {
-      max-width: 1100px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .char-card {
-      border: 1px solid var(--border);
-      padding: 1.5rem;
-      background: rgba(0,255,65,0.01);
-      break-inside: avoid;
-    }
-
-    .card-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 1rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 0.8rem;
-    }
-
-    .card-name {
-      font-family: 'Orbitron', monospace;
-      font-size: 1.1rem;
-      color: var(--green);
-    }
-
-    .card-player { font-size: 0.65rem; color: var(--dim); margin-top: 0.2rem; }
-
-    .card-class {
-      font-family: 'Orbitron', monospace;
-      font-size: 0.75rem;
-      color: var(--green);
-      border: 1px solid var(--border);
-      padding: 0.3rem 0.6rem;
-    }
-
-    .card-stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.4rem;
-      margin-bottom: 0.8rem;
-    }
-
-    .cs { text-align: center; border: 1px solid var(--border); padding: 0.4rem; }
-    .cs .cl { font-size: 0.5rem; letter-spacing: 0.2em; color: var(--dim); }
-    .cs .cv { font-family: 'Orbitron', monospace; font-size: 1.1rem; color: var(--green); }
-
-    .card-saves {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.4rem;
-      margin-bottom: 0.8rem;
-    }
-
-    .sv { text-align: center; border: 1px solid var(--border); padding: 0.3rem; }
-    .sv .sl { font-size: 0.45rem; letter-spacing: 0.2em; color: var(--dim); }
-    .sv .sv2 { font-family: 'Orbitron', monospace; font-size: 0.9rem; color: var(--amber); }
-
-    .card-lists {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.8rem;
-      margin-bottom: 0.8rem;
-    }
-
-    .cl-sec { border: 1px solid var(--border); padding: 0.6rem; }
-    .cl-sec .cl-title { font-size: 0.5rem; letter-spacing: 0.3em; color: var(--dim); margin-bottom: 0.4rem; }
-    .cl-sec ul { list-style: none; font-size: 0.7rem; color: rgba(0,255,65,0.7); line-height: 1.7; }
+    /* Personaje card */
+    .char-card { border: 1px solid var(--border); padding: 1.2rem; background: rgba(0,255,65,.01); }
+    .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: .8rem; border-bottom: 1px solid var(--border); padding-bottom: .6rem; }
+    .card-name { font-family: 'Orbitron', monospace; font-size: 1rem; color: var(--green); }
+    .card-player { font-size: .6rem; color: var(--dim); margin-top: .2rem; }
+    .card-class { font-family: 'Orbitron', monospace; font-size: .7rem; color: var(--green); border: 1px solid var(--border); padding: .25rem .5rem; white-space: nowrap; }
+    .card-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: .3rem; margin-bottom: .6rem; }
+    .cs { text-align: center; border: 1px solid var(--border); padding: .35rem; }
+    .cs .cl { font-size: .45rem; letter-spacing: .2em; color: var(--dim); }
+    .cs .cv { font-family: 'Orbitron', monospace; font-size: 1rem; color: var(--green); }
+    .card-saves { display: grid; grid-template-columns: repeat(3,1fr); gap: .3rem; margin-bottom: .6rem; }
+    .sv { text-align: center; border: 1px solid var(--border); padding: .25rem; }
+    .sv .sl { font-size: .4rem; letter-spacing: .2em; color: var(--dim); }
+    .sv .sv2 { font-family: 'Orbitron', monospace; font-size: .85rem; color: var(--amber); }
+    .card-lists { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-bottom: .6rem; }
+    .cl-sec { border: 1px solid var(--border); padding: .5rem; }
+    .cl-sec .cl-title { font-size: .45rem; letter-spacing: .3em; color: var(--dim); margin-bottom: .3rem; }
+    .cl-sec ul { list-style: none; font-size: .65rem; color: rgba(0,255,65,.7); line-height: 1.7; }
     .cl-sec ul li::before { content: '▸ '; color: var(--green); }
+    .card-trinket { font-size: .65rem; color: rgba(0,255,65,.5); border: 1px solid var(--border); padding: .4rem .7rem; margin-bottom: .5rem; }
+    .card-trinket .tl { font-size: .45rem; letter-spacing: .3em; color: var(--dim); margin-bottom: .2rem; }
+    .card-date { font-size: .5rem; color: rgba(0,255,65,.2); letter-spacing: .2em; }
 
-    .card-trinket {
-      font-size: 0.7rem;
-      color: rgba(0,255,65,0.5);
-      border: 1px solid var(--border);
-      padding: 0.5rem 0.8rem;
-      margin-bottom: 0.6rem;
+    /* ── DIARIO DE ABORDO ── */
+    .ship-log { padding: 1.2rem 1.5rem; }
+    .log-head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: .8rem; flex-wrap: wrap; gap: .5rem;
     }
-    .card-trinket .tl { font-size: 0.5rem; letter-spacing: 0.3em; color: var(--dim); margin-bottom: 0.2rem; }
+    .log-head-title { font-family: 'Orbitron', monospace; font-size: .75rem; letter-spacing: .4em; color: var(--green); }
+    .log-actions { display: flex; gap: .5rem; }
+    .log-preview {
+      border: 1px solid var(--border); padding: 1rem 1.2rem;
+      min-height: 80px; font-size: .8rem; line-height: 1.8; color: rgba(0,255,65,.8);
+    }
+    .log-preview p { margin-bottom: .6rem; }
+    .log-preview h1, .log-preview h2, .log-preview h3 { font-family: 'Orbitron', monospace; color: var(--green); margin: .8rem 0 .4rem; }
+    .log-preview strong { color: var(--green); }
+    .log-preview em { color: var(--amber); font-style: normal; }
+    .log-preview ul, .log-preview ol { padding-left: 1.5rem; margin-bottom: .6rem; }
+    .log-preview hr { border: none; border-top: 1px solid var(--border); margin: .8rem 0; }
+    .log-preview code { color: var(--amber); font-family: 'Share Tech Mono', monospace; }
+    .log-empty { font-size: .7rem; color: rgba(0,255,65,.2); letter-spacing: .2em; font-style: italic; }
+    .log-editor {
+      display: none; width: 100%; min-height: 200px; resize: vertical;
+      background: rgba(0,255,65,.02); border: 1px solid var(--border);
+      color: var(--green); font-family: 'Share Tech Mono', monospace; font-size: .8rem;
+      padding: .8rem 1rem; outline: none; line-height: 1.7;
+    }
+    .log-editor:focus { border-color: var(--dim); }
 
-    .card-date {
-      font-size: 0.55rem;
-      color: rgba(0,255,65,0.25);
-      letter-spacing: 0.2em;
+    /* ── SIN NAVE ── */
+    .unassigned-section { max-width: 1100px; margin: 0 auto 2rem; }
+    .unassigned-title {
+      font-family: 'Orbitron', monospace; font-size: .8rem; letter-spacing: .4em;
+      color: var(--dim); margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: .6rem;
     }
 
-    /* ── PRINT ───────────────────────────────────────────────────── */
+    /* ── PRINT ── */
     @media print {
       body { background: white; color: black; padding: 1rem; }
       body::after { display: none; }
-      .admin-header, .admin-actions, #status { display: none; }
-      :root {
-        --green: #007700; --dim: #555;
-        --border: #ccc; --amber: #996600;
-        --black: white;
-      }
-      #chars-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
-      }
+      .admin-header, .admin-actions, #status, .section-block, .ship-log, .btn { display: none; }
+      :root { --green: #007700; --dim: #555; --border: #ccc; --amber: #996600; --black: white; }
+      .chars-subgrid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
       .char-card { border-color: #ccc; break-inside: avoid; }
     }
   </style>
@@ -200,91 +175,200 @@
 <div class="admin-header">
   <div>
     <h1>PANEL DE GM — ARMACORP</h1>
-    <div class="sub">A.R.V. ALEXIS · MISIÓN ALX-7734 · FICHAS DE TRIPULACIÓN</div>
+    <div class="sub">GESTIÓN DE TRIPULACIONES · MISIÓN ALX-7734</div>
   </div>
   <div class="admin-actions">
-    <button class="btn" onclick="loadChars()">↻ ACTUALIZAR</button>
-    <button class="btn primary" onclick="window.print()">⎙ IMPRIMIR TODAS</button>
+    <button class="btn" onclick="loadAll()">↻ ACTUALIZAR</button>
+    <button class="btn primary" onclick="window.print()">⎙ IMPRIMIR TODO</button>
   </div>
 </div>
 
-<div id="status">Cargando fichas...</div>
-<div id="chars-grid"></div>
+<div id="status">Cargando...</div>
+
+<!-- Crear nave -->
+<div class="section-block">
+  <div class="section-block-title">REGISTRAR NUEVA NAVE</div>
+  <div class="create-ship-form">
+    <input type="text" id="ship-name-inp" placeholder="NOMBRE DE LA NAVE" maxlength="60">
+    <input type="text" id="ship-desc-inp" placeholder="DESCRIPCIÓN (OPCIONAL)" maxlength="120">
+    <button class="btn primary" onclick="createShip()">+ REGISTRAR</button>
+  </div>
+</div>
+
+<!-- Naves con tripulaciones -->
+<div class="ships-container" id="ships-container"></div>
+
+<!-- Sin nave asignada -->
+<div class="unassigned-section" id="unassigned-section" style="display:none">
+  <div class="unassigned-title">SIN NAVE ASIGNADA</div>
+  <div class="chars-subgrid" id="unassigned-grid"></div>
+</div>
 
 <script>
 const SUPA_URL = 'https://vbmftksmuvpbcizvfola.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZibWZ0a3NtdXZwYmNpenZmb2xhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMDUyMDEsImV4cCI6MjA5Mjc4MTIwMX0.J20XCeZlACV_xToBthVtl3aOohj6NDI-pQSVFpy5lXo';
 
-async function loadChars() {
-  document.getElementById('status').textContent = 'Cargando fichas...';
+const HDR = { 'Content-Type':'application/json', 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}` };
+
+async function loadAll() {
+  document.getElementById('status').textContent = 'Cargando datos...';
   try {
-    const res = await fetch(
-      `${SUPA_URL}/rest/v1/characters?order=created_at.asc&select=*`,
-      { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
-    );
-    const chars = await res.json();
-
-    if (!chars.length) {
-      document.getElementById('status').textContent = 'No hay fichas aún. Los jugadores aún no han completado el formulario.';
-      document.getElementById('chars-grid').innerHTML = '';
-      return;
-    }
-
+    const [shipsRes, charsRes] = await Promise.all([
+      fetch(`${SUPA_URL}/rest/v1/ships?select=*&order=created_at.asc`, { headers: HDR }),
+      fetch(`${SUPA_URL}/rest/v1/characters?select=*&order=created_at.asc`, { headers: HDR }),
+    ]);
+    const ships = await shipsRes.json();
+    const chars = await charsRes.json();
+    renderAll(ships, chars);
+    const total = chars.length;
     document.getElementById('status').textContent =
-      `${chars.length} ficha${chars.length > 1 ? 's' : ''} registrada${chars.length > 1 ? 's' : ''} · Misión ALX-7734`;
-
-    document.getElementById('chars-grid').innerHTML = chars.map(c => `
-      <div class="char-card">
-        <div class="card-top">
-          <div>
-            <div class="card-name">${c.char_name}</div>
-            <div class="card-player">Jugador: ${c.player_name}</div>
-          </div>
-          <div class="card-class">${c.class}</div>
-        </div>
-
-        <div class="card-stats">
-          <div class="cs"><div class="cl">STR</div><div class="cv">${c.strength}</div></div>
-          <div class="cs"><div class="cl">SPD</div><div class="cv">${c.speed}</div></div>
-          <div class="cs"><div class="cl">INT</div><div class="cv">${c.intellect}</div></div>
-          <div class="cs"><div class="cl">COM</div><div class="cv">${c.combat}</div></div>
-        </div>
-
-        <div class="card-saves">
-          <div class="sv"><div class="sl">BODY</div><div class="sv2">${c.body_save}%</div></div>
-          <div class="sv"><div class="sl">FEAR</div><div class="sv2">${c.fear_save}%</div></div>
-          <div class="sv"><div class="sl">SANITY</div><div class="sv2">${c.sanity_save}%</div></div>
-        </div>
-
-        <div class="card-lists">
-          <div class="cl-sec">
-            <div class="cl-title">HABILIDADES</div>
-            <ul>${c.skills.map(s => `<li>${s}</li>`).join('')}</ul>
-          </div>
-          <div class="cl-sec">
-            <div class="cl-title">EQUIPO</div>
-            <ul>${c.equipment.map(e => `<li>${e}</li>`).join('')}</ul>
-          </div>
-        </div>
-
-        ${c.trinket ? `
-          <div class="card-trinket">
-            <div class="tl">OBJETO PERSONAL</div>
-            ${c.trinket}
-          </div>` : ''}
-
-        <div class="card-date">
-          Registrado: ${new Date(c.created_at).toLocaleString('es-ES')}
-        </div>
-      </div>
-    `).join('');
-
+      `${ships.length} nave${ships.length!==1?'s':''} · ${total} tripulante${total!==1?'s':''} registrado${total!==1?'s':''}`;
   } catch(e) {
-    document.getElementById('status').textContent = 'Error cargando fichas. Comprueba la conexión.';
+    document.getElementById('status').textContent = 'Error cargando datos.';
   }
 }
 
-loadChars();
+async function createShip() {
+  const name = document.getElementById('ship-name-inp').value.trim();
+  const description = document.getElementById('ship-desc-inp').value.trim();
+  if (!name) { alert('Introduce un nombre de nave.'); return; }
+  await fetch(`${SUPA_URL}/rest/v1/ships`, {
+    method: 'POST',
+    headers: { ...HDR, 'Prefer':'return=representation' },
+    body: JSON.stringify({ name, description })
+  });
+  document.getElementById('ship-name-inp').value = '';
+  document.getElementById('ship-desc-inp').value = '';
+  loadAll();
+}
+
+function renderAll(ships, chars) {
+  const container = document.getElementById('ships-container');
+
+  container.innerHTML = ships.map(ship => {
+    const crew = chars.filter(c => c.ship_id === ship.id);
+    return `
+      <div class="ship-section" id="ship-${ship.id}">
+        <div class="ship-section-header">
+          <div>
+            <div class="ship-section-name">${ship.name}</div>
+            ${ship.description ? `<div class="ship-section-desc">${ship.description}</div>` : ''}
+          </div>
+          <div style="text-align:right">
+            <div class="ship-crew-count">${crew.length} tripulante${crew.length!==1?'s':''}</div>
+            <div class="ship-section-meta">Registrada: ${new Date(ship.created_at).toLocaleString('es-ES')}</div>
+          </div>
+        </div>
+
+        <div class="ship-chars">
+          ${crew.length
+            ? `<div class="chars-subgrid">${crew.map(charCard).join('')}</div>`
+            : `<div class="ship-chars-empty">SIN TRIPULANTES ENROLADOS</div>`
+          }
+        </div>
+
+        <div class="ship-log">
+          <div class="log-head">
+            <div class="log-head-title">DIARIO DE ABORDO</div>
+            <div class="log-actions">
+              <button class="btn" onclick="toggleLogEdit('${ship.id}')">✎ EDITAR</button>
+              <button class="btn primary" onclick="saveLog('${ship.id}')">✓ GUARDAR</button>
+            </div>
+          </div>
+          <div id="log-preview-${ship.id}" class="log-preview">
+            ${ship.log_md
+              ? marked.parse(ship.log_md)
+              : '<span class="log-empty">Sin entradas aún. Pulsa EDITAR para escribir el diario de abordo en Markdown.</span>'}
+          </div>
+          <textarea id="log-editor-${ship.id}" class="log-editor">${ship.log_md || ''}</textarea>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Sin nave asignada
+  const unassigned = chars.filter(c => !c.ship_id);
+  const uSec = document.getElementById('unassigned-section');
+  if (unassigned.length) {
+    document.getElementById('unassigned-grid').innerHTML = unassigned.map(charCard).join('');
+    uSec.style.display = 'block';
+  } else {
+    uSec.style.display = 'none';
+  }
+}
+
+function toggleLogEdit(shipId) {
+  const preview = document.getElementById(`log-preview-${shipId}`);
+  const editor  = document.getElementById(`log-editor-${shipId}`);
+  const isEditing = editor.style.display !== 'none';
+  if (isEditing) {
+    // Volver a preview
+    const md = editor.value;
+    preview.innerHTML = md ? marked.parse(md) : '<span class="log-empty">Sin entradas aún.</span>';
+    editor.style.display = 'none';
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+    editor.style.display = 'block';
+    editor.focus();
+  }
+}
+
+async function saveLog(shipId) {
+  const editor  = document.getElementById(`log-editor-${shipId}`);
+  const preview = document.getElementById(`log-preview-${shipId}`);
+  const md = editor.value;
+
+  await fetch(`${SUPA_URL}/rest/v1/ships?id=eq.${shipId}`, {
+    method: 'PATCH',
+    headers: { ...HDR, 'Prefer':'return=minimal' },
+    body: JSON.stringify({ log_md: md })
+  });
+
+  // Actualizar preview y cerrar editor
+  preview.innerHTML = md ? marked.parse(md) : '<span class="log-empty">Sin entradas aún.</span>';
+  editor.style.display = 'none';
+  preview.style.display = 'block';
+
+  document.getElementById('status').textContent = `✓ Diario guardado · ${new Date().toLocaleTimeString('es-ES')}`;
+}
+
+function charCard(c) {
+  return `
+    <div class="char-card">
+      <div class="card-top">
+        <div>
+          <div class="card-name">${c.char_name}</div>
+          <div class="card-player">Jugador: ${c.player_name}</div>
+        </div>
+        <div class="card-class">${c.class}</div>
+      </div>
+      <div class="card-stats">
+        <div class="cs"><div class="cl">STR</div><div class="cv">${c.strength}</div></div>
+        <div class="cs"><div class="cl">SPD</div><div class="cv">${c.speed}</div></div>
+        <div class="cs"><div class="cl">INT</div><div class="cv">${c.intellect}</div></div>
+        <div class="cs"><div class="cl">COM</div><div class="cv">${c.combat}</div></div>
+      </div>
+      <div class="card-saves">
+        <div class="sv"><div class="sl">BODY</div><div class="sv2">${c.body_save}%</div></div>
+        <div class="sv"><div class="sl">FEAR</div><div class="sv2">${c.fear_save}%</div></div>
+        <div class="sv"><div class="sl">SANITY</div><div class="sv2">${c.sanity_save}%</div></div>
+      </div>
+      <div class="card-lists">
+        <div class="cl-sec">
+          <div class="cl-title">HABILIDADES</div>
+          <ul>${c.skills.map(s=>`<li>${s}</li>`).join('')}</ul>
+        </div>
+        <div class="cl-sec">
+          <div class="cl-title">EQUIPO</div>
+          <ul>${c.equipment.map(e=>`<li>${e}</li>`).join('')}</ul>
+        </div>
+      </div>
+      ${c.trinket ? `<div class="card-trinket"><div class="tl">OBJETO PERSONAL</div>${c.trinket}</div>` : ''}
+      <div class="card-date">Registrado: ${new Date(c.created_at).toLocaleString('es-ES')}</div>
+    </div>`;
+}
+
+loadAll();
 </script>
 </body>
 </html>

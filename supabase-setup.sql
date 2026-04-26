@@ -45,3 +45,26 @@ create policy "Cualquiera puede insertar"
 create policy "Cualquiera puede leer"
   on characters for select
   using (true);
+
+-- ── TABLA DE NAVES ────────────────────────────────────────────────────
+create table if not exists ships (
+  id          uuid default gen_random_uuid() primary key,
+  created_at  timestamptz default now(),
+  name        text not null,
+  description text default '',
+  log_md      text default ''
+);
+
+alter table ships enable row level security;
+
+create policy "Cualquiera puede leer naves"
+  on ships for select using (true);
+
+create policy "Cualquiera puede insertar naves"
+  on ships for insert with check (true);
+
+create policy "Cualquiera puede actualizar naves"
+  on ships for update using (true);
+
+-- Relacionar personajes con naves
+alter table characters add column if not exists ship_id uuid references ships(id);

@@ -155,17 +155,45 @@
     .gender-btn:hover { border-color:var(--dim); color:var(--green); }
     .gender-btn.selected { border-color:var(--green); color:var(--green); background:rgba(0,255,65,.07); box-shadow:0 0 10px rgba(0,255,65,.1); }
 
-    /* Retratos */
-    .portrait-grid { display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; }
-    .portrait-option {
-      width:120px; cursor:pointer; border:1px solid var(--border);
-      background:rgba(0,255,65,.01); transition:all .2s; padding:4px;
+    /* Retratos — carrusel */
+    .portrait-grid { display:flex; flex-direction:column; align-items:center; gap:.6rem; }
+    .portrait-carousel { display:flex; align-items:center; gap:1rem; }
+    .carousel-arrow {
+      background:transparent; border:1px solid var(--dim); color:var(--green);
+      font-size:1.1rem; padding:.55rem 1rem; cursor:pointer;
+      font-family:'Share Tech Mono',monospace; transition:all .2s; line-height:1;
     }
-    .portrait-option:hover { border-color:var(--dim); }
-    .portrait-option.selected { border-color:var(--green); box-shadow:0 0 12px rgba(0,255,65,.25); }
-    .portrait-option img { display:block; width:100%; height:120px; object-fit:cover; }
-    .portrait-placeholder { width:100%; height:120px; display:flex; align-items:center; justify-content:center; font-size:2rem; color:var(--border); }
-    .portrait-option .p-label { font-size:.55rem; letter-spacing:.2em; color:var(--dim); text-align:center; padding:.3rem 0; }
+    .carousel-arrow:hover { border-color:var(--green); box-shadow:0 0 8px rgba(0,255,65,.2); }
+    .carousel-frame {
+      width:180px; height:225px; border:1px solid var(--border);
+      overflow:hidden; position:relative; background:#000;
+    }
+    .carousel-frame img { display:block; width:100%; height:100%; object-fit:cover; }
+    .carousel-meta { display:flex; justify-content:space-between; width:180px; font-size:.6rem; letter-spacing:.2em; color:var(--dim); }
+
+    /* Selección de nave */
+    #ship-select { background:var(--black); }
+    .ship-sel-wrap { max-width:680px; width:100%; display:flex; flex-direction:column; align-items:center; gap:2rem; }
+    .ship-sel-title { font-family:'Orbitron',monospace; font-size:clamp(1rem,2.5vw,1.4rem); letter-spacing:.4em; color:var(--green); text-align:center; }
+    .ship-sel-sub { font-size:.7rem; letter-spacing:.3em; color:var(--dim); text-align:center; }
+    .ship-list { width:100%; display:flex; flex-direction:column; gap:.8rem; }
+    .ship-opt {
+      border:1px solid var(--border); padding:1.2rem 1.5rem;
+      cursor:pointer; transition:all .2s; background:transparent; text-align:left; width:100%;
+      font-family:'Share Tech Mono',monospace;
+    }
+    .ship-opt:hover { border-color:var(--dim); }
+    .ship-opt.selected { border-color:var(--green); box-shadow:0 0 12px rgba(0,255,65,.15); }
+    .ship-opt-name { font-family:'Orbitron',monospace; font-size:1rem; color:var(--green); }
+    .ship-opt-desc { font-size:.7rem; color:var(--dim); margin-top:.3rem; }
+    .ship-proceed {
+      padding:.7rem 2.5rem; border:1px solid var(--green); background:transparent;
+      color:var(--green); font-family:'Share Tech Mono',monospace; font-size:.85rem;
+      letter-spacing:.3em; cursor:pointer; transition:all .3s;
+    }
+    .ship-proceed:hover { background:rgba(0,255,65,.07); box-shadow:0 0 15px rgba(0,255,65,.2); }
+    .ship-proceed:disabled { opacity:.3; cursor:not-allowed; }
+    .ship-enrolled { font-size:.65rem; letter-spacing:.3em; color:var(--dim); border:1px solid var(--border); padding:.5rem 1rem; }
 
     /* Trasfondos */
     .bg-grid { display:flex; flex-direction:column; gap:.6rem; }
@@ -235,7 +263,8 @@
     .action-btn:hover, .action-btn.primary { border-color:var(--green); color:var(--green); }
     .action-btn.primary { text-shadow:0 0 6px var(--green); }
     .character-sheet { border:1px solid var(--border); background:rgba(0,255,65,.01); padding:2.5rem; position:relative; }
-    .character-sheet::before { content:'A.R.V. ALEXIS — FICHA DE TRIPULACIÓN'; position:absolute; top:-.7rem; left:1.5rem; font-size:.55rem; letter-spacing:.4em; color:var(--dim); background:var(--black); padding:0 .5rem; }
+    .character-sheet::before { content:'ARMACORP — FICHA DE TRIPULACIÓN'; position:absolute; top:-.7rem; left:1.5rem; font-size:.55rem; letter-spacing:.4em; color:var(--dim); background:var(--black); padding:0 .5rem; }
+    .cg-ship-badge { font-size:.65rem; letter-spacing:.35em; color:var(--dim); border:1px solid var(--border); padding:.4rem 1rem; text-align:center; margin-bottom:.5rem; }
     .sheet-top { display:grid; grid-template-columns:auto 1fr auto; gap:1.5rem; border-bottom:1px solid var(--border); padding-bottom:1.5rem; margin-bottom:1.5rem; align-items:start; }
     .sheet-portrait { width:90px; height:120px; border:1px solid var(--border); overflow:hidden; }
     .sheet-portrait img { display:block; width:100%; height:100%; object-fit:cover; }
@@ -345,10 +374,21 @@
   </div>
 </div>
 
+<!-- ══ SELECCIÓN DE NAVE ═══════════════════════════════════════════ -->
+<div id="ship-select" class="screen">
+  <div class="ship-sel-wrap">
+    <div class="ship-sel-title">SELECCIÓN DE NAVE</div>
+    <div class="ship-sel-sub">Elige la nave a la que deseas enrolarte</div>
+    <div class="ship-list" id="ship-list">Cargando naves disponibles...</div>
+    <button class="ship-proceed" id="ship-proceed-btn" onclick="proceedToChargen()" disabled>ENROLAR →</button>
+  </div>
+</div>
+
 <!-- ══ CHARGEN ══════════════════════════════════════════════════════ -->
 <div id="chargen" class="screen">
   <div class="chargen-wrap">
     <div class="chargen-title">GENERANDO PERFIL DE TRIPULACIÓN</div>
+    <div class="cg-ship-badge" id="cg-ship-badge">—</div>
 
     <!-- Clase -->
     <div class="class-result">
@@ -708,24 +748,69 @@ function labelFromPath(path) {
   return g === 'm' ? `SR. ${n}` : `SRA. ${n}`;
 }
 
-async function renderPortraits(cls) {
+async function renderPortraits(cls, gender) {
   const grid = document.getElementById('portrait-grid');
   grid.innerHTML = '<div style="color:var(--dim);font-size:.7rem;letter-spacing:.3em;padding:1rem">ESCANEANDO ARCHIVOS...</div>';
 
-  const results = await Promise.all(candidatePaths(cls).map(probeImage));
-  const found = results.filter(Boolean);
+  // Filtrar candidatos por género
+  const base = cls.toLowerCase();
+  let candidates = [];
+  if (cls === 'Android') {
+    candidates = Array.from({length:10}, (_,i) => `portraits/android-${i+1}.jpg`);
+  } else {
+    const gens = gender === 'N' ? ['m','f'] : [gender.toLowerCase()];
+    for (const g of gens)
+      for (let n = 1; n <= 10; n++)
+        candidates.push(`portraits/${base}-${g}-${n}.jpg`);
+  }
+
+  const results = await Promise.all(candidates.map(probeImage));
+  const found = results.filter(Boolean).map(p => ({path:p, label:labelFromPath(p)}));
 
   if (!found.length) {
     grid.innerHTML = '<div style="color:var(--dim);font-size:.7rem;letter-spacing:.2em;padding:1rem">SIN RETRATOS DISPONIBLES</div>';
     return;
   }
 
-  grid.innerHTML = found.map(path => `
-    <div class="portrait-option ${selectedPortraitKey===path?'selected':''}" onclick="selectPortrait('${path}',this)">
-      <img src="${path}" alt="${labelFromPath(path)}">
-      <div class="p-label">${labelFromPath(path)}</div>
+  portraitList = found;
+  portraitIndex = 0;
+  selectedPortraitKey = found[0].path;
+
+  grid.innerHTML = `
+    <div class="portrait-carousel">
+      <button class="carousel-arrow" onclick="prevPortrait()">◀</button>
+      <div class="carousel-frame"><img id="carousel-img" src="${found[0].path}" alt="${found[0].label}"></div>
+      <button class="carousel-arrow" onclick="nextPortrait()">▶</button>
     </div>
-  `).join('');
+    <div class="carousel-meta">
+      <span id="carousel-label">${found[0].label}</span>
+      <span id="carousel-counter">1 / ${found.length}</span>
+    </div>`;
+
+  // Auto-mostrar trasfondos al tener retrato
+  document.getElementById('bg-section').style.display = 'block';
+  renderBackgrounds(cls);
+  checkGenBtn();
+}
+
+function prevPortrait() {
+  if (!portraitList.length) return;
+  portraitIndex = (portraitIndex - 1 + portraitList.length) % portraitList.length;
+  updateCarousel();
+}
+
+function nextPortrait() {
+  if (!portraitList.length) return;
+  portraitIndex = (portraitIndex + 1) % portraitList.length;
+  updateCarousel();
+}
+
+function updateCarousel() {
+  const p = portraitList[portraitIndex];
+  selectedPortraitKey = p.path;
+  document.getElementById('carousel-img').src = p.path;
+  document.getElementById('carousel-label').textContent = p.label;
+  document.getElementById('carousel-counter').textContent = `${portraitIndex + 1} / ${portraitList.length}`;
 }
 
 
@@ -819,18 +904,58 @@ function selectOption(cls,idx){
 function finishQuiz(){
   const counts={Marine:0,Teamster:0,Scientist:0,Android:0};
   quizAnswers.forEach(c=>counts[c]++);
-  const cls=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
-  showScreen('chargen'); initChargen(cls);
+  determinedClass = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
+  showScreen('ship-select');
+  loadShips();
+}
+
+// ══ SELECCIÓN DE NAVE ════════════════════════════════════════════════
+let selectedShip = null, determinedClass = null;
+
+async function loadShips(){
+  const el = document.getElementById('ship-list');
+  el.innerHTML = '<div style="color:var(--dim);font-size:.7rem;letter-spacing:.3em">CONSULTANDO REGISTRO DE NAVES...</div>';
+  try {
+    const res = await fetch(`${SUPA_URL}/rest/v1/ships?select=*&order=created_at.asc`,
+      { headers:{ 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}` } });
+    const ships = await res.json();
+    if (!ships.length) {
+      el.innerHTML = '<div style="color:var(--dim);font-size:.75rem;letter-spacing:.2em;padding:1rem 0">NO HAY NAVES REGISTRADAS. EL GM DEBE CREAR UNA PRIMERO.</div>';
+      return;
+    }
+    el.innerHTML = ships.map(s=>`
+      <button class="ship-opt" onclick="selectShipOpt('${s.id}','${s.name.replace(/'/g,"\\'")}',this)">
+        <div class="ship-opt-name">${s.name}</div>
+        ${s.description ? `<div class="ship-opt-desc">${s.description}</div>` : ''}
+      </button>`).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="color:var(--dim)">ERROR AL CARGAR NAVES.</div>';
+  }
+}
+
+function selectShipOpt(id, name, el){
+  selectedShip = {id, name};
+  document.querySelectorAll('.ship-opt').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('ship-proceed-btn').disabled = false;
+}
+
+function proceedToChargen(){
+  if (!selectedShip) return;
+  showScreen('chargen');
+  initChargen(determinedClass);
 }
 
 // ══ CHARGEN ══════════════════════════════════════════════════════════
 let charData={}, selectedGender=null, selectedPortraitKey=null, selectedBackground=null;
+let portraitList=[], portraitIndex=0;
 
 function initChargen(cls){
   charData={class:cls, quizAnswers};
   selectedGender=null; selectedPortraitKey=null; selectedBackground=null;
   const info=CLASSES[cls];
 
+  document.getElementById('cg-ship-badge').textContent = selectedShip ? `ENROLADO EN: ${selectedShip.name}` : '—';
   document.getElementById('cg-class').textContent=cls.toUpperCase();
   document.getElementById('cg-class-desc').textContent=info.desc;
 
@@ -843,7 +968,7 @@ function initChargen(cls){
     selectedGender='A';
     document.getElementById('portrait-section').style.display='block';
     document.getElementById('bg-section').style.display='none';
-    renderPortraits(cls);
+    renderPortraits(cls, 'A');
   } else {
     document.getElementById('portrait-section').style.display='none';
     document.getElementById('bg-section').style.display='none';
@@ -866,7 +991,7 @@ function selectGender(g, btn){
   btn.classList.add('selected');
   document.getElementById('portrait-section').style.display='block';
   document.getElementById('bg-section').style.display='none';
-  renderPortraits(charData.class);
+  renderPortraits(charData.class, g);
   checkGenBtn();
 }
 
@@ -955,11 +1080,12 @@ async function generateSheet(){
     strength:charData.strength, speed:charData.speed, intellect:charData.intellect, combat:charData.combat,
     sanity_save:charData.sanity_save, fear_save:charData.fear_save, body_save:charData.body_save,
     max_stress:20, skills:info.skills, equipment:info.equipment, trinket, quiz_answers:charData.quizAnswers,
+    ship_id: selectedShip?.id || null,
   };
 
   try { await supaInsert(record); } catch(e){ console.warn('Supabase error:',e); }
 
-  renderSheet({...record, background:bg, portraitPath: selectedPortraitKey||'', genderLabel});
+  renderSheet({...record, background:bg, portraitPath: selectedPortraitKey||'', genderLabel, shipName: selectedShip?.name || ''});
   showScreen('sheet');
 }
 
@@ -970,7 +1096,7 @@ function renderSheet(r){
       <div class="sheet-portrait"><img src="${r.portraitPath}" alt="Retrato" onerror="this.parentNode.style.opacity='.15'"></div>
       <div class="sheet-identity">
         <div class="char-name">${r.genderLabel} ${r.char_name}</div>
-        <div class="char-class">${r.class.toUpperCase()} — A.R.V. ALEXIS</div>
+        <div class="char-class">${r.class.toUpperCase()}${r.shipName ? ' — ' + r.shipName : ''}</div>
         <div class="char-player">Jugador: ${r.player_name}</div>
         <div class="char-bg">${r.background}</div>
       </div>
