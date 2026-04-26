@@ -338,7 +338,7 @@
     .sheet-stat { border:1px solid var(--border); padding:.8rem; text-align:center; }
     .sheet-stat .s-label { font-size:.55rem; letter-spacing:.3em; color:var(--dim); margin-bottom:.4rem; }
     .sheet-stat .s-val { font-family:'Orbitron',monospace; font-size:1.8rem; color:var(--green); }
-    .sheet-saves-row { display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; margin-bottom:1.5rem; }
+    .sheet-saves-row { display:grid; grid-template-columns:repeat(4,1fr); gap:.8rem; margin-bottom:1.5rem; }
     .sheet-save { border:1px solid var(--border); padding:.7rem; text-align:center; }
     .sheet-save .sv-label { font-size:.55rem; letter-spacing:.3em; color:var(--dim); margin-bottom:.3rem; }
     .sheet-save .sv-val { font-family:'Orbitron',monospace; font-size:1.4rem; color:var(--amber); }
@@ -350,19 +350,144 @@
     .stress-track { grid-column:1/-1; border:1px solid var(--border); padding:1rem; }
     .stress-boxes { display:flex; flex-wrap:wrap; gap:.3rem; margin-top:.6rem; }
     .stress-box { width:22px; height:22px; border:1px solid var(--border); font-size:.6rem; display:flex; align-items:center; justify-content:center; color:var(--dim); }
-    .trinket-box { grid-column:1/-1; border:1px solid var(--border); padding:.8rem 1rem; font-size:.8rem; color:rgba(0,255,65,.6); }
+    .trinket-box { border:1px solid var(--border); padding:.8rem 1rem; font-size:.8rem; color:rgba(0,255,65,.6); }
     .trinket-box .sec-title { font-size:.55rem; letter-spacing:.4em; color:var(--dim); margin-bottom:.4rem; }
+    .armor-save { border-color:#ff8c00 !important; }
+    .armor-save .sv-label { color:#ff8c00 !important; }
+    .armor-save .sv-val { color:#ff8c00 !important; }
+    .skill-t { color:var(--green); font-size:.65em; }
+    .skill-e { color:#00ccff; font-size:.65em; }
+    .skill-m { color:#ff8c00; font-size:.65em; }
+    .print-header { display:none; }
     .sheet-special-rule { font-size:.72rem; color:#00ccff; padding:.5rem .9rem; border-left:2px solid #00ccff; background:rgba(0,204,255,.04); margin:.8rem 0; line-height:1.6; letter-spacing:.04em; }
 
     /* ── PRINT ────────────────────────────────────────────────────── */
     @media print {
+      @page { size: A4 portrait; margin: 11mm 13mm; }
+
+      /* Ocultar todo excepto la ficha */
       body::after, .sheet-actions { display:none !important; }
       #splash,#ship-select,#recruitment,#quiz,#chargen { display:none !important; }
-      #sheet { display:block !important; padding:0; }
-      .screen { display:block; }
-      body { background:white; color:black; }
-      .character-sheet { border-color:#ccc; background:white; }
-      :root { --green:#007700; --dim:#555; --border:#ccc; --amber:#996600; --black:white; --white:black; }
+      .screen { display:none !important; }
+      #sheet { display:block !important; padding:0 !important; background:white !important; }
+
+      body { background:white !important; color:black !important; margin:0; }
+
+      /* Evitar saltos de página inesperados */
+      .character-sheet, .sheet-bottom, .sheet-section { page-break-inside:avoid; }
+
+      /* ── LOGO HEADER ── */
+      .print-header {
+        display:flex !important;
+        justify-content:space-between;
+        align-items:flex-end;
+        border-bottom:2pt solid black;
+        padding-bottom:2.5mm;
+        margin-bottom:3.5mm;
+      }
+      .print-logo {
+        font-family:'Orbitron',sans-serif;
+        font-size:20pt;
+        font-weight:900;
+        color:black;
+        letter-spacing:5pt;
+        line-height:1;
+      }
+      .print-logo-sub {
+        font-family:'Share Tech Mono',monospace;
+        font-size:6pt;
+        color:#555;
+        letter-spacing:2pt;
+        display:block;
+        margin-top:1mm;
+      }
+      .print-doc-title {
+        font-family:'Share Tech Mono',monospace;
+        font-size:7pt;
+        color:#333;
+        letter-spacing:3pt;
+        text-align:right;
+      }
+
+      /* ── CONTENEDOR FICHA ── */
+      .sheet-wrap { max-width:100% !important; }
+      .character-sheet {
+        border:1pt solid black !important;
+        background:white !important;
+        padding:4mm 5mm !important;
+        position:relative;
+      }
+      .character-sheet::before { display:none !important; }
+
+      /* ── CABECERA ── */
+      .sheet-top {
+        grid-template-columns:72pt 1fr auto !important;
+        gap:3mm !important;
+        padding-bottom:3mm !important;
+        margin-bottom:3mm !important;
+        border-bottom:0.5pt solid #888 !important;
+      }
+      .sheet-portrait { width:72pt !important; height:96pt !important; border:0.5pt solid black !important; }
+      .sheet-portrait img { filter:grayscale(1) contrast(1.1) !important; }
+      .sheet-identity .char-name { font-size:15pt !important; color:black !important; text-shadow:none !important; }
+      .sheet-identity .char-class { font-size:7pt !important; color:#444 !important; margin-top:1mm !important; }
+      .sheet-identity .char-player { font-size:6.5pt !important; color:#555 !important; }
+      .sheet-identity .char-bg { font-size:7.5pt !important; color:#333 !important; border-left:1.5pt solid black !important; padding-left:2mm !important; margin-top:2mm !important; line-height:1.45 !important; }
+      .sheet-class-badge { border:0.5pt solid black !important; padding:2mm 3mm !important; min-width:auto !important; }
+      .sheet-class-badge .badge-label { font-size:5.5pt !important; color:#555 !important; }
+      .sheet-class-badge .badge-class { font-size:9pt !important; color:black !important; }
+      .sheet-class-badge .badge-gender { font-size:6pt !important; color:#555 !important; }
+
+      /* ── SECTION LABELS ── */
+      .section-label { font-size:6pt !important; color:#444 !important; letter-spacing:3pt !important; margin-bottom:2mm !important; margin-top:2mm !important; }
+      .section-label span { display:none !important; }
+
+      /* ── STATS ── */
+      .sheet-stats-row { gap:2mm !important; margin-bottom:2.5mm !important; }
+      .sheet-stat { border:0.5pt solid black !important; padding:1.5mm 2mm !important; }
+      .sheet-stat .s-label { font-size:5.5pt !important; color:#555 !important; margin-bottom:1mm !important; }
+      .sheet-stat .s-val { font-size:19pt !important; color:black !important; }
+
+      /* ── SAVES (4 columnas) ── */
+      .sheet-saves-row { gap:2mm !important; margin-bottom:2.5mm !important; }
+      .sheet-save { border:0.5pt solid black !important; padding:1.5mm 2mm !important; }
+      .sheet-save .sv-label { font-size:5.5pt !important; color:#555 !important; margin-bottom:1mm !important; }
+      .sheet-save .sv-val { font-size:16pt !important; color:black !important; }
+      .armor-save { border:0.5pt solid black !important; }
+      .armor-save .sv-label { color:#333 !important; }
+      .armor-save .sv-val { color:black !important; }
+
+      /* ── REGLA ESPECIAL ── */
+      .sheet-special-rule {
+        color:black !important;
+        background:none !important;
+        border-left:2pt solid black !important;
+        font-size:7pt !important;
+        padding:1.5mm 3mm !important;
+        margin:2mm 0 !important;
+        line-height:1.5 !important;
+      }
+
+      /* ── SECCIÓN INFERIOR ── */
+      .sheet-bottom { gap:2.5mm !important; }
+      .sheet-section { border:0.5pt solid black !important; padding:2.5mm 3mm !important; }
+      .sheet-section .sec-title { font-size:5.5pt !important; color:#444 !important; border-bottom:0.5pt solid #aaa !important; padding-bottom:1mm !important; margin-bottom:1.5mm !important; }
+      .sheet-section ul { font-size:7.5pt !important; color:black !important; line-height:1.65 !important; }
+      .sheet-section ul li::before { color:black !important; }
+      .skill-t, .skill-e, .skill-m { color:#333 !important; font-size:.65em; }
+
+      /* ── BARATIJA Y PARCHE ── */
+      .trinket-box { border:0.5pt solid black !important; padding:2mm 3mm !important; font-size:7.5pt !important; color:black !important; }
+      .trinket-box .sec-title { font-size:5.5pt !important; color:#444 !important; margin-bottom:1mm !important; }
+
+      /* ── ESTRÉS ── */
+      .stress-track { border:0.5pt solid black !important; padding:2.5mm 3mm !important; }
+      .stress-boxes { gap:1.5mm !important; margin-top:2mm !important; }
+      .stress-box { width:14pt !important; height:14pt !important; border:0.5pt solid black !important; font-size:5pt !important; color:#666 !important; }
+      .stress-track .sec-title { color:#444 !important; }
+      /* Créditos en estrés */
+      .stress-track div[style] { color:black !important; }
+      .stress-track span[style] { color:black !important; }
     }
   </style>
 </head>
@@ -1757,6 +1882,13 @@ async function generateSheet(){
 function renderSheet(r){
   const stressBoxes=Array.from({length:20},(_,i)=>`<div class="stress-box">${i+1}</div>`).join('');
   document.getElementById('char-sheet-render').innerHTML=`
+    <div class="print-header">
+      <div>
+        <div class="print-logo">MOTHERSHIP</div>
+        <div class="print-logo-sub">SCI-FI HORROR ROLEPLAYING GAME · 0E EDITION</div>
+      </div>
+      <div class="print-doc-title">FICHA DE TRIPULACIÓN</div>
+    </div>
     <div class="sheet-top">
       <div class="sheet-portrait"><img src="${r.portraitPath}" alt="Retrato" onerror="this.parentNode.style.opacity='.15'"></div>
       <div class="sheet-identity">
@@ -1785,7 +1917,7 @@ function renderSheet(r){
       <div class="sheet-save"><div class="sv-label">CUERPO</div><div class="sv-val">${r.body_save}%</div></div>
       <div class="sheet-save"><div class="sv-label">MIEDO</div><div class="sv-val">${r.fear_save}%</div></div>
       <div class="sheet-save"><div class="sv-label">CORDURA</div><div class="sv-val">${r.sanity_save}%</div></div>
-      <div class="sheet-save" style="border-color:#ff8c00"><div class="sv-label" style="color:#ff8c00">ARMADURA</div><div class="sv-val" style="color:#ff8c00">${r.armor_save}%</div></div>
+      <div class="sheet-save armor-save"><div class="sv-label">ARMADURA</div><div class="sv-val">${r.armor_save}%</div></div>
     </div>
 
     <div class="sheet-special-rule">◆ ${r.specialRule}</div>
@@ -1794,9 +1926,9 @@ function renderSheet(r){
       <div class="sheet-section"><div class="sec-title">HABILIDADES</div><ul>${r.skills.map(s=>{
         const m=s.match(/^(.*)\s\[(APRENDIZ|EXPERTO|MAESTRO)\]$/);
         if(!m) return `<li>${s}</li>`;
-        const colors={APRENDIZ:'#00ff41',EXPERTO:'#00ccff',MAESTRO:'#ff8c00'};
+        const tierClass={APRENDIZ:'skill-t',EXPERTO:'skill-e',MAESTRO:'skill-m'};
         const bonuses={APRENDIZ:'+10%',EXPERTO:'+15%',MAESTRO:'+20%'};
-        return `<li>${m[1]} <span style="color:${colors[m[2]]};font-size:.65em">${m[2]} ${bonuses[m[2]]}</span></li>`;
+        return `<li>${m[1]} <span class="${tierClass[m[2]]}">${m[2]} ${bonuses[m[2]]}</span></li>`;
       }).join('')}</ul></div>
       <div class="sheet-section"><div class="sec-title">EQUIPO INICIAL</div><ul>${r.equipment.map(e=>`<li>${e}</li>`).join('')}</ul></div>
       <div class="trinket-box"><div class="sec-title">BARATIJA PERSONAL</div>${r.trinket}</div>
