@@ -7,18 +7,15 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
 
-    /* ── RESET & BASE ─────────────────────────────────────────────── */
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --green:   #00ff41;
-      --dim:     #00aa2a;
-      --dark:    #001a05;
-      --black:   #000;
-      --red:     #ff2200;
-      --amber:   #ffb300;
-      --white:   #e8ffe8;
-      --border:  #003a10;
+      --green:  #00ff41;
+      --dim:    #00aa2a;
+      --black:  #000;
+      --amber:  #ffb300;
+      --white:  #e8ffe8;
+      --border: #003a10;
     }
 
     html, body {
@@ -29,803 +26,254 @@
       overflow-x: hidden;
     }
 
-    /* Scanlines globales */
     body::after {
       content: '';
       position: fixed; inset: 0;
-      background: repeating-linear-gradient(
-        to bottom,
-        transparent 0px, transparent 3px,
-        rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px
-      );
+      background: repeating-linear-gradient(to bottom, transparent 0px, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px);
       pointer-events: none;
       z-index: 9999;
     }
 
-    /* ── PANTALLAS ────────────────────────────────────────────────── */
     .screen {
-      display: none;
-      min-height: 100vh;
-      padding: 2rem;
+      display: none; min-height: 100vh; padding: 2rem;
       animation: fadeIn 0.6s ease;
     }
     .screen.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeIn  { from{opacity:0} to{opacity:1} }
+    @keyframes rotate  { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    @keyframes flicker { 0%,95%,100%{opacity:1} 96%{opacity:.7} 97%{opacity:1} 98%{opacity:.5} 99%{opacity:1} }
+    @keyframes roll    { 0%{opacity:.3} 50%{opacity:1} 100%{opacity:.3} }
+    @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:.5} }
 
     /* ── SPLASH ───────────────────────────────────────────────────── */
     #splash {
       background: radial-gradient(ellipse at center, #001a05 0%, #000 70%);
-      text-align: center;
-      gap: 2rem;
+      text-align: center; gap: 2rem;
     }
-
-    .logo-container {
-      position: relative;
-      margin-bottom: 1rem;
-    }
-
     .logo-ring {
-      width: 200px; height: 200px;
-      border: 2px solid var(--green);
-      border-radius: 50%;
-      margin: 0 auto;
-      display: flex; align-items: center; justify-content: center;
-      position: relative;
-      box-shadow: 0 0 30px rgba(0,255,65,0.3), inset 0 0 30px rgba(0,255,65,0.05);
-      animation: rotate 20s linear infinite;
+      width:200px; height:200px; border:2px solid var(--green); border-radius:50%;
+      margin:0 auto; display:flex; align-items:center; justify-content:center;
+      position:relative; box-shadow:0 0 30px rgba(0,255,65,.3),inset 0 0 30px rgba(0,255,65,.05);
+      animation:rotate 20s linear infinite;
     }
-
     .logo-ring::before {
-      content: '';
-      position: absolute;
-      width: 220px; height: 220px;
-      border: 1px solid rgba(0,255,65,0.2);
-      border-radius: 50%;
-      animation: rotate 15s linear infinite reverse;
+      content:''; position:absolute; width:220px; height:220px;
+      border:1px solid rgba(0,255,65,.2); border-radius:50%;
+      animation:rotate 15s linear infinite reverse;
     }
-
-    .logo-ring::after {
-      content: '';
-      position: absolute;
-      width: 180px; height: 180px;
-      border: 1px dashed rgba(0,255,65,0.15);
-      border-radius: 50%;
-    }
-
     .logo-m {
-      font-family: 'Orbitron', monospace;
-      font-size: 5rem;
-      font-weight: 900;
-      color: var(--green);
-      text-shadow: 0 0 20px var(--green), 0 0 40px rgba(0,255,65,0.5);
-      animation: flicker 4s infinite;
-      z-index: 1;
+      font-family:'Orbitron',monospace; font-size:5rem; font-weight:900;
+      color:var(--green); text-shadow:0 0 20px var(--green),0 0 40px rgba(0,255,65,.5);
+      animation:flicker 4s infinite; z-index:1;
     }
-
-    .logo-title {
-      font-family: 'Orbitron', monospace;
-      font-size: clamp(1rem, 3vw, 1.8rem);
-      letter-spacing: 0.5em;
-      color: var(--dim);
-      text-shadow: 0 0 10px var(--dim);
-      margin-top: 0.5rem;
-    }
-
-    .logo-subtitle {
-      font-size: 0.7rem;
-      letter-spacing: 0.3em;
-      color: rgba(0,255,65,0.4);
-      margin-top: 0.3rem;
-    }
-
-    .mission-date {
-      border: 1px solid var(--border);
-      padding: 1rem 2rem;
-      text-align: center;
-      background: rgba(0,255,65,0.03);
-    }
-
-    .mission-date .label {
-      font-size: 0.65rem;
-      letter-spacing: 0.5em;
-      color: var(--dim);
-      margin-bottom: 0.4rem;
-    }
-
-    .mission-date .date {
-      font-family: 'Orbitron', monospace;
-      font-size: clamp(1.2rem, 3vw, 2rem);
-      color: var(--green);
-      text-shadow: 0 0 10px var(--green);
-    }
-
-    .mission-date .time {
-      font-size: 0.8rem;
-      color: var(--dim);
-      margin-top: 0.2rem;
-      letter-spacing: 0.3em;
-    }
-
+    .logo-title { font-family:'Orbitron',monospace; font-size:clamp(1rem,3vw,1.8rem); letter-spacing:.5em; color:var(--dim); text-shadow:0 0 10px var(--dim); margin-top:.5rem; }
+    .logo-subtitle { font-size:.7rem; letter-spacing:.3em; color:rgba(0,255,65,.4); margin-top:.3rem; }
+    .mission-date { border:1px solid var(--border); padding:1rem 2rem; text-align:center; background:rgba(0,255,65,.03); }
+    .mission-date .label { font-size:.65rem; letter-spacing:.5em; color:var(--dim); margin-bottom:.4rem; }
+    .mission-date .date { font-family:'Orbitron',monospace; font-size:clamp(1.2rem,3vw,2rem); color:var(--green); text-shadow:0 0 10px var(--green); }
+    .mission-date .time { font-size:.8rem; color:var(--dim); margin-top:.2rem; letter-spacing:.3em; }
     .splash-btn {
-      margin-top: 1rem;
-      padding: 0.8rem 3rem;
-      border: 1px solid var(--green);
-      background: transparent;
-      color: var(--green);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.9rem;
-      letter-spacing: 0.3em;
-      cursor: pointer;
-      text-transform: uppercase;
-      transition: all 0.3s;
-      text-shadow: 0 0 6px var(--green);
-      box-shadow: 0 0 10px rgba(0,255,65,0.1);
+      margin-top:1rem; padding:.8rem 3rem; border:1px solid var(--green);
+      background:transparent; color:var(--green); font-family:'Share Tech Mono',monospace;
+      font-size:.9rem; letter-spacing:.3em; cursor:pointer; text-shadow:0 0 6px var(--green);
+      transition:all .3s;
     }
-    .splash-btn:hover {
-      background: rgba(0,255,65,0.08);
-      box-shadow: 0 0 20px rgba(0,255,65,0.3);
-    }
+    .splash-btn:hover { background:rgba(0,255,65,.08); box-shadow:0 0 20px rgba(0,255,65,.3); }
+    .splash-warning { font-size:.6rem; color:rgba(0,255,65,.25); letter-spacing:.2em; max-width:400px; text-align:center; line-height:1.8; }
 
-    .splash-warning {
-      font-size: 0.6rem;
-      color: rgba(0,255,65,0.25);
-      letter-spacing: 0.2em;
-      max-width: 400px;
-      text-align: center;
-      line-height: 1.8;
-    }
-
-    /* ── ANUNCIO CORPORATIVO ──────────────────────────────────────── */
-    #recruitment {
-      background: var(--black);
-      align-items: flex-start;
-      padding: 3rem 2rem;
-    }
-
+    /* ── CORPORATIVO ──────────────────────────────────────────────── */
+    #recruitment { background:var(--black); align-items:flex-start; padding:3rem 2rem; }
     .corp-doc {
-      max-width: 800px;
-      width: 100%;
-      margin: 0 auto;
-      border: 1px solid var(--border);
-      padding: 3rem;
-      background: rgba(0,255,65,0.015);
-      position: relative;
+      max-width:800px; width:100%; margin:0 auto; border:1px solid var(--border);
+      padding:3rem; background:rgba(0,255,65,.015); position:relative;
     }
-
     .corp-doc::before {
-      content: 'DOCUMENTO CLASIFICADO — USO INTERNO';
-      position: absolute;
-      top: -0.7rem; left: 2rem;
-      font-size: 0.6rem;
-      letter-spacing: 0.4em;
-      color: var(--dim);
-      background: var(--black);
-      padding: 0 0.5rem;
+      content:'DOCUMENTO CLASIFICADO — USO INTERNO'; position:absolute;
+      top:-.7rem; left:2rem; font-size:.6rem; letter-spacing:.4em; color:var(--dim);
+      background:var(--black); padding:0 .5rem;
     }
-
-    .corp-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 1.5rem;
-      margin-bottom: 2rem;
-      gap: 2rem;
-    }
-
-    .corp-name {
-      font-family: 'Orbitron', monospace;
-      font-size: clamp(1.2rem, 3vw, 2rem);
-      font-weight: 700;
-      color: var(--green);
-      text-shadow: 0 0 10px rgba(0,255,65,0.4);
-    }
-
-    .corp-name span {
-      display: block;
-      font-size: 0.6rem;
-      letter-spacing: 0.4em;
-      color: var(--dim);
-      font-family: 'Share Tech Mono', monospace;
-      font-weight: 400;
-      margin-top: 0.2rem;
-    }
-
-    .corp-meta {
-      text-align: right;
-      font-size: 0.65rem;
-      color: var(--dim);
-      line-height: 1.8;
-    }
-
-    .corp-meta strong { color: var(--green); }
-
-    .doc-title {
-      font-family: 'Orbitron', monospace;
-      font-size: clamp(1rem, 2.5vw, 1.5rem);
-      color: var(--green);
-      text-align: center;
-      margin-bottom: 0.5rem;
-      letter-spacing: 0.2em;
-    }
-
-    .doc-ref {
-      text-align: center;
-      font-size: 0.65rem;
-      color: var(--dim);
-      letter-spacing: 0.3em;
-      margin-bottom: 2rem;
-    }
-
-    .doc-body {
-      font-size: 0.9rem;
-      color: rgba(0,255,65,0.75);
-      line-height: 2;
-      margin-bottom: 1.5rem;
-    }
-
-    .doc-body p { margin-bottom: 1rem; }
-
-    .doc-requirements {
-      border: 1px solid var(--border);
-      padding: 1.5rem;
-      margin: 1.5rem 0;
-      background: rgba(0,0,0,0.3);
-    }
-
-    .doc-requirements .req-title {
-      font-size: 0.65rem;
-      letter-spacing: 0.4em;
-      color: var(--dim);
-      margin-bottom: 1rem;
-    }
-
-    .doc-requirements ul {
-      list-style: none;
-      font-size: 0.85rem;
-      color: rgba(0,255,65,0.7);
-      line-height: 2;
-    }
-
-    .doc-requirements ul li::before { content: '▸ '; color: var(--green); }
-
-    .doc-fine-print {
-      font-size: 0.6rem;
-      color: rgba(0,255,65,0.25);
-      line-height: 1.8;
-      border-top: 1px solid var(--border);
-      padding-top: 1rem;
-      margin-top: 1rem;
-    }
-
+    .corp-header { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border); padding-bottom:1.5rem; margin-bottom:2rem; gap:2rem; }
+    .corp-name { font-family:'Orbitron',monospace; font-size:clamp(1.2rem,3vw,2rem); font-weight:700; color:var(--green); text-shadow:0 0 10px rgba(0,255,65,.4); }
+    .corp-name span { display:block; font-size:.6rem; letter-spacing:.4em; color:var(--dim); font-family:'Share Tech Mono',monospace; font-weight:400; margin-top:.2rem; }
+    .corp-meta { text-align:right; font-size:.65rem; color:var(--dim); line-height:1.8; }
+    .corp-meta strong { color:var(--green); }
+    .doc-title { font-family:'Orbitron',monospace; font-size:clamp(1rem,2.5vw,1.5rem); color:var(--green); text-align:center; margin-bottom:.5rem; letter-spacing:.2em; }
+    .doc-ref { text-align:center; font-size:.65rem; color:var(--dim); letter-spacing:.3em; margin-bottom:2rem; }
+    .doc-body { font-size:.9rem; color:rgba(0,255,65,.75); line-height:2; margin-bottom:1.5rem; }
+    .doc-body p { margin-bottom:1rem; }
+    .doc-requirements { border:1px solid var(--border); padding:1.5rem; margin:1.5rem 0; background:rgba(0,0,0,.3); }
+    .doc-requirements .req-title { font-size:.65rem; letter-spacing:.4em; color:var(--dim); margin-bottom:1rem; }
+    .doc-requirements ul { list-style:none; font-size:.85rem; color:rgba(0,255,65,.7); line-height:2; }
+    .doc-requirements ul li::before { content:'▸ '; color:var(--green); }
+    .doc-fine-print { font-size:.6rem; color:rgba(0,255,65,.25); line-height:1.8; border-top:1px solid var(--border); padding-top:1rem; margin-top:1rem; }
     .corp-btn {
-      display: block;
-      width: 100%;
-      margin-top: 2rem;
-      padding: 1rem;
-      border: 1px solid var(--green);
-      background: transparent;
-      color: var(--green);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.9rem;
-      letter-spacing: 0.3em;
-      cursor: pointer;
-      text-shadow: 0 0 6px var(--green);
-      transition: all 0.3s;
+      display:block; width:100%; margin-top:2rem; padding:1rem; border:1px solid var(--green);
+      background:transparent; color:var(--green); font-family:'Share Tech Mono',monospace;
+      font-size:.9rem; letter-spacing:.3em; cursor:pointer; text-shadow:0 0 6px var(--green); transition:all .3s;
     }
-    .corp-btn:hover { background: rgba(0,255,65,0.06); box-shadow: 0 0 20px rgba(0,255,65,0.2); }
+    .corp-btn:hover { background:rgba(0,255,65,.06); box-shadow:0 0 20px rgba(0,255,65,.2); }
 
     /* ── CUESTIONARIO ─────────────────────────────────────────────── */
-    #quiz {
-      background: var(--black);
-      padding: 3rem 2rem;
-      align-items: flex-start;
-    }
+    #quiz { background:var(--black); padding:3rem 2rem; align-items:flex-start; }
+    .quiz-wrap { max-width:700px; width:100%; margin:0 auto; }
+    .quiz-header { margin-bottom:2rem; border-bottom:1px solid var(--border); padding-bottom:1rem; }
+    .quiz-header h2 { font-family:'Orbitron',monospace; font-size:1rem; color:var(--green); letter-spacing:.3em; }
+    .quiz-progress { margin-top:.8rem; display:flex; gap:.3rem; }
+    .quiz-progress .dot { width:20px; height:4px; background:var(--border); transition:background .3s; }
+    .quiz-progress .dot.done { background:var(--green); box-shadow:0 0 6px var(--green); }
+    .quiz-progress .dot.active { background:var(--dim); }
+    .question-block { animation:fadeIn .4s ease; }
+    .question-num { font-size:.65rem; letter-spacing:.4em; color:var(--dim); margin-bottom:.5rem; }
+    .question-text { font-size:clamp(.95rem,2vw,1.15rem); color:var(--white); line-height:1.7; margin-bottom:1.5rem; text-shadow:0 0 4px rgba(0,255,65,.3); }
+    .options { display:flex; flex-direction:column; gap:.8rem; }
+    .option { padding:1rem 1.2rem; border:1px solid var(--border); background:transparent; color:rgba(0,255,65,.7); font-family:'Share Tech Mono',monospace; font-size:.85rem; line-height:1.5; cursor:pointer; text-align:left; transition:all .2s; }
+    .option::before { content:'[ ] '; color:var(--dim); }
+    .option:hover { border-color:var(--green); color:var(--green); background:rgba(0,255,65,.04); }
+    .option:hover::before { content:'[×] '; color:var(--green); }
+    .option.selected { border-color:var(--green); color:var(--green); background:rgba(0,255,65,.07); box-shadow:0 0 10px rgba(0,255,65,.1); }
+    .option.selected::before { content:'[✓] '; color:var(--green); }
 
-    .quiz-wrap {
-      max-width: 700px;
-      width: 100%;
-      margin: 0 auto;
-    }
+    /* ── CHARGEN ──────────────────────────────────────────────────── */
+    #chargen { background:var(--black); padding:3rem 2rem; }
+    .chargen-wrap { max-width:700px; width:100%; margin:0 auto; display:flex; flex-direction:column; gap:2rem; }
+    .chargen-title { font-family:'Orbitron',monospace; font-size:clamp(1rem,2.5vw,1.4rem); color:var(--green); letter-spacing:.3em; text-align:center; }
+    .section-label { font-size:.65rem; letter-spacing:.4em; color:var(--dim); margin-bottom:.8rem; }
 
-    .quiz-header {
-      margin-bottom: 2rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 1rem;
-    }
+    .class-result { border:1px solid var(--green); padding:1.5rem; text-align:center; background:rgba(0,255,65,.04); box-shadow:0 0 20px rgba(0,255,65,.1); }
+    .class-result .class-label { font-size:.65rem; letter-spacing:.5em; color:var(--dim); margin-bottom:.5rem; }
+    .class-result .class-name { font-family:'Orbitron',monospace; font-size:clamp(1.5rem,4vw,2.5rem); font-weight:700; color:var(--green); text-shadow:0 0 20px var(--green); }
+    .class-result .class-desc { font-size:.8rem; color:var(--dim); margin-top:.5rem; line-height:1.6; }
 
-    .quiz-header h2 {
-      font-family: 'Orbitron', monospace;
-      font-size: 1rem;
-      color: var(--green);
-      letter-spacing: 0.3em;
+    /* Género */
+    .gender-row { display:flex; gap:1rem; flex-wrap:wrap; }
+    .gender-btn {
+      flex:1; min-width:100px; padding:.8rem; border:1px solid var(--border);
+      background:transparent; color:rgba(0,255,65,.6); font-family:'Share Tech Mono',monospace;
+      font-size:.85rem; letter-spacing:.2em; cursor:pointer; transition:all .2s; text-align:center;
     }
+    .gender-btn:hover { border-color:var(--dim); color:var(--green); }
+    .gender-btn.selected { border-color:var(--green); color:var(--green); background:rgba(0,255,65,.07); box-shadow:0 0 10px rgba(0,255,65,.1); }
 
-    .quiz-progress {
-      margin-top: 0.8rem;
-      display: flex;
-      gap: 0.3rem;
+    /* Retratos */
+    .portrait-grid { display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; }
+    .portrait-option {
+      width:120px; cursor:pointer; border:1px solid var(--border);
+      background:rgba(0,255,65,.01); transition:all .2s; padding:4px;
     }
+    .portrait-option:hover { border-color:var(--dim); }
+    .portrait-option.selected { border-color:var(--green); box-shadow:0 0 12px rgba(0,255,65,.25); }
+    .portrait-option svg { display:block; width:100%; }
+    .portrait-option .p-label { font-size:.55rem; letter-spacing:.2em; color:var(--dim); text-align:center; padding:.3rem 0; }
 
-    .quiz-progress .dot {
-      width: 20px; height: 4px;
-      background: var(--border);
-      transition: background 0.3s;
+    /* Trasfondos */
+    .bg-grid { display:flex; flex-direction:column; gap:.6rem; }
+    .bg-random-btn {
+      padding:.6rem 1.5rem; border:1px solid var(--dim); background:transparent;
+      color:var(--dim); font-family:'Share Tech Mono',monospace; font-size:.75rem;
+      letter-spacing:.2em; cursor:pointer; transition:all .2s; margin-bottom:.5rem; align-self:flex-start;
     }
-    .quiz-progress .dot.done { background: var(--green); box-shadow: 0 0 6px var(--green); }
-    .quiz-progress .dot.active { background: var(--dim); }
-
-    .question-block { animation: fadeIn 0.4s ease; }
-
-    .question-num {
-      font-size: 0.65rem;
-      letter-spacing: 0.4em;
-      color: var(--dim);
-      margin-bottom: 0.5rem;
+    .bg-random-btn:hover { border-color:var(--green); color:var(--green); }
+    .bg-card {
+      padding:.9rem 1.1rem; border:1px solid var(--border); background:transparent;
+      color:rgba(0,255,65,.65); font-family:'Share Tech Mono',monospace; font-size:.82rem;
+      line-height:1.5; cursor:pointer; text-align:left; transition:all .2s;
     }
+    .bg-card::before { content:'[ ] '; color:var(--dim); white-space:nowrap; }
+    .bg-card:hover { border-color:var(--dim); color:var(--green); background:rgba(0,255,65,.03); }
+    .bg-card:hover::before { content:'[×] '; }
+    .bg-card.selected { border-color:var(--green); color:var(--green); background:rgba(0,255,65,.07); }
+    .bg-card.selected::before { content:'[✓] '; color:var(--green); }
 
-    .question-text {
-      font-size: clamp(0.95rem, 2vw, 1.15rem);
-      color: var(--white);
-      line-height: 1.7;
-      margin-bottom: 1.5rem;
-      text-shadow: 0 0 4px rgba(0,255,65,0.3);
-    }
-
-    .options { display: flex; flex-direction: column; gap: 0.8rem; }
-
-    .option {
-      padding: 1rem 1.2rem;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: rgba(0,255,65,0.7);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.85rem;
-      line-height: 1.5;
-      cursor: pointer;
-      text-align: left;
-      transition: all 0.2s;
-      position: relative;
-    }
-    .option::before { content: '[ ] '; color: var(--dim); }
-    .option:hover {
-      border-color: var(--green);
-      color: var(--green);
-      background: rgba(0,255,65,0.04);
-    }
-    .option:hover::before { content: '[×] '; color: var(--green); }
-    .option.selected {
-      border-color: var(--green);
-      color: var(--green);
-      background: rgba(0,255,65,0.07);
-      box-shadow: 0 0 10px rgba(0,255,65,0.1);
-    }
-    .option.selected::before { content: '[✓] '; color: var(--green); }
-
-    /* ── CREACIÓN DE PERSONAJE ────────────────────────────────────── */
-    #chargen {
-      background: var(--black);
-      padding: 3rem 2rem;
-    }
-
-    .chargen-wrap {
-      max-width: 700px;
-      width: 100%;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-    }
-
-    .chargen-title {
-      font-family: 'Orbitron', monospace;
-      font-size: clamp(1rem, 2.5vw, 1.4rem);
-      color: var(--green);
-      letter-spacing: 0.3em;
-      text-align: center;
-    }
-
-    .class-result {
-      border: 1px solid var(--green);
-      padding: 1.5rem;
-      text-align: center;
-      background: rgba(0,255,65,0.04);
-      box-shadow: 0 0 20px rgba(0,255,65,0.1);
-    }
-
-    .class-result .class-label {
-      font-size: 0.65rem;
-      letter-spacing: 0.5em;
-      color: var(--dim);
-      margin-bottom: 0.5rem;
-    }
-
-    .class-result .class-name {
-      font-family: 'Orbitron', monospace;
-      font-size: clamp(1.5rem, 4vw, 2.5rem);
-      font-weight: 700;
-      color: var(--green);
-      text-shadow: 0 0 20px var(--green);
-    }
-
-    .class-result .class-desc {
-      font-size: 0.8rem;
-      color: var(--dim);
-      margin-top: 0.5rem;
-      line-height: 1.6;
-    }
-
-    .name-inputs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    .input-group label {
-      font-size: 0.65rem;
-      letter-spacing: 0.4em;
-      color: var(--dim);
-    }
-
+    /* Nombres */
+    .name-inputs { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .input-group { display:flex; flex-direction:column; gap:.4rem; }
+    .input-group label { font-size:.65rem; letter-spacing:.4em; color:var(--dim); }
     .input-group input {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--green);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 1rem;
-      padding: 0.6rem 0.8rem;
-      outline: none;
-      transition: border-color 0.2s;
+      background:transparent; border:1px solid var(--border); color:var(--green);
+      font-family:'Share Tech Mono',monospace; font-size:1rem; padding:.6rem .8rem; outline:none; transition:border-color .2s;
     }
-    .input-group input:focus { border-color: var(--green); box-shadow: 0 0 8px rgba(0,255,65,0.2); }
-    .input-group input::placeholder { color: var(--border); }
+    .input-group input:focus { border-color:var(--green); box-shadow:0 0 8px rgba(0,255,65,.2); }
+    .input-group input::placeholder { color:var(--border); }
 
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
-    }
-
-    .stat-box {
-      border: 1px solid var(--border);
-      padding: 1rem;
-      text-align: center;
-      background: rgba(0,0,0,0.3);
-    }
-
-    .stat-box .stat-name {
-      font-size: 0.6rem;
-      letter-spacing: 0.4em;
-      color: var(--dim);
-      margin-bottom: 0.5rem;
-    }
-
-    .stat-box .stat-val {
-      font-family: 'Orbitron', monospace;
-      font-size: 2.5rem;
-      color: var(--green);
-      text-shadow: 0 0 10px var(--green);
-      min-height: 3rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .stat-box .stat-val.rolling {
-      animation: roll 0.1s infinite;
-      color: var(--dim);
-      text-shadow: none;
-    }
-
-    .saves-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.8rem;
-    }
-
-    .save-box {
-      border: 1px solid var(--border);
-      padding: 0.8rem;
-      text-align: center;
-    }
-
-    .save-box .save-name {
-      font-size: 0.55rem;
-      letter-spacing: 0.3em;
-      color: var(--dim);
-      margin-bottom: 0.3rem;
-    }
-
-    .save-box .save-val {
-      font-family: 'Orbitron', monospace;
-      font-size: 1.5rem;
-      color: var(--amber);
-      text-shadow: 0 0 8px var(--amber);
-    }
-
-    .skills-list {
-      border: 1px solid var(--border);
-      padding: 1rem 1.5rem;
-    }
-
-    .skills-list .list-title {
-      font-size: 0.6rem;
-      letter-spacing: 0.4em;
-      color: var(--dim);
-      margin-bottom: 0.8rem;
-    }
-
-    .skills-list ul {
-      list-style: none;
-      font-size: 0.85rem;
-      color: rgba(0,255,65,0.8);
-      line-height: 2;
-      columns: 2;
-    }
-    .skills-list ul li::before { content: '◆ '; color: var(--green); font-size: 0.6rem; }
+    /* Stats */
+    .stats-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; }
+    .stat-box { border:1px solid var(--border); padding:1rem; text-align:center; background:rgba(0,0,0,.3); }
+    .stat-box .stat-name { font-size:.6rem; letter-spacing:.4em; color:var(--dim); margin-bottom:.5rem; }
+    .stat-box .stat-val { font-family:'Orbitron',monospace; font-size:2.5rem; color:var(--green); text-shadow:0 0 10px var(--green); min-height:3rem; display:flex; align-items:center; justify-content:center; }
+    .stat-box .stat-val.rolling { animation:roll .1s infinite; color:var(--dim); text-shadow:none; }
+    .saves-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; }
+    .save-box { border:1px solid var(--border); padding:.8rem; text-align:center; }
+    .save-box .save-name { font-size:.55rem; letter-spacing:.3em; color:var(--dim); margin-bottom:.3rem; }
+    .save-box .save-val { font-family:'Orbitron',monospace; font-size:1.5rem; color:var(--amber); text-shadow:0 0 8px var(--amber); }
+    .skills-list { border:1px solid var(--border); padding:1rem 1.5rem; }
+    .skills-list .list-title { font-size:.6rem; letter-spacing:.4em; color:var(--dim); margin-bottom:.8rem; }
+    .skills-list ul { list-style:none; font-size:.85rem; color:rgba(0,255,65,.8); line-height:2; columns:2; }
+    .skills-list ul li::before { content:'◆ '; color:var(--green); font-size:.6rem; }
 
     .roll-btn {
-      padding: 0.9rem 2rem;
-      border: 1px solid var(--green);
-      background: transparent;
-      color: var(--green);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.85rem;
-      letter-spacing: 0.3em;
-      cursor: pointer;
-      transition: all 0.3s;
-      text-shadow: 0 0 6px var(--green);
+      padding:.9rem 2rem; border:1px solid var(--green); background:transparent; color:var(--green);
+      font-family:'Share Tech Mono',monospace; font-size:.85rem; letter-spacing:.3em; cursor:pointer;
+      transition:all .3s; text-shadow:0 0 6px var(--green);
     }
-    .roll-btn:hover { background: rgba(0,255,65,0.06); box-shadow: 0 0 15px rgba(0,255,65,0.2); }
-    .roll-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
+    .roll-btn:hover { background:rgba(0,255,65,.06); box-shadow:0 0 15px rgba(0,255,65,.2); }
+    .roll-btn:disabled { opacity:.3; cursor:not-allowed; }
     .generate-btn {
-      width: 100%;
-      padding: 1rem;
-      border: 1px solid var(--green);
-      background: rgba(0,255,65,0.05);
-      color: var(--green);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.9rem;
-      letter-spacing: 0.3em;
-      cursor: pointer;
-      transition: all 0.3s;
-      text-shadow: 0 0 8px var(--green);
+      width:100%; padding:1rem; border:1px solid var(--green); background:rgba(0,255,65,.05);
+      color:var(--green); font-family:'Share Tech Mono',monospace; font-size:.9rem;
+      letter-spacing:.3em; cursor:pointer; transition:all .3s; text-shadow:0 0 8px var(--green);
     }
-    .generate-btn:hover { background: rgba(0,255,65,0.1); box-shadow: 0 0 20px rgba(0,255,65,0.2); }
+    .generate-btn:hover { background:rgba(0,255,65,.1); box-shadow:0 0 20px rgba(0,255,65,.2); }
+    .generate-btn:disabled { opacity:.3; cursor:not-allowed; }
 
-    /* ── FICHA DE PERSONAJE ───────────────────────────────────────── */
-    #sheet {
-      background: var(--black);
-      padding: 3rem 2rem;
-      align-items: flex-start;
-    }
-
-    .sheet-wrap {
-      max-width: 800px;
-      width: 100%;
-      margin: 0 auto;
-    }
-
-    .sheet-actions {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-    }
-
-    .action-btn {
-      padding: 0.6rem 1.5rem;
-      border: 1px solid var(--dim);
-      background: transparent;
-      color: var(--dim);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.75rem;
-      letter-spacing: 0.3em;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .action-btn:hover { border-color: var(--green); color: var(--green); }
-    .action-btn.primary { border-color: var(--green); color: var(--green); text-shadow: 0 0 6px var(--green); }
-    .action-btn.primary:hover { background: rgba(0,255,65,0.08); }
-
-    /* Ficha imprimible */
-    .character-sheet {
-      border: 1px solid var(--border);
-      background: rgba(0,255,65,0.01);
-      padding: 2.5rem;
-      position: relative;
-    }
-
-    .character-sheet::before {
-      content: 'A.R.V. ALEXIS — FICHA DE TRIPULACIÓN';
-      position: absolute;
-      top: -0.7rem; left: 1.5rem;
-      font-size: 0.55rem;
-      letter-spacing: 0.4em;
-      color: var(--dim);
-      background: var(--black);
-      padding: 0 0.5rem;
-    }
-
-    .sheet-top {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 2rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .sheet-identity .char-name {
-      font-family: 'Orbitron', monospace;
-      font-size: clamp(1.2rem, 3vw, 2rem);
-      color: var(--green);
-      text-shadow: 0 0 10px rgba(0,255,65,0.4);
-    }
-
-    .sheet-identity .char-class {
-      font-size: 0.7rem;
-      letter-spacing: 0.4em;
-      color: var(--dim);
-      margin-top: 0.3rem;
-    }
-
-    .sheet-identity .char-player {
-      font-size: 0.65rem;
-      color: rgba(0,255,65,0.35);
-      margin-top: 0.1rem;
-    }
-
-    .sheet-class-badge {
-      border: 1px solid var(--border);
-      padding: 0.8rem 1.2rem;
-      text-align: center;
-      min-width: 100px;
-    }
-
-    .sheet-class-badge .badge-label {
-      font-size: 0.55rem;
-      letter-spacing: 0.3em;
-      color: var(--dim);
-      margin-bottom: 0.3rem;
-    }
-
-    .sheet-class-badge .badge-class {
-      font-family: 'Orbitron', monospace;
-      font-size: 0.9rem;
-      color: var(--green);
-    }
-
-    .sheet-stats-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.8rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .sheet-stat {
-      border: 1px solid var(--border);
-      padding: 0.8rem;
-      text-align: center;
-    }
-
-    .sheet-stat .s-label {
-      font-size: 0.55rem;
-      letter-spacing: 0.3em;
-      color: var(--dim);
-      margin-bottom: 0.4rem;
-    }
-
-    .sheet-stat .s-val {
-      font-family: 'Orbitron', monospace;
-      font-size: 1.8rem;
-      color: var(--green);
-    }
-
-    .sheet-saves-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.8rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .sheet-save {
-      border: 1px solid var(--border);
-      padding: 0.7rem;
-      text-align: center;
-    }
-
-    .sheet-save .sv-label { font-size: 0.55rem; letter-spacing: 0.3em; color: var(--dim); margin-bottom: 0.3rem; }
-    .sheet-save .sv-val   { font-family: 'Orbitron', monospace; font-size: 1.4rem; color: var(--amber); }
-
-    .sheet-bottom {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-    }
-
-    .sheet-section { border: 1px solid var(--border); padding: 1rem; }
-
-    .sheet-section .sec-title {
-      font-size: 0.55rem;
-      letter-spacing: 0.4em;
-      color: var(--dim);
-      margin-bottom: 0.8rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 0.4rem;
-    }
-
-    .sheet-section ul {
-      list-style: none;
-      font-size: 0.8rem;
-      color: rgba(0,255,65,0.75);
-      line-height: 1.9;
-    }
-    .sheet-section ul li::before { content: '▸ '; color: var(--green); }
-
-    .stress-track {
-      grid-column: 1 / -1;
-      border: 1px solid var(--border);
-      padding: 1rem;
-    }
-
-    .stress-boxes {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.3rem;
-      margin-top: 0.6rem;
-    }
-
-    .stress-box {
-      width: 22px; height: 22px;
-      border: 1px solid var(--border);
-      font-size: 0.6rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--dim);
-    }
-
-    .trinket-box {
-      grid-column: 1 / -1;
-      border: 1px solid var(--border);
-      padding: 0.8rem 1rem;
-      font-size: 0.8rem;
-      color: rgba(0,255,65,0.6);
-    }
-
-    .trinket-box .sec-title { font-size: 0.55rem; letter-spacing: 0.4em; color: var(--dim); margin-bottom: 0.4rem; }
-
-    /* ── ANIMACIONES ──────────────────────────────────────────────── */
-    @keyframes rotate  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    @keyframes flicker { 0%,95%,100%{opacity:1} 96%{opacity:.7} 97%{opacity:1} 98%{opacity:.5} 99%{opacity:1} }
-    @keyframes roll    { 0%{opacity:.4} 50%{opacity:1} 100%{opacity:.4} }
-    @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:.5} }
+    /* ── FICHA ────────────────────────────────────────────────────── */
+    #sheet { background:var(--black); padding:3rem 2rem; align-items:flex-start; }
+    .sheet-wrap { max-width:800px; width:100%; margin:0 auto; }
+    .sheet-actions { display:flex; gap:1rem; margin-bottom:2rem; flex-wrap:wrap; }
+    .action-btn { padding:.6rem 1.5rem; border:1px solid var(--dim); background:transparent; color:var(--dim); font-family:'Share Tech Mono',monospace; font-size:.75rem; letter-spacing:.3em; cursor:pointer; transition:all .2s; }
+    .action-btn:hover, .action-btn.primary { border-color:var(--green); color:var(--green); }
+    .action-btn.primary { text-shadow:0 0 6px var(--green); }
+    .character-sheet { border:1px solid var(--border); background:rgba(0,255,65,.01); padding:2.5rem; position:relative; }
+    .character-sheet::before { content:'A.R.V. ALEXIS — FICHA DE TRIPULACIÓN'; position:absolute; top:-.7rem; left:1.5rem; font-size:.55rem; letter-spacing:.4em; color:var(--dim); background:var(--black); padding:0 .5rem; }
+    .sheet-top { display:grid; grid-template-columns:auto 1fr auto; gap:1.5rem; border-bottom:1px solid var(--border); padding-bottom:1.5rem; margin-bottom:1.5rem; align-items:start; }
+    .sheet-portrait { width:90px; border:1px solid var(--border); overflow:hidden; }
+    .sheet-portrait svg { display:block; width:100%; }
+    .sheet-identity .char-name { font-family:'Orbitron',monospace; font-size:clamp(1.2rem,3vw,2rem); color:var(--green); text-shadow:0 0 10px rgba(0,255,65,.4); }
+    .sheet-identity .char-class { font-size:.7rem; letter-spacing:.4em; color:var(--dim); margin-top:.3rem; }
+    .sheet-identity .char-player { font-size:.65rem; color:rgba(0,255,65,.35); margin-top:.1rem; }
+    .sheet-identity .char-bg { font-size:.75rem; color:rgba(0,255,65,.5); margin-top:.4rem; line-height:1.5; border-left:2px solid var(--border); padding-left:.6rem; }
+    .sheet-class-badge { border:1px solid var(--border); padding:.8rem 1.2rem; text-align:center; min-width:90px; }
+    .sheet-class-badge .badge-label { font-size:.55rem; letter-spacing:.3em; color:var(--dim); margin-bottom:.3rem; }
+    .sheet-class-badge .badge-class { font-family:'Orbitron',monospace; font-size:.9rem; color:var(--green); }
+    .sheet-class-badge .badge-gender { font-size:.6rem; color:var(--dim); margin-top:.2rem; }
+    .sheet-stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:.8rem; margin-bottom:1.5rem; }
+    .sheet-stat { border:1px solid var(--border); padding:.8rem; text-align:center; }
+    .sheet-stat .s-label { font-size:.55rem; letter-spacing:.3em; color:var(--dim); margin-bottom:.4rem; }
+    .sheet-stat .s-val { font-family:'Orbitron',monospace; font-size:1.8rem; color:var(--green); }
+    .sheet-saves-row { display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; margin-bottom:1.5rem; }
+    .sheet-save { border:1px solid var(--border); padding:.7rem; text-align:center; }
+    .sheet-save .sv-label { font-size:.55rem; letter-spacing:.3em; color:var(--dim); margin-bottom:.3rem; }
+    .sheet-save .sv-val { font-family:'Orbitron',monospace; font-size:1.4rem; color:var(--amber); }
+    .sheet-bottom { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+    .sheet-section { border:1px solid var(--border); padding:1rem; }
+    .sheet-section .sec-title { font-size:.55rem; letter-spacing:.4em; color:var(--dim); margin-bottom:.8rem; border-bottom:1px solid var(--border); padding-bottom:.4rem; }
+    .sheet-section ul { list-style:none; font-size:.8rem; color:rgba(0,255,65,.75); line-height:1.9; }
+    .sheet-section ul li::before { content:'▸ '; color:var(--green); }
+    .stress-track { grid-column:1/-1; border:1px solid var(--border); padding:1rem; }
+    .stress-boxes { display:flex; flex-wrap:wrap; gap:.3rem; margin-top:.6rem; }
+    .stress-box { width:22px; height:22px; border:1px solid var(--border); font-size:.6rem; display:flex; align-items:center; justify-content:center; color:var(--dim); }
+    .trinket-box { grid-column:1/-1; border:1px solid var(--border); padding:.8rem 1rem; font-size:.8rem; color:rgba(0,255,65,.6); }
+    .trinket-box .sec-title { font-size:.55rem; letter-spacing:.4em; color:var(--dim); margin-bottom:.4rem; }
 
     /* ── PRINT ────────────────────────────────────────────────────── */
     @media print {
-      body::after, .sheet-actions, #splash, #recruitment, #quiz, #chargen { display: none !important; }
-      #sheet { display: block !important; padding: 0; }
-      .screen { display: block; }
-      body { background: white; color: black; }
-      .character-sheet { border-color: #ccc; background: white; }
-      :root {
-        --green: #007700;
-        --dim:   #555;
-        --border: #ccc;
-        --amber: #996600;
-        --black: white;
-        --white: black;
-      }
-      .logo-ring, .logo-ring::before, .logo-ring::after { animation: none; }
+      body::after, .sheet-actions { display:none !important; }
+      #splash,#recruitment,#quiz,#chargen { display:none !important; }
+      #sheet { display:block !important; padding:0; }
+      .screen { display:block; }
+      body { background:white; color:black; }
+      .character-sheet { border-color:#ccc; background:white; }
+      :root { --green:#007700; --dim:#555; --border:#ccc; --amber:#996600; --black:white; --white:black; }
     }
   </style>
 </head>
@@ -833,25 +281,15 @@
 
 <!-- ══ SPLASH ═══════════════════════════════════════════════════════ -->
 <div id="splash" class="screen active">
-  <div class="logo-container">
-    <div class="logo-ring">
-      <div class="logo-m">M</div>
-    </div>
-  </div>
-
+  <div class="logo-ring"><div class="logo-m">M</div></div>
   <div class="logo-title">MOTHERSHIP</div>
   <div class="logo-subtitle">SCI-FI HORROR ROLEPLAYING GAME · 0E</div>
-
   <div class="mission-date">
     <div class="label">FECHA DE EMBARQUE</div>
     <div class="date">08 · 05 · 2026</div>
     <div class="time">19:00 H · HORA LOCAL</div>
   </div>
-
-  <button class="splash-btn" onclick="showScreen('recruitment')">
-    INICIAR PROCESO DE SELECCIÓN
-  </button>
-
+  <button class="splash-btn" onclick="showScreen('recruitment')">INICIAR PROCESO DE SELECCIÓN</button>
   <div class="splash-warning">
     ARMACORP LOGISTICS INC. · REF. MISIÓN ALX-7734 · SECTOR RHONDI<br>
     Al continuar aceptas los términos del contrato de tripulación.<br>
@@ -859,35 +297,25 @@
   </div>
 </div>
 
-<!-- ══ ANUNCIO CORPORATIVO ══════════════════════════════════════════ -->
+<!-- ══ CORPORATIVO ══════════════════════════════════════════════════ -->
 <div id="recruitment" class="screen">
   <div class="corp-doc">
     <div class="corp-header">
       <div>
-        <div class="corp-name">
-          ARMACORP
-          <span>LOGISTICS & DEEP SPACE RECOVERY INC.</span>
-        </div>
+        <div class="corp-name">ARMACORP<span>LOGISTICS & DEEP SPACE RECOVERY INC.</span></div>
       </div>
       <div class="corp-meta">
-        <div>REF: ALX-7734-NG</div>
-        <div>FECHA: 08.05.2026</div>
-        <div>PRIORIDAD: <strong>ALTA</strong></div>
-        <div>ESTADO: <strong>ACTIVO</strong></div>
+        <div>REF: ALX-7734-NG</div><div>FECHA: 08.05.2026</div>
+        <div>PRIORIDAD: <strong>ALTA</strong></div><div>ESTADO: <strong>ACTIVO</strong></div>
       </div>
     </div>
-
     <div class="doc-title">CONVOCATORIA DE TRIPULACIÓN</div>
     <div class="doc-ref">MISIÓN DE RECUPERACIÓN ARQUEOLÓGICA — SECTOR RHONDI</div>
-
     <div class="doc-body">
       <p>ARMACORP Logistics busca personal cualificado para incorporarse a la tripulación de la <strong>A.R.V. Alexis</strong>, buque de investigación arqueológica actualmente en órbita sobre un cuerpo celeste de interés científico en el sector Rhondi.</p>
-
       <p>La misión consiste en la localización, catalogación y recuperación de un artefacto de origen desconocido detectado en la luna adyacente al objetivo. Se estima una duración de entre 72 y 96 horas operativas.</p>
-
       <p>ARMACORP ofrece compensación económica competitiva, seguro de vida estándar y bonificación por recuperación exitosa del artefacto. El contrato incluye cláusula de confidencialidad obligatoria.</p>
     </div>
-
     <div class="doc-requirements">
       <div class="req-title">PERFILES SOLICITADOS</div>
       <ul>
@@ -897,18 +325,11 @@
         <li>Sistemas de inteligencia artificial y soporte de tripulación</li>
       </ul>
     </div>
-
     <div class="doc-body">
       <p>Para iniciar el proceso de selección, complete el cuestionario de aptitud psicológica y operativa adjunto. El perfil resultante determinará su asignación dentro de la tripulación.</p>
     </div>
-
-    <div class="doc-fine-print">
-      ARMACORP Logistics Inc. se reserva el derecho de modificar los términos de la misión en función de las condiciones encontradas en el lugar. La compensación por "eventos de fuerza mayor" queda sujeta a revisión por el departamento legal. En caso de incapacidad permanente o fallecimiento, ARMACORP realizará un donativo simbólico a los familiares del empleado, sujeto a aprobación interna. El uso de equipo personal no autorizado puede anular la cobertura del seguro. ARMACORP no garantiza condiciones de vida o retorno.
-    </div>
-
-    <button class="corp-btn" onclick="showScreen('quiz'); initQuiz()">
-      INICIAR CUESTIONARIO DE APTITUD →
-    </button>
+    <div class="doc-fine-print">ARMACORP Logistics Inc. se reserva el derecho de modificar los términos de la misión en función de las condiciones encontradas en el lugar. La compensación por "eventos de fuerza mayor" queda sujeta a revisión por el departamento legal. En caso de incapacidad permanente o fallecimiento, ARMACORP realizará un donativo simbólico a los familiares del empleado, sujeto a aprobación interna. ARMACORP no garantiza condiciones de vida o retorno.</div>
+    <button class="corp-btn" onclick="showScreen('quiz'); initQuiz()">INICIAR CUESTIONARIO DE APTITUD →</button>
   </div>
 </div>
 
@@ -923,17 +344,42 @@
   </div>
 </div>
 
-<!-- ══ CREACIÓN DE PERSONAJE ════════════════════════════════════════ -->
+<!-- ══ CHARGEN ══════════════════════════════════════════════════════ -->
 <div id="chargen" class="screen">
   <div class="chargen-wrap">
     <div class="chargen-title">GENERANDO PERFIL DE TRIPULACIÓN</div>
 
+    <!-- Clase -->
     <div class="class-result">
       <div class="class-label">CLASE ASIGNADA</div>
       <div class="class-name" id="cg-class">—</div>
       <div class="class-desc" id="cg-class-desc">—</div>
     </div>
 
+    <!-- Género (solo si no es Android) -->
+    <div id="gender-section">
+      <div class="section-label">TRATAMIENTO</div>
+      <div class="gender-row">
+        <button class="gender-btn" onclick="selectGender('M', this)">Sr.</button>
+        <button class="gender-btn" onclick="selectGender('F', this)">Sra.</button>
+        <button class="gender-btn" onclick="selectGender('N', this)">Sre.</button>
+      </div>
+    </div>
+
+    <!-- Retratos -->
+    <div id="portrait-section" style="display:none">
+      <div class="section-label">SELECCIONA TU RETRATO</div>
+      <div class="portrait-grid" id="portrait-grid"></div>
+    </div>
+
+    <!-- Trasfondo -->
+    <div id="bg-section" style="display:none">
+      <div class="section-label">TRASFONDO</div>
+      <button class="bg-random-btn" onclick="randomBackground()">⚄ ASIGNAR ALEATORIO</button>
+      <div class="bg-grid" id="bg-grid"></div>
+    </div>
+
+    <!-- Nombres -->
     <div class="name-inputs">
       <div class="input-group">
         <label>NOMBRE DEL JUGADOR</label>
@@ -945,9 +391,10 @@
       </div>
     </div>
 
+    <!-- Stats -->
     <div>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
-        <span style="font-size:0.65rem; letter-spacing:0.4em; color:var(--dim)">ESTADÍSTICAS PRIMARIAS</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
+        <span class="section-label" style="margin:0">ESTADÍSTICAS PRIMARIAS</span>
         <button class="roll-btn" id="roll-btn" onclick="rollStats()">⚄ TIRAR DADOS</button>
       </div>
       <div class="stats-grid">
@@ -958,8 +405,9 @@
       </div>
     </div>
 
+    <!-- Saves -->
     <div>
-      <div style="font-size:0.65rem; letter-spacing:0.4em; color:var(--dim); margin-bottom:0.8rem;">SALVADAS SECUNDARIAS</div>
+      <div class="section-label">SALVADAS SECUNDARIAS</div>
       <div class="saves-grid">
         <div class="save-box"><div class="save-name">BODY SAVE</div><div class="save-val" id="sv-body">—</div></div>
         <div class="save-box"><div class="save-name">FEAR SAVE</div><div class="save-val" id="sv-fear">—</div></div>
@@ -967,19 +415,11 @@
       </div>
     </div>
 
-    <div class="skills-list">
-      <div class="list-title">HABILIDADES DE CLASE</div>
-      <ul id="skills-ul"></ul>
-    </div>
+    <!-- Habilidades y equipo -->
+    <div class="skills-list"><div class="list-title">HABILIDADES DE CLASE</div><ul id="skills-ul"></ul></div>
+    <div class="skills-list"><div class="list-title">EQUIPO INICIAL</div><ul id="equip-ul"></ul></div>
 
-    <div class="skills-list">
-      <div class="list-title">EQUIPO INICIAL</div>
-      <ul id="equip-ul"></ul>
-    </div>
-
-    <button class="generate-btn" id="gen-btn" onclick="generateSheet()" disabled>
-      GENERAR FICHA Y GUARDAR →
-    </button>
+    <button class="generate-btn" id="gen-btn" onclick="generateSheet()" disabled>GENERAR FICHA Y GUARDAR →</button>
   </div>
 </div>
 
@@ -990,67 +430,342 @@
       <button class="action-btn primary" onclick="window.print()">⎙ IMPRIMIR FICHA</button>
       <button class="action-btn" onclick="showScreen('splash')">↩ NUEVA FICHA</button>
     </div>
-
     <div class="character-sheet" id="char-sheet-render"></div>
   </div>
 </div>
 
 <script>
-// ── CONFIG SUPABASE ────────────────────────────────────────────────
+// ══ SUPABASE ════════════════════════════════════════════════════════
 const SUPA_URL = 'https://vbmftksmuvpbcizvfola.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZibWZ0a3NtdXZwYmNpenZmb2xhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMDUyMDEsImV4cCI6MjA5Mjc4MTIwMX0.J20XCeZlACV_xToBthVtl3aOohj6NDI-pQSVFpy5lXo';
 
 async function supaInsert(data) {
   const res = await fetch(`${SUPA_URL}/rest/v1/characters`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPA_KEY,
-      'Authorization': `Bearer ${SUPA_KEY}`,
-      'Prefer': 'return=representation'
-    },
+    headers: { 'Content-Type':'application/json', 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}`, 'Prefer':'return=representation' },
     body: JSON.stringify(data)
   });
   return res.json();
 }
 
-// ── NAVEGACIÓN ────────────────────────────────────────────────────
+// ══ NAVEGACIÓN ══════════════════════════════════════════════════════
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  const el = document.getElementById(id);
-  el.classList.add('active');
+  document.getElementById(id).classList.add('active');
   window.scrollTo(0, 0);
+  if (id === 'chargen') startAmbient();
+  else stopAmbient();
 }
 
-// ── CLASES ────────────────────────────────────────────────────────
+// ══ MÚSICA AMBIENTE ══════════════════════════════════════════════════
+let ambientCtx = null, ambientNodes = {}, ambientRunning = false;
+
+function startAmbient() {
+  if (ambientRunning) return;
+  try {
+    ambientCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const ac = ambientCtx;
+
+    const master = ac.createGain(); master.gain.value = 0.6; master.connect(ac.destination);
+    ambientNodes.master = master;
+
+    // Sub drone
+    const sub = ac.createOscillator(), subF = ac.createBiquadFilter(), subG = ac.createGain();
+    sub.type = 'sine'; sub.frequency.value = 42;
+    subF.type = 'lowpass'; subF.frequency.value = 90; subF.Q.value = 1;
+    subG.gain.value = 0; sub.connect(subF); subF.connect(subG); subG.connect(master); sub.start();
+    subG.gain.linearRampToValueAtTime(0.35, ac.currentTime + 4);
+    ambientNodes.subG = subG;
+
+    // Mid pad
+    const mid = ac.createOscillator(), midF = ac.createBiquadFilter(), midG = ac.createGain();
+    mid.type = 'triangle'; mid.frequency.value = 84;
+    midF.type = 'bandpass'; midF.frequency.value = 130; midF.Q.value = 0.5;
+    midG.gain.value = 0; mid.connect(midF); midF.connect(midG); midG.connect(master); mid.start();
+    midG.gain.linearRampToValueAtTime(0.12, ac.currentTime + 6);
+    ambientNodes.midG = midG;
+
+    // Slow LFO breathing
+    const lfo = ac.createOscillator(), lfoG = ac.createGain();
+    lfo.type = 'sine'; lfo.frequency.value = 0.08;
+    lfoG.gain.value = 0.08; lfo.connect(lfoG); lfoG.connect(subG.gain); lfo.start();
+
+    // Occasional high blip
+    scheduleBlips();
+    ambientRunning = true;
+  } catch(e) { /* browser policy */ }
+}
+
+function stopAmbient() {
+  if (!ambientRunning || !ambientCtx) return;
+  try {
+    ambientNodes.master.gain.linearRampToValueAtTime(0, ambientCtx.currentTime + 1.5);
+    setTimeout(() => { ambientCtx.close(); ambientCtx = null; ambientRunning = false; }, 1600);
+  } catch(e) {}
+}
+
+function scheduleBlips() {
+  if (!ambientRunning) return;
+  const delay = 4000 + Math.random() * 8000;
+  setTimeout(() => {
+    if (!ambientCtx || !ambientRunning) return;
+    const ac = ambientCtx, now = ac.currentTime;
+    const osc = ac.createOscillator(), g = ac.createGain();
+    osc.type = 'sine'; osc.frequency.value = 880 + Math.random() * 440;
+    g.gain.value = 0.025; g.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+    osc.connect(g); g.connect(ambientNodes.master);
+    osc.start(now); osc.stop(now + 0.12);
+    scheduleBlips();
+  }, delay);
+}
+
+// Desbloquear audio en primer toque
+document.addEventListener('click', () => {
+  if (ambientCtx && ambientCtx.state === 'suspended') ambientCtx.resume();
+}, { once: false });
+
+// ══ DATOS DE CLASES ══════════════════════════════════════════════════
 const CLASSES = {
   Marine: {
     desc: 'Entrenado para el combate y el control de situaciones de alto riesgo. Primer escudo de la tripulación.',
-    statBonus: { combat: 10 },
+    statBonus: { combat: 10 }, fearSaveBase: 30,
     skills: ['Combat Training', 'First Aid', 'Military Weapons', 'Tactics', 'Zero-G Combat'],
     equipment: ['Revolver (.357)', 'Combat Knife', 'Flak Vest (Armor 1)', 'Rations (3 days)', 'Flare Gun'],
-    fearSaveBase: 30,
   },
   Teamster: {
     desc: 'Trabajador espacial de línea. Resolutivo, práctico y capaz de mantener operativa cualquier nave.',
-    statBonus: { speed: 10 },
+    statBonus: { speed: 10 }, fearSaveBase: 25,
     skills: ['Piloting', 'Mechanical Repair', 'Explosives', 'Athletics', 'Asteroid Mining'],
     equipment: ['Crowbar', 'Welding Torch', 'Patch Kit', 'Rations (3 days)', 'Work Suit'],
-    fearSaveBase: 25,
   },
   Scientist: {
     desc: 'Especialista en análisis, investigación y comprensión de lo desconocido. Conocimiento como arma.',
-    statBonus: { intellect: 10 },
+    statBonus: { intellect: 10 }, fearSaveBase: 20,
     skills: ['Research', 'Pathology', 'Xenobiology', 'Computer Repair', 'Geology'],
     equipment: ['Scalpel', 'Med Kit', 'Hazard Suit', 'Sample Kit', 'Research Tablet'],
-    fearSaveBase: 20,
   },
   Android: {
     desc: 'Unidad de inteligencia artificial con forma humanoide. Sin estrés emocional. Sin miedo. Sin piedad.',
-    statBonus: { intellect: 5, combat: 5 },
+    statBonus: { intellect: 5, combat: 5 }, fearSaveBase: 0,
     skills: ['Linguistics', 'Mathematics', 'Computer Repair', 'Mechanical Repair', 'Psychology'],
     equipment: ['Built-in Scanner', 'Self-Repair Kit', 'Data Link', 'Synthetic Blood Pack', 'Encrypted Log'],
-    fearSaveBase: 0,
+  },
+};
+
+// ══ TRASFONDOS ═══════════════════════════════════════════════════════
+const BACKGROUNDS = {
+  Marine: [
+    'Soldado colonial retirado de las Fuerzas Federales tras doce años de servicio activo en el borde exterior.',
+    'Contratista de seguridad corporativa. Ex-empleado de ARMACORP, dado de baja sin explicación oficial.',
+    'Guarda de la Penitenciaría Orbital-7, sector Delta. Vio cosas que no hablan en los informes.',
+    'Mercenario independiente. Veterano de tres conflictos no declarados. Sin lealtades fijas.',
+    'Agente de control de disturbios coloniales, dado de baja por "uso desproporcionado de la fuerza".',
+    'Desertor de las fuerzas del borde exterior. Las razones de su abandono están clasificadas.',
+  ],
+  Teamster: [
+    'Minero de asteroides con doce años en el cinturón exterior. Su espalda lo sabe.',
+    'Piloto de carga de largo recorrido. Rutas trans-sectoriales en solitario durante años.',
+    'Mecánico de mantenimiento de estaciones orbitales. Ha reparado cosas que no deberían repararse.',
+    'Operario de salvamento espacial autónomo. Sabe lo que flotar en el vacío le hace a una persona.',
+    'Técnico de explosivos en demolición minera. Sus manos cuentan su propia historia.',
+    'Conductor de vehículos de superficie planetaria. Ha pisado suelo en ocho mundos distintos.',
+  ],
+  Scientist: [
+    'Xenobiólogo con publicaciones clasificadas por orden corporativa. No sabe exactamente por qué.',
+    'Médico forense de colonias periféricas. Especialidad: causas de muerte de origen no identificado.',
+    'Arqueólogo espacial especializado en artefactos de procedencia no humana. El Alexis era su destino.',
+    'Investigador corporativo cuyo programa fue cancelado sin explicación. Los datos, confiscados.',
+    'Patólogo de campo veterano de tres brotes de origen desconocido. Dos de ellos, sin clasificar aún.',
+    'Físico teórico expulsado de la Universidad de Nueva Tokio por sus conclusiones sobre espacio-tiempo.',
+  ],
+  Android: [
+    'Unidad de asistencia médica de tercera generación, reprogramada para operaciones de campo. Datos de misiones anteriores: borrados.',
+    'Androide de inteligencia táctica, modelo MIL-7. Declarado obsoleto por las Fuerzas Federales. Reasignado.',
+    'Unidad de investigación científica serie LOCUS. Historial de misiones: clasificado nivel Omega.',
+    'Sistema de soporte de nave embodied para operaciones terrestres. Primera misión con forma física.',
+    'Unidad de recuperación de datos serie MNEMO. Catorce misiones previas. Recuerda todas. Y algo más.',
+    'Prototipo experimental de fabricante desconocido. ARMACORP lo adquirió en una subasta. Sin documentación.',
+  ],
+};
+
+// ══ RETRATOS SVG ════════════════════════════════════════════════════
+const G = '#00ff41', G2 = '#00cc33', D = '#001500', B = '#000d00';
+
+function makeSVG(inner) {
+  return `<svg viewBox="0 0 160 210" xmlns="http://www.w3.org/2000/svg">
+    <rect width="160" height="210" fill="#000"/>
+    ${inner}
+  </svg>`;
+}
+
+// Cara base compartida: ovalada con orejas, nariz, boca
+function faceBase(eyeL, eyeR, mouth, extras='') {
+  return `
+    <!-- Cuerpo/hombros base -->
+    <path d="M0,210 L0,165 Q10,150 30,145 L55,148 L105,148 L130,145 Q150,150 160,165 L160,210" fill="${D}" stroke="${G2}" stroke-width="1"/>
+    <!-- Cuello -->
+    <rect x="67" y="133" width="26" height="18" fill="${B}" stroke="${G2}" stroke-width="1"/>
+    <!-- Cara -->
+    <ellipse cx="80" cy="88" rx="44" ry="55" fill="${B}" stroke="${G}" stroke-width="1.5"/>
+    <!-- Orejas -->
+    <path d="M36,78 Q30,88 36,98" fill="none" stroke="${G}" stroke-width="1"/>
+    <path d="M124,78 Q130,88 124,98" fill="none" stroke="${G}" stroke-width="1"/>
+    <!-- Nariz -->
+    <path d="M77,93 L74,107 Q80,110 86,107 L83,93" fill="none" stroke="${G2}" stroke-width="1" opacity=".7"/>
+    <!-- Ojos -->
+    ${eyeL} ${eyeR}
+    <!-- Boca -->
+    ${mouth}
+    ${extras}
+  `;
+}
+
+function eye(cx, cy, pupil=true) {
+  return `<ellipse cx="${cx}" cy="${cy}" rx="7" ry="5" fill="#000" stroke="${G}" stroke-width="1"/>
+    ${pupil ? `<circle cx="${cx}" cy="${cy}" r="2.5" fill="${G}" opacity=".85"/>` : ''}`;
+}
+
+const PORTRAITS = {
+  Marine: {
+    M: makeSVG(faceBase(
+      eye(63,82), eye(97,82),
+      `<path d="M68,116 L92,116" stroke="${G}" stroke-width="1.5"/>`,
+      `<!-- Pelo corto militar -->
+      <path d="M36,72 Q36,35 80,28 Q124,35 124,72 L120,68 Q115,40 80,34 Q45,40 40,68 Z" fill="${D}" stroke="${G}" stroke-width="1.2"/>
+      <!-- Cicatriz -->
+      <line x1="91" y1="68" x2="96" y2="82" stroke="${G}" stroke-width="1" opacity=".6"/>
+      <!-- Collar armadura -->
+      <rect x="52" y="145" width="56" height="14" rx="1" fill="${D}" stroke="${G}" stroke-width="1"/>
+      <line x1="80" y1="145" x2="80" y2="159" stroke="${G}" stroke-width=".5" opacity=".5"/>
+      <rect x="60" y="148" width="8" height="6" rx="1" fill="none" stroke="${G2}" stroke-width=".7"/>
+      <rect x="92" y="148" width="8" height="6" rx="1" fill="none" stroke="${G2}" stroke-width=".7"/>`
+    )),
+    F: makeSVG(faceBase(
+      eye(63,82), eye(97,82),
+      `<path d="M68,116 Q80,122 92,116" stroke="${G}" stroke-width="1.5" fill="none"/>`,
+      `<!-- Coleta alta -->
+      <ellipse cx="80" cy="34" rx="18" ry="12" fill="${D}" stroke="${G}" stroke-width="1.2"/>
+      <path d="M62,34 Q36,40 36,72" fill="${D}" stroke="${G}" stroke-width="1.2"/>
+      <path d="M98,34 Q124,40 124,72" fill="${D}" stroke="${G}" stroke-width="1.2"/>
+      <line x1="80" y1="22" x2="80" y2="10" stroke="${G}" stroke-width="1.5"/>
+      <ellipse cx="80" cy="8" rx="6" ry="4" fill="${D}" stroke="${G}" stroke-width="1"/>
+      <!-- Pendiente táctico -->
+      <circle cx="36" cy="88" r="3" fill="none" stroke="${G}" stroke-width="1"/>
+      <!-- Collar armadura -->
+      <rect x="52" y="145" width="56" height="14" rx="1" fill="${D}" stroke="${G}" stroke-width="1"/>
+      <line x1="80" y1="145" x2="80" y2="159" stroke="${G}" stroke-width=".5" opacity=".5"/>`
+    )),
+  },
+  Teamster: {
+    M: makeSVG(faceBase(
+      eye(63,82), eye(97,82),
+      `<path d="M66,116 L94,116" stroke="${G}" stroke-width="1.5"/>`,
+      `<!-- Pelo despeinado -->
+      <path d="M36,68 Q34,38 80,28 Q115,32 122,55 L118,65 Q105,42 80,36 Q52,38 42,65 Z" fill="${D}" stroke="${G}" stroke-width="1.2"/>
+      <path d="M36,68 Q38,60 42,65" fill="${D}" stroke="${G}" stroke-width="1"/>
+      <path d="M118,65 Q122,60 124,68" fill="${D}" stroke="${G}" stroke-width="1"/>
+      <!-- Barba corta (líneas) -->
+      <line x1="58" y1="118" x2="60" y2="124" stroke="${G2}" stroke-width=".8" opacity=".6"/>
+      <line x1="65" y1="120" x2="66" y2="126" stroke="${G2}" stroke-width=".8" opacity=".6"/>
+      <line x1="94" y1="120" x2="95" y2="126" stroke="${G2}" stroke-width=".8" opacity=".6"/>
+      <line x1="100" y1="118" x2="102" y2="124" stroke="${G2}" stroke-width=".8" opacity=".6"/>
+      <!-- Collar trabajo -->
+      <path d="M52,148 L52,159 Q80,163 108,159 L108,148" fill="${D}" stroke="${G}" stroke-width="1"/>
+      <line x1="80" y1="148" x2="80" y2="163" stroke="${G2}" stroke-width=".5"/>`
+    )),
+    F: makeSVG(faceBase(
+      eye(63,82), eye(97,82),
+      `<path d="M68,116 Q80,121 92,116" stroke="${G}" stroke-width="1.5" fill="none"/>`,
+      `<!-- Trenza lateral -->
+      <path d="M36,68 Q36,38 80,28 Q108,32 124,68" fill="${D}" stroke="${G}" stroke-width="1.2"/>
+      <path d="M36,68 Q34,85 36,100 Q40,118 50,128" fill="none" stroke="${G}" stroke-width="1.5"/>
+      <line x1="36" y1="80" x2="42" y2="82" stroke="${G2}" stroke-width=".7"/>
+      <line x1="36" y1="90" x2="42" y2="92" stroke="${G2}" stroke-width=".7"/>
+      <line x1="37" y1="100" x2="43" y2="102" stroke="${G2}" stroke-width=".7"/>
+      <!-- Goggles en la frente -->
+      <ellipse cx="63" cy="52" rx="10" ry="7" fill="none" stroke="${G}" stroke-width="1"/>
+      <ellipse cx="97" cy="52" rx="10" ry="7" fill="none" stroke="${G}" stroke-width="1"/>
+      <line x1="73" y1="52" x2="87" y2="52" stroke="${G}" stroke-width="1"/>
+      <!-- Collar trabajo -->
+      <path d="M52,148 L52,159 Q80,163 108,159 L108,148" fill="${D}" stroke="${G}" stroke-width="1"/>`
+    )),
+  },
+  Scientist: {
+    M: makeSVG(faceBase(
+      eye(63,82), eye(97,82),
+      `<path d="M70,116 Q80,119 90,116" stroke="${G}" stroke-width="1.2" fill="none"/>`,
+      `<!-- Pelo ordenado lateral -->
+      <path d="M36,72 Q38,35 80,28 Q120,35 124,72 L122,68 Q116,42 80,36 Q48,38 40,68 Z" fill="${D}" stroke="${G}" stroke-width="1.2"/>
+      <path d="M36,72 Q36,62 40,68" fill="${D}" stroke="${G}" stroke-width="1"/>
+      <!-- Gafas -->
+      <rect x="50" y="76" width="22" height="14" rx="4" fill="none" stroke="${G}" stroke-width="1.2"/>
+      <rect x="84" y="76" width="22" height="14" rx="4" fill="none" stroke="${G}" stroke-width="1.2"/>
+      <line x1="72" y1="83" x2="84" y2="83" stroke="${G}" stroke-width="1"/>
+      <line x1="36" y1="80" x2="50" y2="80" stroke="${G}" stroke-width=".8"/>
+      <line x1="106" y1="80" x2="124" y2="82" stroke="${G}" stroke-width=".8"/>
+      <!-- Bata cuello -->
+      <path d="M52,148 L60,160 L80,153 L100,160 L108,148" fill="${D}" stroke="${G}" stroke-width="1"/>
+      <line x1="80" y1="153" x2="80" y2="163" stroke="${G}" stroke-width="1"/>`
+    )),
+    F: makeSVG(faceBase(
+      eye(63,82), eye(97,82),
+      `<path d="M70,116 Q80,120 90,116" stroke="${G}" stroke-width="1.2" fill="none"/>`,
+      `<!-- Moño alto -->
+      <ellipse cx="80" cy="30" rx="22" ry="14" fill="${D}" stroke="${G}" stroke-width="1.2"/>
+      <path d="M58,30 Q36,40 36,72" fill="${D}" stroke="${G}" stroke-width="1.2"/>
+      <path d="M102,30 Q124,40 124,72" fill="${D}" stroke="${G}" stroke-width="1.2"/>
+      <path d="M70,20 Q80,10 90,20" fill="none" stroke="${G}" stroke-width="1"/>
+      <!-- Gafas -->
+      <rect x="50" y="76" width="22" height="14" rx="4" fill="none" stroke="${G}" stroke-width="1.2"/>
+      <rect x="84" y="76" width="22" height="14" rx="4" fill="none" stroke="${G}" stroke-width="1.2"/>
+      <line x1="72" y1="83" x2="84" y2="83" stroke="${G}" stroke-width="1"/>
+      <line x1="36" y1="80" x2="50" y2="80" stroke="${G}" stroke-width=".8"/>
+      <line x1="106" y1="80" x2="124" y2="82" stroke="${G}" stroke-width=".8"/>
+      <!-- Bata cuello -->
+      <path d="M52,148 L60,160 L80,153 L100,160 L108,148" fill="${D}" stroke="${G}" stroke-width="1"/>
+      <line x1="80" y1="153" x2="80" y2="163" stroke="${G}" stroke-width="1"/>`
+    )),
+  },
+  Android: {
+    A: makeSVG(`
+      <!-- Cuerpo sintético -->
+      <path d="M0,210 L0,160 Q10,145 35,140 L55,145 L105,145 L125,140 Q150,145 160,160 L160,210" fill="${D}" stroke="${G}" stroke-width="1"/>
+      <!-- Cuello con conectores -->
+      <rect x="62" y="128" width="36" height="20" fill="${B}" stroke="${G}" stroke-width="1"/>
+      <line x1="68" y1="128" x2="68" y2="148" stroke="${G2}" stroke-width=".7"/>
+      <line x1="80" y1="128" x2="80" y2="148" stroke="${G2}" stroke-width=".7"/>
+      <line x1="92" y1="128" x2="92" y2="148" stroke="${G2}" stroke-width=".7"/>
+      <!-- Cara geométrica -->
+      <rect x="36" y="38" width="88" height="100" rx="8" fill="${B}" stroke="${G}" stroke-width="1.5"/>
+      <!-- Líneas de panel -->
+      <line x1="36" y1="88" x2="124" y2="88" stroke="${G2}" stroke-width=".5" opacity=".5"/>
+      <line x1="80" y1="38" x2="80" y2="138" stroke="${G2}" stroke-width=".5" opacity=".3"/>
+      <!-- Ojos LED -->
+      <rect x="50" y="68" width="22" height="12" rx="2" fill="#001500" stroke="${G}" stroke-width="1"/>
+      <rect x="88" y="68" width="22" height="12" rx="2" fill="#001500" stroke="${G}" stroke-width="1"/>
+      <rect x="53" y="71" width="16" height="6" rx="1" fill="${G}" opacity=".9"/>
+      <rect x="91" y="71" width="16" height="6" rx="1" fill="${G}" opacity=".9"/>
+      <!-- Boca -->
+      <rect x="58" y="104" width="44" height="8" rx="1" fill="#001500" stroke="${G}" stroke-width="1"/>
+      <line x1="65" y1="108" x2="70" y2="108" stroke="${G}" stroke-width="1.5"/>
+      <line x1="75" y1="108" x2="85" y2="108" stroke="${G}" stroke-width="1.5"/>
+      <line x1="90" y1="108" x2="95" y2="108" stroke="${G}" stroke-width="1.5"/>
+      <!-- Antena/sensor -->
+      <line x1="80" y1="38" x2="80" y2="22" stroke="${G}" stroke-width="1"/>
+      <circle cx="80" cy="18" r="4" fill="${D}" stroke="${G}" stroke-width="1"/>
+      <circle cx="80" cy="18" r="1.5" fill="${G}"/>
+      <!-- Panel lateral izquierdo -->
+      <rect x="36" y="50" width="8" height="20" rx="1" fill="none" stroke="${G2}" stroke-width=".7"/>
+      <rect x="36" y="55" width="8" height="4" fill="${G}" opacity=".4"/>
+      <!-- Panel lateral derecho -->
+      <rect x="116" y="50" width="8" height="20" rx="1" fill="none" stroke="${G2}" stroke-width=".7"/>
+      <rect x="116" y="65" width="8" height="4" fill="${G}" opacity=".4"/>
+      <!-- Collar tech -->
+      <rect x="50" y="140" width="60" height="12" rx="2" fill="${D}" stroke="${G}" stroke-width="1"/>
+      <circle cx="65" cy="146" r="3" fill="none" stroke="${G2}" stroke-width=".8"/>
+      <circle cx="80" cy="146" r="3" fill="none" stroke="${G2}" stroke-width=".8"/>
+      <circle cx="95" cy="146" r="3" fill="none" stroke="${G2}" stroke-width=".8"/>
+    `),
   },
 };
 
@@ -1067,273 +782,269 @@ const TRINKETS = [
   'Peluche quemado por la mitad',
 ];
 
-// ── CUESTIONARIO ──────────────────────────────────────────────────
+// ══ CUESTIONARIO ════════════════════════════════════════════════════
 const QUESTIONS = [
-  {
-    text: 'La nave recibe una señal de socorro desde una instalación abandonada. El protocolo dice que no es vuestra misión. ¿Qué haces?',
-    options: [
-      { text: 'Preparas el armamento y propones investigar. Alguien tiene que hacerlo.', cls: 'Marine' },
-      { text: 'Calculas la ruta de aproximación y ajustas los motores. Si vamos, vamos bien.', cls: 'Teamster' },
-      { text: 'Analizas la frecuencia de la señal. Algo en el patrón no cuadra.', cls: 'Scientist' },
-      { text: 'Registras las coordenadas y calculas probabilidades de supervivencia del origen. 3.7%.', cls: 'Android' },
-    ]
-  },
-  {
-    text: 'Encuentras el cuerpo de un tripulante. Tiene heridas que no reconoces. La causa de muerte es incierta.',
-    options: [
-      { text: 'Examinas el perímetro. Sea lo que sea, puede seguir aquí.', cls: 'Marine' },
-      { text: 'Compruebas si hay sistemas dañados cerca. Las máquinas cuentan su propia historia.', cls: 'Teamster' },
-      { text: 'Examinas las heridas con detalle. Necesitas entender qué las causó.', cls: 'Scientist' },
-      { text: 'Documentas el cuerpo sistemáticamente. La emoción no aporta datos.', cls: 'Android' },
-    ]
-  },
-  {
-    text: 'Los generadores de la nave fallan. Tenéis 20 minutos de oxígeno. ¿Cuál es tu primer movimiento?',
-    options: [
-      { text: 'Estableces perímetro de seguridad y buscas amenazas. Primero, que nadie os ataque.', cls: 'Marine' },
-      { text: 'Corres a sala de máquinas. Puedes arreglarlo, o al menos ganar tiempo.', cls: 'Teamster' },
-      { text: 'Calculas qué sistema priorizar para maximizar las posibilidades de supervivencia.', cls: 'Scientist' },
-      { text: 'Reduces tus funciones al mínimo. Tú no necesitas oxígeno. El resto, sí.', cls: 'Android' },
-    ]
-  },
-  {
-    text: 'Un compañero de tripulación empieza a comportarse de forma errática. Habla solo. Dice que "lo ve".',
-    options: [
-      { text: 'Le vigilas de cerca. Podría suponer una amenaza para el grupo.', cls: 'Marine' },
-      { text: 'Intentas distraerle con trabajo. La rutina mantiene a la gente en pie.', cls: 'Teamster' },
-      { text: 'Le haces preguntas concretas. Necesitas saber qué ha visto exactamente.', cls: 'Scientist' },
-      { text: 'Registras sus constantes vitales y sus palabras. Los datos serán útiles después.', cls: 'Android' },
-    ]
-  },
-  {
-    text: 'Encuentras un artefacto de origen claramente no humano. Emite una frecuencia que no logras identificar.',
-    options: [
-      { text: 'Lo rodeas manteniendo distancia. Lo desconocido es siempre peligroso hasta que se demuestre lo contrario.', cls: 'Marine' },
-      { text: 'Buscas cómo transportarlo de forma segura. Alguien querrá llevárselo.', cls: 'Teamster' },
-      { text: 'Empiezas a tomar muestras y mediciones inmediatamente. Esto es exactamente para lo que estás aquí.', cls: 'Scientist' },
-      { text: 'Analizas la frecuencia. Tiene estructura. Podría ser lenguaje.', cls: 'Android' },
-    ]
-  },
-  {
-    text: 'La misión se tuerce. Las cosas se ponen muy feas. ¿Cómo reaccionas bajo presión extrema?',
-    options: [
-      { text: 'Con más claridad que nunca. El peligro es donde mejor funciones.', cls: 'Marine' },
-      { text: 'Improvisas. No es la primera vez que algo falla y no será la última.', cls: 'Teamster' },
-      { text: 'Analizas la situación antes de actuar. Una mala decisión rápida es peor que una buena decisión lenta.', cls: 'Scientist' },
-      { text: 'Sin alteración. La presión no modifica tus parámetros operativos.', cls: 'Android' },
-    ]
-  },
-  {
-    text: 'Si pudieras definirte en una frase, ¿cuál sería?',
-    options: [
-      { text: '"Si hay que hacerlo, lo hago yo."', cls: 'Marine' },
-      { text: '"Siempre hay una manera de que esto funcione."', cls: 'Teamster' },
-      { text: '"Necesito entenderlo antes de actuar."', cls: 'Scientist' },
-      { text: '"Las emociones son ineficientes."', cls: 'Android' },
-    ]
-  },
+  { text:'La nave recibe una señal de socorro desde una instalación abandonada. El protocolo dice que no es vuestra misión. ¿Qué haces?', options:[
+    {text:'Preparas el armamento y propones investigar. Alguien tiene que hacerlo.',cls:'Marine'},
+    {text:'Calculas la ruta de aproximación y ajustas los motores. Si vamos, vamos bien.',cls:'Teamster'},
+    {text:'Analizas la frecuencia de la señal. Algo en el patrón no cuadra.',cls:'Scientist'},
+    {text:'Registras las coordenadas y calculas probabilidades de supervivencia del origen. 3.7%.',cls:'Android'},
+  ]},
+  { text:'Encuentras el cuerpo de un tripulante. Tiene heridas que no reconoces. La causa de muerte es incierta.', options:[
+    {text:'Examinas el perímetro. Sea lo que sea, puede seguir aquí.',cls:'Marine'},
+    {text:'Compruebas si hay sistemas dañados cerca. Las máquinas cuentan su propia historia.',cls:'Teamster'},
+    {text:'Examinas las heridas con detalle. Necesitas entender qué las causó.',cls:'Scientist'},
+    {text:'Documentas el cuerpo sistemáticamente. La emoción no aporta datos.',cls:'Android'},
+  ]},
+  { text:'Los generadores de la nave fallan. Tenéis 20 minutos de oxígeno. ¿Cuál es tu primer movimiento?', options:[
+    {text:'Estableces perímetro de seguridad. Primero, que nadie os ataque.',cls:'Marine'},
+    {text:'Corres a sala de máquinas. Puedes arreglarlo, o al menos ganar tiempo.',cls:'Teamster'},
+    {text:'Calculas qué sistema priorizar para maximizar las posibilidades de supervivencia.',cls:'Scientist'},
+    {text:'Reduces tus funciones al mínimo. Tú no necesitas oxígeno. El resto, sí.',cls:'Android'},
+  ]},
+  { text:'Un compañero empieza a comportarse de forma errática. Habla solo. Dice que "lo ve".', options:[
+    {text:'Le vigilas de cerca. Podría suponer una amenaza para el grupo.',cls:'Marine'},
+    {text:'Intentas distraerle con trabajo. La rutina mantiene a la gente en pie.',cls:'Teamster'},
+    {text:'Le haces preguntas concretas. Necesitas saber qué ha visto exactamente.',cls:'Scientist'},
+    {text:'Registras sus constantes vitales y sus palabras. Los datos serán útiles después.',cls:'Android'},
+  ]},
+  { text:'Encuentras un artefacto de origen claramente no humano que emite una frecuencia no identificable.', options:[
+    {text:'Lo rodeas manteniendo distancia. Lo desconocido es peligroso hasta que se demuestre lo contrario.',cls:'Marine'},
+    {text:'Buscas cómo transportarlo de forma segura. Alguien querrá llevárselo.',cls:'Teamster'},
+    {text:'Empiezas a tomar muestras y mediciones. Esto es exactamente para lo que estás aquí.',cls:'Scientist'},
+    {text:'Analizas la frecuencia. Tiene estructura. Podría ser lenguaje.',cls:'Android'},
+  ]},
+  { text:'La misión se tuerce. Las cosas se ponen muy feas. ¿Cómo reaccionas bajo presión extrema?', options:[
+    {text:'Con más claridad que nunca. El peligro es donde mejor funciones.',cls:'Marine'},
+    {text:'Improvisas. No es la primera vez que algo falla y no será la última.',cls:'Teamster'},
+    {text:'Analizas antes de actuar. Una mala decisión rápida es peor que una buena lenta.',cls:'Scientist'},
+    {text:'Sin alteración. La presión no modifica tus parámetros operativos.',cls:'Android'},
+  ]},
+  { text:'Si pudieras definirte en una frase, ¿cuál sería?', options:[
+    {text:'"Si hay que hacerlo, lo hago yo."',cls:'Marine'},
+    {text:'"Siempre hay una manera de que esto funcione."',cls:'Teamster'},
+    {text:'"Necesito entenderlo antes de actuar."',cls:'Scientist'},
+    {text:'"Las emociones son ineficientes."',cls:'Android'},
+  ]},
 ];
 
-let quizAnswers = [];
-let currentQ   = 0;
-
-function initQuiz() {
-  quizAnswers = [];
-  currentQ    = 0;
-  renderQuestion();
-  renderProgress();
-}
-
-function renderProgress() {
-  const el = document.getElementById('quiz-progress');
-  el.innerHTML = QUESTIONS.map((_, i) => {
-    let cls = i < currentQ ? 'done' : i === currentQ ? 'active' : '';
-    return `<div class="dot ${cls}"></div>`;
+let quizAnswers=[], currentQ=0;
+function initQuiz(){ quizAnswers=[]; currentQ=0; renderQuestion(); renderProgress(); }
+function renderProgress(){
+  document.getElementById('quiz-progress').innerHTML = QUESTIONS.map((_,i)=>{
+    let c = i<currentQ?'done':i===currentQ?'active':'';
+    return `<div class="dot ${c}"></div>`;
   }).join('');
 }
-
-function renderQuestion() {
+function renderQuestion(){
   const q = QUESTIONS[currentQ];
-  const container = document.getElementById('question-container');
-  container.innerHTML = `
+  document.getElementById('question-container').innerHTML=`
     <div class="question-block">
-      <div class="question-num">PREGUNTA ${currentQ + 1} DE ${QUESTIONS.length}</div>
+      <div class="question-num">PREGUNTA ${currentQ+1} DE ${QUESTIONS.length}</div>
       <div class="question-text">${q.text}</div>
-      <div class="options">
-        ${q.options.map((o, i) => `
-          <button class="option" onclick="selectOption('${o.cls}', ${i})">
-            ${o.text}
-          </button>
-        `).join('')}
-      </div>
-    </div>
-  `;
+      <div class="options">${q.options.map((o,i)=>`
+        <button class="option" onclick="selectOption('${o.cls}',${i})">${o.text}</button>
+      `).join('')}</div>
+    </div>`;
 }
-
-function selectOption(cls, idx) {
-  // Marcar seleccionada
-  document.querySelectorAll('.option').forEach((el, i) => {
-    el.classList.toggle('selected', i === idx);
-  });
-
+function selectOption(cls,idx){
+  document.querySelectorAll('.option').forEach((el,i)=>el.classList.toggle('selected',i===idx));
   quizAnswers.push(cls);
-
-  setTimeout(() => {
+  setTimeout(()=>{
     currentQ++;
-    if (currentQ < QUESTIONS.length) {
-      renderProgress();
-      renderQuestion();
-    } else {
-      finishQuiz();
-    }
-  }, 400);
+    if(currentQ<QUESTIONS.length){ renderProgress(); renderQuestion(); }
+    else finishQuiz();
+  },400);
+}
+function finishQuiz(){
+  const counts={Marine:0,Teamster:0,Scientist:0,Android:0};
+  quizAnswers.forEach(c=>counts[c]++);
+  const cls=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
+  showScreen('chargen'); initChargen(cls);
 }
 
-function finishQuiz() {
-  // Contar votos por clase
-  const counts = { Marine: 0, Teamster: 0, Scientist: 0, Android: 0 };
-  quizAnswers.forEach(c => counts[c]++);
-  const cls = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
-  showScreen('chargen');
-  initChargen(cls);
-}
+// ══ CHARGEN ══════════════════════════════════════════════════════════
+let charData={}, selectedGender=null, selectedPortraitKey=null, selectedBackground=null;
 
-// ── CREACIÓN DE PERSONAJE ─────────────────────────────────────────
-let charData = {};
+function initChargen(cls){
+  charData={class:cls, quizAnswers};
+  selectedGender=null; selectedPortraitKey=null; selectedBackground=null;
+  const info=CLASSES[cls];
 
-function initChargen(cls) {
-  charData = { class: cls, quizAnswers };
-  const info = CLASSES[cls];
-  document.getElementById('cg-class').textContent = cls.toUpperCase();
-  document.getElementById('cg-class-desc').textContent = info.desc;
+  document.getElementById('cg-class').textContent=cls.toUpperCase();
+  document.getElementById('cg-class-desc').textContent=info.desc;
 
-  // Habilidades
-  const skillsUl = document.getElementById('skills-ul');
-  skillsUl.innerHTML = info.skills.map(s => `<li>${s}</li>`).join('');
+  // Gender section (hide for Android)
+  const genderSec=document.getElementById('gender-section');
+  genderSec.style.display = cls==='Android' ? 'none' : 'block';
 
-  // Equipo
-  const equipUl = document.getElementById('equip-ul');
-  equipUl.innerHTML = info.equipment.map(e => `<li>${e}</li>`).join('');
+  // Si es Android, seleccionar automáticamente
+  if(cls==='Android'){
+    selectedGender='A'; selectedPortraitKey='A';
+    document.getElementById('portrait-section').style.display='block';
+    document.getElementById('bg-section').style.display='block';
+    renderPortraits(cls,'A');
+    renderBackgrounds(cls);
+  } else {
+    document.getElementById('portrait-section').style.display='none';
+    document.getElementById('bg-section').style.display='none';
+    document.querySelectorAll('.gender-btn').forEach(b=>b.classList.remove('selected'));
+  }
+
+  // Skills / equipo
+  document.getElementById('skills-ul').innerHTML=info.skills.map(s=>`<li>${s}</li>`).join('');
+  document.getElementById('equip-ul').innerHTML=info.equipment.map(e=>`<li>${e}</li>`).join('');
 
   // Reset stats
-  ['str','spd','int','com'].forEach(s => {
-    document.getElementById(`st-${s}`).textContent = '—';
-    document.getElementById(`st-${s}`).classList.remove('rolling');
-  });
-  ['body','fear','san'].forEach(s => document.getElementById(`sv-${s}`).textContent = '—');
-  document.getElementById('gen-btn').disabled = true;
+  ['str','spd','int','com'].forEach(s=>{ const el=document.getElementById(`st-${s}`); el.textContent='—'; el.classList.remove('rolling'); });
+  ['body','fear','san'].forEach(s=>document.getElementById(`sv-${s}`).textContent='—');
+  document.getElementById('gen-btn').disabled=true;
 }
 
-function roll2d10plus20() {
-  return Math.floor(Math.random() * 10) + Math.floor(Math.random() * 10) + 22;
+function selectGender(g, btn){
+  selectedGender=g; selectedPortraitKey=null; selectedBackground=null;
+  document.querySelectorAll('.gender-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const cls=charData.class;
+  const portraitGender = g==='M'?'M':'F';
+  document.getElementById('portrait-section').style.display='block';
+  document.getElementById('bg-section').style.display='none';
+  renderPortraits(cls, portraitGender);
+  checkGenBtn();
 }
 
-async function rollStats() {
-  const btn = document.getElementById('roll-btn');
-  btn.disabled = true;
+function renderPortraits(cls, gender){
+  const portraits = cls==='Android'
+    ? [{key:'A', label:'UNIDAD SINTÉTICA'}]
+    : gender==='M'
+      ? [{key:'M', label:'VARIANTE A'}]
+      : [{key:'F', label:'VARIANTE B'}];
 
-  const ids    = ['st-str', 'st-spd', 'st-int', 'st-com'];
-  const keys   = ['strength', 'speed', 'intellect', 'combat'];
-  const bonus  = CLASSES[charData.class].statBonus;
+  // Ofrecemos siempre las dos variantes para que puedan elegir independientemente del género
+  const all = cls==='Android'
+    ? [{key:'A',label:'UNIDAD SINTÉTICA'}]
+    : [{key:'M',label:'TIPO A'},{key:'F',label:'TIPO B'}];
 
-  // Animación de dados
-  ids.forEach(id => {
-    document.getElementById(id).classList.add('rolling');
-    document.getElementById(id).textContent = '??';
-  });
+  document.getElementById('portrait-grid').innerHTML = all.map(p=>`
+    <div class="portrait-option ${selectedPortraitKey===p.key?'selected':''}" onclick="selectPortrait('${p.key}', this)">
+      ${PORTRAITS[cls][p.key]}
+      <div class="p-label">${p.label}</div>
+    </div>
+  `).join('');
+}
 
+function selectPortrait(key, el){
+  selectedPortraitKey=key;
+  document.querySelectorAll('.portrait-option').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('bg-section').style.display='block';
+  renderBackgrounds(charData.class);
+  checkGenBtn();
+}
+
+function renderBackgrounds(cls){
+  document.getElementById('bg-grid').innerHTML = BACKGROUNDS[cls].map((bg,i)=>`
+    <button class="bg-card ${selectedBackground===i?'selected':''}" onclick="selectBackground(${i},this)">${bg}</button>
+  `).join('');
+}
+
+function selectBackground(i, el){
+  selectedBackground=i;
+  document.querySelectorAll('.bg-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  checkGenBtn();
+}
+
+function randomBackground(){
+  const cls=charData.class;
+  const i=Math.floor(Math.random()*BACKGROUNDS[cls].length);
+  selectedBackground=i;
+  renderBackgrounds(cls);
+  checkGenBtn();
+}
+
+function checkGenBtn(){
+  const hasBg = selectedBackground!==null;
+  const hasPortrait = selectedPortraitKey!==null;
+  const hasGender = charData.class==='Android' || selectedGender!==null;
+  const hasStats = !!charData.strength;
+  document.getElementById('gen-btn').disabled = !(hasBg && hasPortrait && hasGender && hasStats);
+}
+
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+async function rollStats(){
+  const btn=document.getElementById('roll-btn');
+  btn.disabled=true;
+  const ids=['st-str','st-spd','st-int','st-com'];
+  const keys=['strength','speed','intellect','combat'];
+  const bonus=CLASSES[charData.class].statBonus;
+  ids.forEach(id=>{ const el=document.getElementById(id); el.classList.add('rolling'); el.textContent='??'; });
   await sleep(800);
-
-  const rolls = {};
-  for (let i = 0; i < ids.length; i++) {
-    await sleep(i * 150);
-    let val = roll2d10plus20() + (bonus[keys[i]] || 0);
-    val = Math.min(val, 80);
-    rolls[keys[i]] = val;
-    const el = document.getElementById(ids[i]);
-    el.classList.remove('rolling');
-    el.textContent = val;
+  const rolls={};
+  for(let i=0;i<ids.length;i++){
+    await sleep(i*150);
+    let val=Math.floor(Math.random()*10)+Math.floor(Math.random()*10)+22+(bonus[keys[i]]||0);
+    val=Math.min(val,80);
+    rolls[keys[i]]=val;
+    const el=document.getElementById(ids[i]);
+    el.classList.remove('rolling'); el.textContent=val;
   }
-
-  // Saves
-  const fearBase = CLASSES[charData.class].fearSaveBase;
-  const body   = Math.round((rolls.strength - 20) / 2) + 25;
-  const fear   = fearBase;
-  const sanity = Math.round((rolls.intellect - 20) / 2) + 20;
-
-  document.getElementById('sv-body').textContent = body;
-  document.getElementById('sv-fear').textContent = fear;
-  document.getElementById('sv-san').textContent  = sanity;
-
-  charData = { ...charData, ...rolls, body_save: body, fear_save: fear, sanity_save: sanity };
-  document.getElementById('gen-btn').disabled = false;
-  btn.disabled = false;
+  const fearBase=CLASSES[charData.class].fearSaveBase;
+  const body=Math.round((rolls.strength-20)/2)+25;
+  const fear=fearBase;
+  const sanity=Math.round((rolls.intellect-20)/2)+20;
+  document.getElementById('sv-body').textContent=body;
+  document.getElementById('sv-fear').textContent=fear;
+  document.getElementById('sv-san').textContent=sanity;
+  charData={...charData,...rolls,body_save:body,fear_save:fear,sanity_save:sanity};
+  btn.disabled=false;
+  checkGenBtn();
 }
 
-async function generateSheet() {
-  const playerName = document.getElementById('inp-player').value.trim();
-  const charName   = document.getElementById('inp-char').value.trim();
+async function generateSheet(){
+  const playerName=document.getElementById('inp-player').value.trim();
+  const charName=document.getElementById('inp-char').value.trim();
+  if(!playerName||!charName){ alert('Introduce el nombre del jugador y del personaje.'); return; }
+  if(!charData.strength){ alert('Primero tira los dados.'); return; }
 
-  if (!playerName || !charName) {
-    alert('Introduce el nombre del jugador y del personaje.');
-    return;
-  }
+  const info=CLASSES[charData.class];
+  const trinket=TRINKETS[Math.floor(Math.random()*TRINKETS.length)];
+  const bg=BACKGROUNDS[charData.class][selectedBackground];
+  const genderLabel={'M':'Sr.','F':'Sra.','N':'Sre.','A':''}[selectedGender]||'';
 
-  if (!charData.strength) {
-    alert('Primero tira los dados.');
-    return;
-  }
-
-  const info    = CLASSES[charData.class];
-  const trinket = TRINKETS[Math.floor(Math.random() * TRINKETS.length)];
-
-  const record = {
-    player_name:  playerName,
-    char_name:    charName,
-    class:        charData.class,
-    strength:     charData.strength,
-    speed:        charData.speed,
-    intellect:    charData.intellect,
-    combat:       charData.combat,
-    sanity_save:  charData.sanity_save,
-    fear_save:    charData.fear_save,
-    body_save:    charData.body_save,
-    max_stress:   20,
-    skills:       info.skills,
-    equipment:    info.equipment,
-    trinket,
-    quiz_answers: charData.quizAnswers,
+  const record={
+    player_name:playerName, char_name:charName, class:charData.class,
+    strength:charData.strength, speed:charData.speed, intellect:charData.intellect, combat:charData.combat,
+    sanity_save:charData.sanity_save, fear_save:charData.fear_save, body_save:charData.body_save,
+    max_stress:20, skills:info.skills, equipment:info.equipment, trinket, quiz_answers:charData.quizAnswers,
   };
 
-  try {
-    await supaInsert(record);
-  } catch(e) {
-    console.warn('Error guardando en Supabase:', e);
-  }
+  try { await supaInsert(record); } catch(e){ console.warn('Supabase error:',e); }
 
-  renderSheet({ ...record });
+  renderSheet({...record, background:bg, portraitSVG: PORTRAITS[charData.class][selectedPortraitKey], genderLabel});
   showScreen('sheet');
 }
 
-function renderSheet(r) {
-  const stressBoxes = Array.from({length: 20}, (_, i) =>
-    `<div class="stress-box">${i + 1}</div>`
-  ).join('');
-
-  document.getElementById('char-sheet-render').innerHTML = `
+function renderSheet(r){
+  const stressBoxes=Array.from({length:20},(_,i)=>`<div class="stress-box">${i+1}</div>`).join('');
+  document.getElementById('char-sheet-render').innerHTML=`
     <div class="sheet-top">
+      <div class="sheet-portrait">${r.portraitSVG}</div>
       <div class="sheet-identity">
-        <div class="char-name">${r.char_name}</div>
+        <div class="char-name">${r.genderLabel} ${r.char_name}</div>
         <div class="char-class">${r.class.toUpperCase()} — A.R.V. ALEXIS</div>
         <div class="char-player">Jugador: ${r.player_name}</div>
+        <div class="char-bg">${r.background}</div>
       </div>
       <div class="sheet-class-badge">
         <div class="badge-label">CLASE</div>
         <div class="badge-class">${r.class}</div>
+        <div class="badge-gender">${r.genderLabel}</div>
       </div>
     </div>
 
-    <div style="font-size:0.6rem; letter-spacing:0.4em; color:var(--dim); margin-bottom:0.6rem;">ESTADÍSTICAS PRIMARIAS</div>
+    <div class="section-label">ESTADÍSTICAS PRIMARIAS</div>
     <div class="sheet-stats-row">
       <div class="sheet-stat"><div class="s-label">STRENGTH</div><div class="s-val">${r.strength}</div></div>
       <div class="sheet-stat"><div class="s-label">SPEED</div><div class="s-val">${r.speed}</div></div>
@@ -1341,7 +1052,7 @@ function renderSheet(r) {
       <div class="sheet-stat"><div class="s-label">COMBAT</div><div class="s-val">${r.combat}</div></div>
     </div>
 
-    <div style="font-size:0.6rem; letter-spacing:0.4em; color:var(--dim); margin-bottom:0.6rem;">TIRADAS DE SALVACIÓN</div>
+    <div class="section-label">TIRADAS DE SALVACIÓN</div>
     <div class="sheet-saves-row">
       <div class="sheet-save"><div class="sv-label">BODY SAVE</div><div class="sv-val">${r.body_save}%</div></div>
       <div class="sheet-save"><div class="sv-label">FEAR SAVE</div><div class="sv-val">${r.fear_save}%</div></div>
@@ -1349,29 +1060,13 @@ function renderSheet(r) {
     </div>
 
     <div class="sheet-bottom">
-      <div class="sheet-section">
-        <div class="sec-title">HABILIDADES</div>
-        <ul>${r.skills.map(s => `<li>${s}</li>`).join('')}</ul>
-      </div>
-      <div class="sheet-section">
-        <div class="sec-title">EQUIPO INICIAL</div>
-        <ul>${r.equipment.map(e => `<li>${e}</li>`).join('')}</ul>
-      </div>
-
-      <div class="trinket-box">
-        <div class="sec-title">OBJETO PERSONAL</div>
-        ${r.trinket}
-      </div>
-
-      <div class="stress-track" style="grid-column: 1/-1;">
-        <div class="sec-title">ESTRÉS (MAX 20)</div>
-        <div class="stress-boxes">${stressBoxes}</div>
-      </div>
+      <div class="sheet-section"><div class="sec-title">HABILIDADES</div><ul>${r.skills.map(s=>`<li>${s}</li>`).join('')}</ul></div>
+      <div class="sheet-section"><div class="sec-title">EQUIPO INICIAL</div><ul>${r.equipment.map(e=>`<li>${e}</li>`).join('')}</ul></div>
+      <div class="trinket-box"><div class="sec-title">OBJETO PERSONAL</div>${r.trinket}</div>
+      <div class="stress-track"><div class="sec-title">ESTRÉS (MAX 20)</div><div class="stress-boxes">${stressBoxes}</div></div>
     </div>
   `;
 }
-
-const sleep = ms => new Promise(r => setTimeout(r, ms));
 </script>
 </body>
 </html>
