@@ -163,7 +163,8 @@
     }
     .portrait-option:hover { border-color:var(--dim); }
     .portrait-option.selected { border-color:var(--green); box-shadow:0 0 12px rgba(0,255,65,.25); }
-    .portrait-option svg { display:block; width:100%; }
+    .portrait-option img { display:block; width:100%; height:120px; object-fit:cover; }
+    .portrait-placeholder { width:100%; height:120px; display:flex; align-items:center; justify-content:center; font-size:2rem; color:var(--border); }
     .portrait-option .p-label { font-size:.55rem; letter-spacing:.2em; color:var(--dim); text-align:center; padding:.3rem 0; }
 
     /* Trasfondos */
@@ -236,8 +237,8 @@
     .character-sheet { border:1px solid var(--border); background:rgba(0,255,65,.01); padding:2.5rem; position:relative; }
     .character-sheet::before { content:'A.R.V. ALEXIS — FICHA DE TRIPULACIÓN'; position:absolute; top:-.7rem; left:1.5rem; font-size:.55rem; letter-spacing:.4em; color:var(--dim); background:var(--black); padding:0 .5rem; }
     .sheet-top { display:grid; grid-template-columns:auto 1fr auto; gap:1.5rem; border-bottom:1px solid var(--border); padding-bottom:1.5rem; margin-bottom:1.5rem; align-items:start; }
-    .sheet-portrait { width:90px; border:1px solid var(--border); overflow:hidden; }
-    .sheet-portrait svg { display:block; width:100%; }
+    .sheet-portrait { width:90px; height:120px; border:1px solid var(--border); overflow:hidden; }
+    .sheet-portrait img { display:block; width:100%; height:100%; object-fit:cover; }
     .sheet-identity .char-name { font-family:'Orbitron',monospace; font-size:clamp(1.2rem,3vw,2rem); color:var(--green); text-shadow:0 0 10px rgba(0,255,65,.4); }
     .sheet-identity .char-class { font-size:.7rem; letter-spacing:.4em; color:var(--dim); margin-top:.3rem; }
     .sheet-identity .char-player { font-size:.65rem; color:rgba(0,255,65,.35); margin-top:.1rem; }
@@ -464,59 +465,145 @@ function startAmbient() {
   if (ambientRunning) return;
   try {
     ambientCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const ac = ambientCtx;
+    const ac = ambientCtx, t = ac.currentTime;
 
-    const master = ac.createGain(); master.gain.value = 0.6; master.connect(ac.destination);
+    // Master bus con fade in lento
+    const master = ac.createGain();
+    master.gain.setValueAtTime(0, t);
+    master.gain.linearRampToValueAtTime(0.65, t + 6);
+    master.connect(ac.destination);
     ambientNodes.master = master;
 
-    // Sub drone
-    const sub = ac.createOscillator(), subF = ac.createBiquadFilter(), subG = ac.createGain();
-    sub.type = 'sine'; sub.frequency.value = 42;
-    subF.type = 'lowpass'; subF.frequency.value = 90; subF.Q.value = 1;
-    subG.gain.value = 0; sub.connect(subF); subF.connect(subG); subG.connect(master); sub.start();
-    subG.gain.linearRampToValueAtTime(0.35, ac.currentTime + 4);
-    ambientNodes.subG = subG;
+    // — CAPA 1: Sub drone 38 Hz con respiración lenta (tremolo 0.05 Hz) —
+    const sub = ac.createOscillator();
+    sub.type = 'sine'; sub.frequency.value = 38;
+    const subTremoloOsc = ac.createOscillator();
+    subTremoloOsc.type = 'sine'; subTremoloOsc.frequency.value = 0.05;
+    const subTremoloGain = ac.createGain(); subTremoloGain.gain.value = 0.07;
+    const subGain = ac.createGain(); subGain.gain.value = 0.28;
+    subTremoloOsc.connect(subTremoloGain); subTremoloGain.connect(subGain.gain);
+    sub.connect(subGain); subGain.connect(master);
+    sub.start(); subTremoloOsc.start();
+    ambientNodes.subGain = subGain;
 
-    // Mid pad
-    const mid = ac.createOscillator(), midF = ac.createBiquadFilter(), midG = ac.createGain();
-    mid.type = 'triangle'; mid.frequency.value = 84;
-    midF.type = 'bandpass'; midF.frequency.value = 130; midF.Q.value = 0.5;
-    midG.gain.value = 0; mid.connect(midF); midF.connect(midG); midG.connect(master); mid.start();
-    midG.gain.linearRampToValueAtTime(0.12, ac.currentTime + 6);
-    ambientNodes.midG = midG;
+    // — CAPA 2: Ruido marrón filtrado — maquinaria lejana —
+    const nBuf = ac.createBuffer(1, ac.sampleRate * 5, ac.sampleRate);
+    const nd = nBuf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < nd.length; i++) { last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; nd[i] = last * 3.5; }
+    const noise = ac.createBufferSource(); noise.buffer = nBuf; noise.loop = true;
+    const nFilt = ac.createBiquadFilter(); nFilt.type = 'bandpass'; nFilt.frequency.value = 220; nFilt.Q.value = 1.8;
+    const nLFO = ac.createOscillator(); nLFO.type = 'sine'; nLFO.frequency.value = 0.025;
+    const nLFOG = ac.createGain(); nLFOG.gain.value = 160;
+    nLFO.connect(nLFOG); nLFOG.connect(nFilt.frequency);
+    const nGain = ac.createGain(); nGain.gain.value = 0;
+    nGain.gain.linearRampToValueAtTime(0.09, t + 9);
+    noise.connect(nFilt); nFilt.connect(nGain); nGain.connect(master);
+    noise.start(); nLFO.start();
 
-    // Slow LFO breathing
-    const lfo = ac.createOscillator(), lfoG = ac.createGain();
-    lfo.type = 'sine'; lfo.frequency.value = 0.08;
-    lfoG.gain.value = 0.08; lfo.connect(lfoG); lfoG.connect(subG.gain); lfo.start();
+    // — CAPA 3: Acorde disonante con batido entre osciladores —
+    // Tres osciladores levemente desafinados: intervalos de segunda menor + tritono
+    [[76, 'sawtooth', 0.04], [76.9, 'sawtooth', 0.035], [113.8, 'triangle', 0.025]].forEach(([freq, type, vol]) => {
+      const o = ac.createOscillator(); o.type = type; o.frequency.value = freq;
+      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 280; lp.Q.value = 0.6;
+      const g = ac.createGain(); g.gain.value = 0;
+      g.gain.linearRampToValueAtTime(vol, t + 11);
+      o.connect(lp); lp.connect(g); g.connect(master); o.start();
+    });
 
-    // Occasional high blip
-    scheduleBlips();
+    // — CAPA 4: Textura metálica alta con barrido lento —
+    const metal = ac.createOscillator(); metal.type = 'sawtooth'; metal.frequency.value = 528;
+    const metalHP = ac.createBiquadFilter(); metalHP.type = 'highpass'; metalHP.frequency.value = 900; metalHP.Q.value = 4;
+    const metalLFO = ac.createOscillator(); metalLFO.type = 'sine'; metalLFO.frequency.value = 0.06;
+    const metalLFOG = ac.createGain(); metalLFOG.gain.value = 55;
+    metalLFO.connect(metalLFOG); metalLFOG.connect(metal.frequency);
+    const metalG = ac.createGain(); metalG.gain.value = 0;
+    metalG.gain.linearRampToValueAtTime(0.013, t + 14);
+    metal.connect(metalHP); metalHP.connect(metalG); metalG.connect(master);
+    metal.start(); metalLFO.start();
+
+    // — CAPA 5: Pulso cardíaco irregular —
+    schedulePulse();
+
+    // — EVENTOS ALEATORIOS —
+    scheduleEvent();
+
     ambientRunning = true;
-  } catch(e) { /* browser policy */ }
+  } catch(e) {}
 }
 
 function stopAmbient() {
   if (!ambientRunning || !ambientCtx) return;
   try {
-    ambientNodes.master.gain.linearRampToValueAtTime(0, ambientCtx.currentTime + 1.5);
-    setTimeout(() => { ambientCtx.close(); ambientCtx = null; ambientRunning = false; }, 1600);
+    ambientNodes.master.gain.linearRampToValueAtTime(0, ambientCtx.currentTime + 2);
+    setTimeout(() => { ambientCtx.close(); ambientCtx = null; ambientRunning = false; }, 2200);
   } catch(e) {}
 }
 
-function scheduleBlips() {
+// Pulso grave e irregular (latido de la nave)
+function schedulePulse() {
   if (!ambientRunning) return;
-  const delay = 4000 + Math.random() * 8000;
+  const delay = 1800 + Math.random() * 1400;
   setTimeout(() => {
     if (!ambientCtx || !ambientRunning) return;
     const ac = ambientCtx, now = ac.currentTime;
-    const osc = ac.createOscillator(), g = ac.createGain();
-    osc.type = 'sine'; osc.frequency.value = 880 + Math.random() * 440;
-    g.gain.value = 0.025; g.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+    const dur = 0.06 + Math.random() * 0.04;
+    const osc = ac.createOscillator(); osc.type = 'sine'; osc.frequency.value = 52 + Math.random() * 12;
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.18, now);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
     osc.connect(g); g.connect(ambientNodes.master);
-    osc.start(now); osc.stop(now + 0.12);
-    scheduleBlips();
+    osc.start(now); osc.stop(now + dur);
+    schedulePulse();
   }, delay);
+}
+
+// Eventos aleatorios: golpe metálico, blip descendente, rumble
+function scheduleEvent() {
+  if (!ambientRunning) return;
+  setTimeout(() => {
+    if (!ambientCtx || !ambientRunning) return;
+    const r = Math.random();
+    if (r < 0.4) ambientClang();
+    else if (r < 0.72) ambientBlip();
+    else ambientRumble();
+    scheduleEvent();
+  }, 5000 + Math.random() * 13000);
+}
+
+function ambientClang() {
+  const ac = ambientCtx, now = ac.currentTime;
+  const buf = ac.createBuffer(1, ac.sampleRate * 0.6, ac.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ac.sampleRate * 0.07));
+  const src = ac.createBufferSource(); src.buffer = buf;
+  const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1100 + Math.random() * 900; f.Q.value = 3.5;
+  const g = ac.createGain(); g.gain.setValueAtTime(0.055, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+  src.connect(f); f.connect(g); g.connect(ambientNodes.master); src.start(now);
+}
+
+function ambientBlip() {
+  const ac = ambientCtx, now = ac.currentTime;
+  const osc = ac.createOscillator(); osc.type = 'sine';
+  osc.frequency.setValueAtTime(600 + Math.random() * 800, now);
+  osc.frequency.exponentialRampToValueAtTime(150 + Math.random() * 150, now + 0.35);
+  const g = ac.createGain(); g.gain.setValueAtTime(0.028, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+  osc.connect(g); g.connect(ambientNodes.master); osc.start(now); osc.stop(now + 0.35);
+}
+
+function ambientRumble() {
+  const ac = ambientCtx, now = ac.currentTime;
+  const buf = ac.createBuffer(1, ac.sampleRate * 2.5, ac.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  const src = ac.createBufferSource(); src.buffer = buf;
+  const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 55;
+  const g = ac.createGain();
+  g.gain.setValueAtTime(0, now);
+  g.gain.linearRampToValueAtTime(0.13, now + 0.4);
+  g.gain.setValueAtTime(0.13, now + 1.8);
+  g.gain.linearRampToValueAtTime(0, now + 2.5);
+  src.connect(f); f.connect(g); g.connect(ambientNodes.master); src.start(now);
 }
 
 // Desbloquear audio en primer toque
@@ -588,186 +675,22 @@ const BACKGROUNDS = {
   ],
 };
 
-// ══ RETRATOS SVG ════════════════════════════════════════════════════
-const G = '#00ff41', G2 = '#00cc33', D = '#001500', B = '#000d00';
-
-function makeSVG(inner) {
-  return `<svg viewBox="0 0 160 210" xmlns="http://www.w3.org/2000/svg">
-    <rect width="160" height="210" fill="#000"/>
-    ${inner}
-  </svg>`;
+// ══ RETRATOS — imágenes de la carpeta portraits/ ══════════════════════
+// Convención de nombres:
+//   marine-m.jpg · marine-f.jpg · teamster-m.jpg · teamster-f.jpg
+//   scientist-m.jpg · scientist-f.jpg · android.jpg
+function portraitPath(cls, key) {
+  if (key === 'A') return 'portraits/android.jpg';
+  return `portraits/${cls.toLowerCase()}-${key.toLowerCase()}.jpg`;
 }
 
-// Cara base compartida: ovalada con orejas, nariz, boca
-function faceBase(eyeL, eyeR, mouth, extras='') {
-  return `
-    <!-- Cuerpo/hombros base -->
-    <path d="M0,210 L0,165 Q10,150 30,145 L55,148 L105,148 L130,145 Q150,150 160,165 L160,210" fill="${D}" stroke="${G2}" stroke-width="1"/>
-    <!-- Cuello -->
-    <rect x="67" y="133" width="26" height="18" fill="${B}" stroke="${G2}" stroke-width="1"/>
-    <!-- Cara -->
-    <ellipse cx="80" cy="88" rx="44" ry="55" fill="${B}" stroke="${G}" stroke-width="1.5"/>
-    <!-- Orejas -->
-    <path d="M36,78 Q30,88 36,98" fill="none" stroke="${G}" stroke-width="1"/>
-    <path d="M124,78 Q130,88 124,98" fill="none" stroke="${G}" stroke-width="1"/>
-    <!-- Nariz -->
-    <path d="M77,93 L74,107 Q80,110 86,107 L83,93" fill="none" stroke="${G2}" stroke-width="1" opacity=".7"/>
-    <!-- Ojos -->
-    ${eyeL} ${eyeR}
-    <!-- Boca -->
-    ${mouth}
-    ${extras}
-  `;
+function portraitImg(cls, key, label) {
+  const src = portraitPath(cls, key);
+  return `<img src="${src}" alt="${label}"
+    onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <div class="portrait-placeholder" style="display:none">👤</div>`;
 }
 
-function eye(cx, cy, pupil=true) {
-  return `<ellipse cx="${cx}" cy="${cy}" rx="7" ry="5" fill="#000" stroke="${G}" stroke-width="1"/>
-    ${pupil ? `<circle cx="${cx}" cy="${cy}" r="2.5" fill="${G}" opacity=".85"/>` : ''}`;
-}
-
-const PORTRAITS = {
-  Marine: {
-    M: makeSVG(faceBase(
-      eye(63,82), eye(97,82),
-      `<path d="M68,116 L92,116" stroke="${G}" stroke-width="1.5"/>`,
-      `<!-- Pelo corto militar -->
-      <path d="M36,72 Q36,35 80,28 Q124,35 124,72 L120,68 Q115,40 80,34 Q45,40 40,68 Z" fill="${D}" stroke="${G}" stroke-width="1.2"/>
-      <!-- Cicatriz -->
-      <line x1="91" y1="68" x2="96" y2="82" stroke="${G}" stroke-width="1" opacity=".6"/>
-      <!-- Collar armadura -->
-      <rect x="52" y="145" width="56" height="14" rx="1" fill="${D}" stroke="${G}" stroke-width="1"/>
-      <line x1="80" y1="145" x2="80" y2="159" stroke="${G}" stroke-width=".5" opacity=".5"/>
-      <rect x="60" y="148" width="8" height="6" rx="1" fill="none" stroke="${G2}" stroke-width=".7"/>
-      <rect x="92" y="148" width="8" height="6" rx="1" fill="none" stroke="${G2}" stroke-width=".7"/>`
-    )),
-    F: makeSVG(faceBase(
-      eye(63,82), eye(97,82),
-      `<path d="M68,116 Q80,122 92,116" stroke="${G}" stroke-width="1.5" fill="none"/>`,
-      `<!-- Coleta alta -->
-      <ellipse cx="80" cy="34" rx="18" ry="12" fill="${D}" stroke="${G}" stroke-width="1.2"/>
-      <path d="M62,34 Q36,40 36,72" fill="${D}" stroke="${G}" stroke-width="1.2"/>
-      <path d="M98,34 Q124,40 124,72" fill="${D}" stroke="${G}" stroke-width="1.2"/>
-      <line x1="80" y1="22" x2="80" y2="10" stroke="${G}" stroke-width="1.5"/>
-      <ellipse cx="80" cy="8" rx="6" ry="4" fill="${D}" stroke="${G}" stroke-width="1"/>
-      <!-- Pendiente táctico -->
-      <circle cx="36" cy="88" r="3" fill="none" stroke="${G}" stroke-width="1"/>
-      <!-- Collar armadura -->
-      <rect x="52" y="145" width="56" height="14" rx="1" fill="${D}" stroke="${G}" stroke-width="1"/>
-      <line x1="80" y1="145" x2="80" y2="159" stroke="${G}" stroke-width=".5" opacity=".5"/>`
-    )),
-  },
-  Teamster: {
-    M: makeSVG(faceBase(
-      eye(63,82), eye(97,82),
-      `<path d="M66,116 L94,116" stroke="${G}" stroke-width="1.5"/>`,
-      `<!-- Pelo despeinado -->
-      <path d="M36,68 Q34,38 80,28 Q115,32 122,55 L118,65 Q105,42 80,36 Q52,38 42,65 Z" fill="${D}" stroke="${G}" stroke-width="1.2"/>
-      <path d="M36,68 Q38,60 42,65" fill="${D}" stroke="${G}" stroke-width="1"/>
-      <path d="M118,65 Q122,60 124,68" fill="${D}" stroke="${G}" stroke-width="1"/>
-      <!-- Barba corta (líneas) -->
-      <line x1="58" y1="118" x2="60" y2="124" stroke="${G2}" stroke-width=".8" opacity=".6"/>
-      <line x1="65" y1="120" x2="66" y2="126" stroke="${G2}" stroke-width=".8" opacity=".6"/>
-      <line x1="94" y1="120" x2="95" y2="126" stroke="${G2}" stroke-width=".8" opacity=".6"/>
-      <line x1="100" y1="118" x2="102" y2="124" stroke="${G2}" stroke-width=".8" opacity=".6"/>
-      <!-- Collar trabajo -->
-      <path d="M52,148 L52,159 Q80,163 108,159 L108,148" fill="${D}" stroke="${G}" stroke-width="1"/>
-      <line x1="80" y1="148" x2="80" y2="163" stroke="${G2}" stroke-width=".5"/>`
-    )),
-    F: makeSVG(faceBase(
-      eye(63,82), eye(97,82),
-      `<path d="M68,116 Q80,121 92,116" stroke="${G}" stroke-width="1.5" fill="none"/>`,
-      `<!-- Trenza lateral -->
-      <path d="M36,68 Q36,38 80,28 Q108,32 124,68" fill="${D}" stroke="${G}" stroke-width="1.2"/>
-      <path d="M36,68 Q34,85 36,100 Q40,118 50,128" fill="none" stroke="${G}" stroke-width="1.5"/>
-      <line x1="36" y1="80" x2="42" y2="82" stroke="${G2}" stroke-width=".7"/>
-      <line x1="36" y1="90" x2="42" y2="92" stroke="${G2}" stroke-width=".7"/>
-      <line x1="37" y1="100" x2="43" y2="102" stroke="${G2}" stroke-width=".7"/>
-      <!-- Goggles en la frente -->
-      <ellipse cx="63" cy="52" rx="10" ry="7" fill="none" stroke="${G}" stroke-width="1"/>
-      <ellipse cx="97" cy="52" rx="10" ry="7" fill="none" stroke="${G}" stroke-width="1"/>
-      <line x1="73" y1="52" x2="87" y2="52" stroke="${G}" stroke-width="1"/>
-      <!-- Collar trabajo -->
-      <path d="M52,148 L52,159 Q80,163 108,159 L108,148" fill="${D}" stroke="${G}" stroke-width="1"/>`
-    )),
-  },
-  Scientist: {
-    M: makeSVG(faceBase(
-      eye(63,82), eye(97,82),
-      `<path d="M70,116 Q80,119 90,116" stroke="${G}" stroke-width="1.2" fill="none"/>`,
-      `<!-- Pelo ordenado lateral -->
-      <path d="M36,72 Q38,35 80,28 Q120,35 124,72 L122,68 Q116,42 80,36 Q48,38 40,68 Z" fill="${D}" stroke="${G}" stroke-width="1.2"/>
-      <path d="M36,72 Q36,62 40,68" fill="${D}" stroke="${G}" stroke-width="1"/>
-      <!-- Gafas -->
-      <rect x="50" y="76" width="22" height="14" rx="4" fill="none" stroke="${G}" stroke-width="1.2"/>
-      <rect x="84" y="76" width="22" height="14" rx="4" fill="none" stroke="${G}" stroke-width="1.2"/>
-      <line x1="72" y1="83" x2="84" y2="83" stroke="${G}" stroke-width="1"/>
-      <line x1="36" y1="80" x2="50" y2="80" stroke="${G}" stroke-width=".8"/>
-      <line x1="106" y1="80" x2="124" y2="82" stroke="${G}" stroke-width=".8"/>
-      <!-- Bata cuello -->
-      <path d="M52,148 L60,160 L80,153 L100,160 L108,148" fill="${D}" stroke="${G}" stroke-width="1"/>
-      <line x1="80" y1="153" x2="80" y2="163" stroke="${G}" stroke-width="1"/>`
-    )),
-    F: makeSVG(faceBase(
-      eye(63,82), eye(97,82),
-      `<path d="M70,116 Q80,120 90,116" stroke="${G}" stroke-width="1.2" fill="none"/>`,
-      `<!-- Moño alto -->
-      <ellipse cx="80" cy="30" rx="22" ry="14" fill="${D}" stroke="${G}" stroke-width="1.2"/>
-      <path d="M58,30 Q36,40 36,72" fill="${D}" stroke="${G}" stroke-width="1.2"/>
-      <path d="M102,30 Q124,40 124,72" fill="${D}" stroke="${G}" stroke-width="1.2"/>
-      <path d="M70,20 Q80,10 90,20" fill="none" stroke="${G}" stroke-width="1"/>
-      <!-- Gafas -->
-      <rect x="50" y="76" width="22" height="14" rx="4" fill="none" stroke="${G}" stroke-width="1.2"/>
-      <rect x="84" y="76" width="22" height="14" rx="4" fill="none" stroke="${G}" stroke-width="1.2"/>
-      <line x1="72" y1="83" x2="84" y2="83" stroke="${G}" stroke-width="1"/>
-      <line x1="36" y1="80" x2="50" y2="80" stroke="${G}" stroke-width=".8"/>
-      <line x1="106" y1="80" x2="124" y2="82" stroke="${G}" stroke-width=".8"/>
-      <!-- Bata cuello -->
-      <path d="M52,148 L60,160 L80,153 L100,160 L108,148" fill="${D}" stroke="${G}" stroke-width="1"/>
-      <line x1="80" y1="153" x2="80" y2="163" stroke="${G}" stroke-width="1"/>`
-    )),
-  },
-  Android: {
-    A: makeSVG(`
-      <!-- Cuerpo sintético -->
-      <path d="M0,210 L0,160 Q10,145 35,140 L55,145 L105,145 L125,140 Q150,145 160,160 L160,210" fill="${D}" stroke="${G}" stroke-width="1"/>
-      <!-- Cuello con conectores -->
-      <rect x="62" y="128" width="36" height="20" fill="${B}" stroke="${G}" stroke-width="1"/>
-      <line x1="68" y1="128" x2="68" y2="148" stroke="${G2}" stroke-width=".7"/>
-      <line x1="80" y1="128" x2="80" y2="148" stroke="${G2}" stroke-width=".7"/>
-      <line x1="92" y1="128" x2="92" y2="148" stroke="${G2}" stroke-width=".7"/>
-      <!-- Cara geométrica -->
-      <rect x="36" y="38" width="88" height="100" rx="8" fill="${B}" stroke="${G}" stroke-width="1.5"/>
-      <!-- Líneas de panel -->
-      <line x1="36" y1="88" x2="124" y2="88" stroke="${G2}" stroke-width=".5" opacity=".5"/>
-      <line x1="80" y1="38" x2="80" y2="138" stroke="${G2}" stroke-width=".5" opacity=".3"/>
-      <!-- Ojos LED -->
-      <rect x="50" y="68" width="22" height="12" rx="2" fill="#001500" stroke="${G}" stroke-width="1"/>
-      <rect x="88" y="68" width="22" height="12" rx="2" fill="#001500" stroke="${G}" stroke-width="1"/>
-      <rect x="53" y="71" width="16" height="6" rx="1" fill="${G}" opacity=".9"/>
-      <rect x="91" y="71" width="16" height="6" rx="1" fill="${G}" opacity=".9"/>
-      <!-- Boca -->
-      <rect x="58" y="104" width="44" height="8" rx="1" fill="#001500" stroke="${G}" stroke-width="1"/>
-      <line x1="65" y1="108" x2="70" y2="108" stroke="${G}" stroke-width="1.5"/>
-      <line x1="75" y1="108" x2="85" y2="108" stroke="${G}" stroke-width="1.5"/>
-      <line x1="90" y1="108" x2="95" y2="108" stroke="${G}" stroke-width="1.5"/>
-      <!-- Antena/sensor -->
-      <line x1="80" y1="38" x2="80" y2="22" stroke="${G}" stroke-width="1"/>
-      <circle cx="80" cy="18" r="4" fill="${D}" stroke="${G}" stroke-width="1"/>
-      <circle cx="80" cy="18" r="1.5" fill="${G}"/>
-      <!-- Panel lateral izquierdo -->
-      <rect x="36" y="50" width="8" height="20" rx="1" fill="none" stroke="${G2}" stroke-width=".7"/>
-      <rect x="36" y="55" width="8" height="4" fill="${G}" opacity=".4"/>
-      <!-- Panel lateral derecho -->
-      <rect x="116" y="50" width="8" height="20" rx="1" fill="none" stroke="${G2}" stroke-width=".7"/>
-      <rect x="116" y="65" width="8" height="4" fill="${G}" opacity=".4"/>
-      <!-- Collar tech -->
-      <rect x="50" y="140" width="60" height="12" rx="2" fill="${D}" stroke="${G}" stroke-width="1"/>
-      <circle cx="65" cy="146" r="3" fill="none" stroke="${G2}" stroke-width=".8"/>
-      <circle cx="80" cy="146" r="3" fill="none" stroke="${G2}" stroke-width=".8"/>
-      <circle cx="95" cy="146" r="3" fill="none" stroke="${G2}" stroke-width=".8"/>
-    `),
-  },
-};
 
 const TRINKETS = [
   'Foto desgastada de alguien que no recuerdas',
@@ -914,20 +837,13 @@ function selectGender(g, btn){
 }
 
 function renderPortraits(cls, gender){
-  const portraits = cls==='Android'
-    ? [{key:'A', label:'UNIDAD SINTÉTICA'}]
-    : gender==='M'
-      ? [{key:'M', label:'VARIANTE A'}]
-      : [{key:'F', label:'VARIANTE B'}];
-
-  // Ofrecemos siempre las dos variantes para que puedan elegir independientemente del género
   const all = cls==='Android'
-    ? [{key:'A',label:'UNIDAD SINTÉTICA'}]
-    : [{key:'M',label:'TIPO A'},{key:'F',label:'TIPO B'}];
+    ? [{key:'A', label:'UNIDAD SINTÉTICA'}]
+    : [{key:'M', label:'SR.'}, {key:'F', label:'SRA. / SRE.'}];
 
   document.getElementById('portrait-grid').innerHTML = all.map(p=>`
     <div class="portrait-option ${selectedPortraitKey===p.key?'selected':''}" onclick="selectPortrait('${p.key}', this)">
-      ${PORTRAITS[cls][p.key]}
+      ${portraitImg(cls, p.key, p.label)}
       <div class="p-label">${p.label}</div>
     </div>
   `).join('');
@@ -1022,7 +938,7 @@ async function generateSheet(){
 
   try { await supaInsert(record); } catch(e){ console.warn('Supabase error:',e); }
 
-  renderSheet({...record, background:bg, portraitSVG: PORTRAITS[charData.class][selectedPortraitKey], genderLabel});
+  renderSheet({...record, background:bg, portraitPath: portraitPath(charData.class, selectedPortraitKey), genderLabel});
   showScreen('sheet');
 }
 
@@ -1030,7 +946,7 @@ function renderSheet(r){
   const stressBoxes=Array.from({length:20},(_,i)=>`<div class="stress-box">${i+1}</div>`).join('');
   document.getElementById('char-sheet-render').innerHTML=`
     <div class="sheet-top">
-      <div class="sheet-portrait">${r.portraitSVG}</div>
+      <div class="sheet-portrait"><img src="${r.portraitPath}" alt="Retrato" onerror="this.parentNode.style.opacity='.15'"></div>
       <div class="sheet-identity">
         <div class="char-name">${r.genderLabel} ${r.char_name}</div>
         <div class="char-class">${r.class.toUpperCase()} — A.R.V. ALEXIS</div>
