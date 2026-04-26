@@ -68,3 +68,6 @@ create policy "Cualquiera puede actualizar naves"
 
 -- Relacionar personajes con naves
 alter table characters add column if not exists ship_id uuid references ships(id);
+
+-- Salvada de Armadura (añadida en v2)
+alter table characters add column if not exists armor_save int not null default 25;

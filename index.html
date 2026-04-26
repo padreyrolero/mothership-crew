@@ -144,6 +144,8 @@
     .class-result .class-label { font-size:.65rem; letter-spacing:.5em; color:var(--dim); margin-bottom:.5rem; }
     .class-result .class-name { font-family:'Orbitron',monospace; font-size:clamp(1.5rem,4vw,2.5rem); font-weight:700; color:var(--green); text-shadow:0 0 20px var(--green); }
     .class-result .class-desc { font-size:.8rem; color:var(--dim); margin-top:.5rem; line-height:1.6; }
+    .class-special-rule { font-size:.72rem; color:#00ccff; margin-top:.6rem; padding:.5rem .8rem; border-left:2px solid #00ccff; background:rgba(0,204,255,.04); line-height:1.6; letter-spacing:.04em; }
+    .class-special-rule::before { content:'◆ REGLA ESPECIAL — '; font-size:.6rem; letter-spacing:.3em; opacity:.7; }
 
     /* Género */
     .gender-row { display:flex; gap:1rem; flex-wrap:wrap; }
@@ -338,6 +340,7 @@
     .stress-box { width:22px; height:22px; border:1px solid var(--border); font-size:.6rem; display:flex; align-items:center; justify-content:center; color:var(--dim); }
     .trinket-box { grid-column:1/-1; border:1px solid var(--border); padding:.8rem 1rem; font-size:.8rem; color:rgba(0,255,65,.6); }
     .trinket-box .sec-title { font-size:.55rem; letter-spacing:.4em; color:var(--dim); margin-bottom:.4rem; }
+    .sheet-special-rule { font-size:.72rem; color:#00ccff; padding:.5rem .9rem; border-left:2px solid #00ccff; background:rgba(0,204,255,.04); margin:.8rem 0; line-height:1.6; letter-spacing:.04em; }
 
     /* ── PRINT ────────────────────────────────────────────────────── */
     @media print {
@@ -437,6 +440,7 @@
       <div class="class-label">CLASE ASIGNADA</div>
       <div class="class-name" id="cg-class">—</div>
       <div class="class-desc" id="cg-class-desc">—</div>
+      <div class="class-special-rule" id="cg-special-rule"></div>
     </div>
 
     <!-- Género (solo si no es Android) -->
@@ -494,11 +498,12 @@
 
     <!-- Saves -->
     <div>
-      <div class="section-label">SALVADAS SECUNDARIAS</div>
+      <div class="section-label">SALVADAS <span style="font-size:.6em;color:var(--dim);letter-spacing:.2em">(fijas por clase — se revelan al tirar stats)</span></div>
       <div class="saves-grid">
         <div class="save-box"><div class="save-name">CUERPO</div><div class="save-val" id="sv-body">—</div></div>
         <div class="save-box"><div class="save-name">MIEDO</div><div class="save-val" id="sv-fear">—</div></div>
         <div class="save-box"><div class="save-name">CORDURA</div><div class="save-val" id="sv-san">—</div></div>
+        <div class="save-box"><div class="save-name">ARMADURA</div><div class="save-val" id="sv-armor">—</div></div>
       </div>
     </div>
 
@@ -710,7 +715,9 @@ document.addEventListener('click', () => {
 const CLASSES = {
   Marine: {
     desc: 'Entrenado para el combate y el control de situaciones de alto riesgo. Primer escudo de la tripulación.',
-    statBonus: { combat: 10 }, fearSaveBase: 30,
+    statBonus: {},  // sin bonus estático — su ventaja son las salvadas y la regla de grupo
+    saves: { sanity:35, fear:25, body:30, armor:40 },
+    specialRule: '+5 Velocidad y +5 Combate con otro Marine aliado cercano. Cuando un Marine entra en Pánico, todos los aliados deben hacer una tirada de Miedo.',
     startingFixed: ['military_training'],
     startingChoice: null,
     freePoints: 3,
@@ -718,7 +725,9 @@ const CLASSES = {
   },
   Teamster: {
     desc: 'Trabajador espacial de línea. Resolutivo, práctico y capaz de mantener operativa cualquier nave.',
-    statBonus: { speed: 10 }, fearSaveBase: 25,
+    statBonus: { strength:5, speed:5 },
+    saves: { sanity:30, fear:20, body:40, armor:25 },
+    specialRule: 'Una vez por sesión puede retirar una tirada en la Tabla de Pánico.',
     startingFixed: ['zero_g', 'mech_repair'],
     startingChoice: { pick:1, from:['heavy_machinery','piloting'] },
     freePoints: 4,
@@ -726,7 +735,9 @@ const CLASSES = {
   },
   Scientist: {
     desc: 'Especialista en análisis, investigación y comprensión de lo desconocido. Conocimiento como arma.',
-    statBonus: { intellect: 10 }, fearSaveBase: 20,
+    statBonus: {},  // sin bonus de stats
+    saves: { sanity:30, fear:40, body:25, armor:35 },
+    specialRule: 'Cuando falla una tirada de Cordura, todos los aliados cercanos ganan 1 punto de Estrés.',
     startingFixed: [],
     startingChoice: { pick:2, from:['biology','hydroponics','geology','computers','mathematics','chemistry'] },
     freePoints: 3,
@@ -734,7 +745,9 @@ const CLASSES = {
   },
   Android: {
     desc: 'Unidad de inteligencia artificial con forma humanoide. Sin estrés emocional. Sin miedo. Sin piedad.',
-    statBonus: { intellect: 5, combat: 5 }, fearSaveBase: 0,
+    statBonus: { intellect:10 },
+    saves: { sanity:35, fear:85, body:25, armor:30 },
+    specialRule: 'Las tiradas de Miedo realizadas en presencia de un Android tienen Desventaja.',
     startingFixed: ['linguistics','computers','mathematics'],
     startingChoice: null,
     freePoints: 2,
@@ -1136,9 +1149,10 @@ function initChargen(cls){
   renderSkillTree(cls);
   document.getElementById('equip-ul').innerHTML=info.equipment.map(e=>`<li>${e}</li>`).join('');
 
+  document.getElementById('cg-special-rule').textContent = info.specialRule;
   // Reset stats
   ['str','spd','int','com'].forEach(s=>{ const el=document.getElementById(`st-${s}`); el.textContent='—'; el.classList.remove('rolling'); });
-  ['body','fear','san'].forEach(s=>document.getElementById(`sv-${s}`).textContent='—');
+  ['body','fear','san','armor'].forEach(s=>document.getElementById(`sv-${s}`).textContent='—');
   document.getElementById('roll-assessment').textContent='';
   updateRollCounter();
   document.getElementById('gen-btn').disabled=true;
@@ -1390,15 +1404,13 @@ async function rollStats(){
     const el=document.getElementById(ids[i]);
     el.classList.remove('rolling'); el.textContent=val;
   }
-  const fearBase=CLASSES[charData.class].fearSaveBase;
-  const body=Math.round((rolls.strength-20)/2)+25;
-  const fear=fearBase;
-  const sanity=Math.round((rolls.intellect-20)/2)+20;
-  document.getElementById('sv-body').textContent=body;
-  document.getElementById('sv-fear').textContent=fear;
-  document.getElementById('sv-san').textContent=sanity;
+  const sv=CLASSES[charData.class].saves;
+  document.getElementById('sv-body').textContent=sv.body;
+  document.getElementById('sv-fear').textContent=sv.fear;
+  document.getElementById('sv-san').textContent=sv.sanity;
+  document.getElementById('sv-armor').textContent=sv.armor;
   document.getElementById('roll-assessment').textContent=getRollAssessment(rolls);
-  charData={...charData,...rolls,body_save:body,fear_save:fear,sanity_save:sanity};
+  charData={...charData,...rolls,body_save:sv.body,fear_save:sv.fear,sanity_save:sv.sanity,armor_save:sv.armor};
   updateRollCounter();
   checkGenBtn();
 }
@@ -1413,18 +1425,21 @@ async function generateSheet(){
   const trinket=TRINKETS[Math.floor(Math.random()*TRINKETS.length)];
   const bg=BACKGROUNDS[charData.class][selectedBackground];
   const genderLabel={'M':'Sr.','F':'Sra.','N':'Sre.','A':''}[selectedGender]||'';
+  const credits=Array.from({length:5},()=>Math.ceil(Math.random()*10)).reduce((a,b)=>a+b,0)*10;
 
   const record={
     player_name:playerName, char_name:charName, class:charData.class,
     strength:charData.strength, speed:charData.speed, intellect:charData.intellect, combat:charData.combat,
     sanity_save:charData.sanity_save, fear_save:charData.fear_save, body_save:charData.body_save,
-    max_stress:20, skills:Array.from(charSkills).map(id=>`${SKILL_TREE[id].es} [${TIER_LABEL[SKILL_TREE[id].tier]}]`), equipment:info.equipment, trinket, quiz_answers:charData.quizAnswers,
+    max_stress:20, armor_save:charData.armor_save,
+    skills:Array.from(charSkills).map(id=>`${SKILL_TREE[id].es} [${TIER_LABEL[SKILL_TREE[id].tier]}]`),
+    equipment:info.equipment, trinket, quiz_answers:charData.quizAnswers,
     ship_id: selectedShip?.id || null,
   };
 
   try { await supaInsert(record); } catch(e){ console.warn('Supabase error:',e); }
 
-  renderSheet({...record, background:bg, portraitPath: selectedPortraitKey||'', genderLabel, shipName: selectedShip?.name || ''});
+  renderSheet({...record, background:bg, portraitPath:selectedPortraitKey||'', genderLabel, shipName:selectedShip?.name||'', credits, specialRule:info.specialRule});
   showScreen('sheet');
 }
 
@@ -1454,12 +1469,15 @@ function renderSheet(r){
       <div class="sheet-stat"><div class="s-label">COMBAT</div><div class="s-val">${r.combat}</div></div>
     </div>
 
-    <div class="section-label">TIRADAS DE SALVACIÓN</div>
+    <div class="section-label">TIRADAS DE SALVACIÓN <span style="font-size:.6em;color:var(--dim)">(fijas por clase)</span></div>
     <div class="sheet-saves-row">
-      <div class="sheet-save"><div class="sv-label">BODY SAVE</div><div class="sv-val">${r.body_save}%</div></div>
-      <div class="sheet-save"><div class="sv-label">FEAR SAVE</div><div class="sv-val">${r.fear_save}%</div></div>
-      <div class="sheet-save"><div class="sv-label">SANITY SAVE</div><div class="sv-val">${r.sanity_save}%</div></div>
+      <div class="sheet-save"><div class="sv-label">CUERPO</div><div class="sv-val">${r.body_save}%</div></div>
+      <div class="sheet-save"><div class="sv-label">MIEDO</div><div class="sv-val">${r.fear_save}%</div></div>
+      <div class="sheet-save"><div class="sv-label">CORDURA</div><div class="sv-val">${r.sanity_save}%</div></div>
+      <div class="sheet-save" style="border-color:#ff8c00"><div class="sv-label" style="color:#ff8c00">ARMADURA</div><div class="sv-val" style="color:#ff8c00">${r.armor_save}%</div></div>
     </div>
+
+    <div class="sheet-special-rule">◆ ${r.specialRule}</div>
 
     <div class="sheet-bottom">
       <div class="sheet-section"><div class="sec-title">HABILIDADES</div><ul>${r.skills.map(s=>{
@@ -1471,7 +1489,13 @@ function renderSheet(r){
       }).join('')}</ul></div>
       <div class="sheet-section"><div class="sec-title">EQUIPO INICIAL</div><ul>${r.equipment.map(e=>`<li>${e}</li>`).join('')}</ul></div>
       <div class="trinket-box"><div class="sec-title">OBJETO PERSONAL</div>${r.trinket}</div>
-      <div class="stress-track"><div class="sec-title">ESTRÉS (MAX 20)</div><div class="stress-boxes">${stressBoxes}</div></div>
+      <div class="stress-track">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.4rem">
+          <div class="sec-title" style="margin:0">ESTRÉS (MAX 20)</div>
+          <div style="font-size:.65rem;color:var(--dim);letter-spacing:.2em">CRÉDITOS INICIALES: <span style="color:var(--green)">${r.credits}</span></div>
+        </div>
+        <div class="stress-boxes">${stressBoxes}</div>
+      </div>
     </div>
   `;
 }
