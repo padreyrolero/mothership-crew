@@ -342,9 +342,10 @@ function renderAll(ships, chars) {
             <div class="ship-section-name">${ship.name}</div>
             ${ship.description ? `<div class="ship-section-desc">${ship.description}</div>` : ''}
           </div>
-          <div style="text-align:right">
+          <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:.5rem">
             <div class="ship-crew-count">${crew.length}/${MAX_CREW} tripulante${crew.length!==1?'s':''}${crew.length>=MAX_CREW?' · COMPLETA':''}</div>
             <div class="ship-section-meta">Registrada: ${new Date(ship.created_at).toLocaleString('es-ES')}</div>
+            <button class="btn danger" style="font-size:.6rem;padding:.3rem .7rem" onclick="deleteShip('${ship.id}','${ship.name.replace(/'/g,"\\'")}')">✕ BORRAR NAVE</button>
           </div>
         </div>
 
@@ -457,6 +458,12 @@ function charCard(c) {
         <button class="btn danger" style="font-size:.6rem;padding:.3rem .6rem" onclick="deleteChar('${c.id}')">✕ BORRAR</button>
       </div>
     </div>`;
+}
+
+async function deleteShip(id, name) {
+  if (!confirm(`¿Borrar la nave "${name}"? Los tripulantes quedarán sin nave asignada.`)) return;
+  await fetch(`${SUPA_URL}/rest/v1/ships?id=eq.${id}`, { method: 'DELETE', headers: HDR });
+  loadAll();
 }
 
 async function deleteChar(id) {
