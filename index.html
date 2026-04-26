@@ -354,10 +354,8 @@
     </div>
     <div class="doc-title">CONVOCATORIA DE TRIPULACIÓN</div>
     <div class="doc-ref">MISIÓN DE RECUPERACIÓN ARQUEOLÓGICA — SECTOR RHONDI</div>
-    <div class="doc-body">
-      <p>ARMACORP Logistics busca personal cualificado para incorporarse a la tripulación de la <strong id="recruit-ship-name">—</strong>, buque de investigación arqueológica actualmente en órbita sobre un cuerpo celeste de interés científico en el sector Rhondi.</p>
-      <p>La misión consiste en la localización, catalogación y recuperación de un artefacto de origen desconocido detectado en la luna adyacente al objetivo. Se estima una duración de entre 72 y 96 horas operativas.</p>
-      <p>ARMACORP ofrece compensación económica competitiva, seguro de vida estándar y bonificación por recuperación exitosa del artefacto. El contrato incluye cláusula de confidencialidad obligatoria.</p>
+    <div class="doc-body" id="recruit-body">
+      <p>ARMACORP Logistics busca personal cualificado para incorporarse a la tripulación de la <strong id="recruit-ship-name">—</strong>.</p>
     </div>
     <div class="doc-requirements">
       <div class="req-title">PERFILES SOLICITADOS</div>
@@ -922,7 +920,7 @@ async function loadShips(){
   el.innerHTML = '<div style="color:var(--dim);font-size:.7rem;letter-spacing:.3em">CONSULTANDO REGISTRO DE NAVES...</div>';
   try {
     const [shipsRes, charsRes] = await Promise.all([
-      fetch(`${SUPA_URL}/rest/v1/ships?select=*&order=created_at.asc`, { headers:{ 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}` } }),
+      fetch(`${SUPA_URL}/rest/v1/ships?select=id,name,description,recruitment_text&order=created_at.asc`, { headers:{ 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}` } }),
       fetch(`${SUPA_URL}/rest/v1/characters?select=ship_id`, { headers:{ 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}` } }),
     ]);
     const ships = await shipsRes.json();
@@ -940,7 +938,7 @@ async function loadShips(){
       const count = countByShip[s.id] || 0;
       const full = count >= MAX_CREW;
       return `
-        <button class="ship-opt${full?' full':''}" ${full?'disabled':''} onclick="selectShipOpt('${s.id}','${s.name.replace(/'/g,"\\'")}',this)">
+        <button class="ship-opt${full?' full':''}" ${full?'disabled':''} onclick="selectShipOpt('${s.id}','${s.name.replace(/'/g,"\\'")}','${(s.recruitment_text||'').replace(/'/g,"\\'").replace(/\n/g,'\\n')}',this)">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <div class="ship-opt-name">${s.name}</div>
             <div class="ship-crew-badge${full?' full':''}">${count}/${MAX_CREW}${full?' · COMPLETA':''}</div>
@@ -953,8 +951,8 @@ async function loadShips(){
   }
 }
 
-function selectShipOpt(id, name, el){
-  selectedShip = {id, name};
+function selectShipOpt(id, name, recruitText, el){
+  selectedShip = {id, name, recruitText: recruitText.replace(/\\n/g,'\n')};
   document.querySelectorAll('.ship-opt').forEach(b=>b.classList.remove('selected'));
   el.classList.add('selected');
   document.getElementById('ship-proceed-btn').disabled = false;
@@ -963,6 +961,14 @@ function selectShipOpt(id, name, el){
 function showRecruitment(){
   if (!selectedShip) return;
   document.getElementById('recruit-ship-name').textContent = selectedShip.name;
+  const body = document.getElementById('recruit-body');
+  if (selectedShip.recruitText) {
+    body.innerHTML = selectedShip.recruitText
+      .split('\n\n')
+      .filter(p => p.trim())
+      .map(p => `<p>${p.trim()}</p>`)
+      .join('');
+  }
   showScreen('recruitment');
 }
 

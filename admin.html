@@ -93,7 +93,8 @@
       font-family: 'Orbitron', monospace; font-size: .8rem; letter-spacing: .4em;
       color: var(--green); margin-bottom: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: .6rem;
     }
-    .create-ship-form { display: flex; gap: .8rem; flex-wrap: wrap; }
+    .create-ship-form { display: flex; flex-direction: column; gap: .8rem; }
+    .create-ship-row { display: flex; gap: .8rem; flex-wrap: wrap; }
     .create-ship-form input {
       flex: 1; min-width: 180px; background: transparent; border: 1px solid var(--border);
       color: var(--green); font-family: 'Share Tech Mono', monospace; font-size: .85rem;
@@ -101,6 +102,15 @@
     }
     .create-ship-form input:focus { border-color: var(--green); }
     .create-ship-form input::placeholder { color: var(--border); }
+    .recruit-textarea {
+      width: 100%; min-height: 130px; resize: vertical;
+      background: rgba(0,255,65,.02); border: 1px solid var(--border);
+      color: var(--green); font-family: 'Share Tech Mono', monospace; font-size: .78rem;
+      padding: .7rem 1rem; outline: none; line-height: 1.7; transition: border-color .2s;
+    }
+    .recruit-textarea:focus { border-color: var(--dim); }
+    .recruit-textarea::placeholder { color: rgba(0,255,65,.2); }
+    .recruit-label { font-size: .55rem; letter-spacing: .4em; color: var(--dim); margin-bottom: .3rem; }
 
     /* ── NAVES ── */
     .ships-container { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 2.5rem; }
@@ -222,9 +232,15 @@
 <div class="section-block">
   <div class="section-block-title">REGISTRAR NUEVA NAVE</div>
   <div class="create-ship-form">
-    <input type="text" id="ship-name-inp" placeholder="NOMBRE DE LA NAVE" maxlength="60">
-    <input type="text" id="ship-desc-inp" placeholder="DESCRIPCIÓN (OPCIONAL)" maxlength="120">
-    <button class="btn primary" onclick="createShip()">+ REGISTRAR</button>
+    <div class="create-ship-row">
+      <input type="text" id="ship-name-inp" placeholder="NOMBRE DE LA NAVE" maxlength="60" oninput="autoFillRecruitText()">
+      <input type="text" id="ship-desc-inp" placeholder="DESCRIPCIÓN (OPCIONAL)" maxlength="120" oninput="autoFillRecruitText()">
+      <button class="btn primary" onclick="createShip()">+ REGISTRAR</button>
+    </div>
+    <div>
+      <div class="recruit-label">TEXTO DE RECLUTAMIENTO (editable — se muestra a los jugadores)</div>
+      <textarea class="recruit-textarea" id="ship-recruit-inp" placeholder="Se generará automáticamente al escribir el nombre de la nave..."></textarea>
+    </div>
   </div>
 </div>
 
@@ -285,17 +301,32 @@ async function loadAll() {
   }
 }
 
+function autoFillRecruitText() {
+  const name = document.getElementById('ship-name-inp').value.trim();
+  const desc = document.getElementById('ship-desc-inp').value.trim();
+  if (!name) return;
+  const descPart = desc ? `, ${desc.charAt(0).toLowerCase() + desc.slice(1)}` : '';
+  document.getElementById('ship-recruit-inp').value =
+`ARMACORP Logistics busca personal cualificado para incorporarse a la tripulación de la ${name}${descPart}.
+
+La misión consiste en la localización, catalogación y recuperación de objetivos de alto valor en el sector Rhondi. Se estima una duración de entre 72 y 96 horas operativas.
+
+ARMACORP ofrece compensación económica competitiva, seguro de vida estándar y bonificación por recuperación exitosa del objetivo. El contrato incluye cláusula de confidencialidad obligatoria.`;
+}
+
 async function createShip() {
   const name = document.getElementById('ship-name-inp').value.trim();
   const description = document.getElementById('ship-desc-inp').value.trim();
+  const recruitment_text = document.getElementById('ship-recruit-inp').value.trim();
   if (!name) { alert('Introduce un nombre de nave.'); return; }
   await fetch(`${SUPA_URL}/rest/v1/ships`, {
     method: 'POST',
     headers: { ...HDR, 'Prefer':'return=representation' },
-    body: JSON.stringify({ name, description })
+    body: JSON.stringify({ name, description, recruitment_text })
   });
   document.getElementById('ship-name-inp').value = '';
   document.getElementById('ship-desc-inp').value = '';
+  document.getElementById('ship-recruit-inp').value = '';
   loadAll();
 }
 
