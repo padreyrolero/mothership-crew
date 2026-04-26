@@ -250,6 +250,27 @@
     }
     .roll-btn:hover { background:rgba(0,255,65,.06); box-shadow:0 0 15px rgba(0,255,65,.2); }
     .roll-btn:disabled { opacity:.3; cursor:not-allowed; }
+    .roll-counter { font-size:.65rem; letter-spacing:.3em; color:var(--dim); }
+    .roll-counter.warn { color:var(--amber); }
+    .roll-counter.done { color:#aa2200; }
+    .roll-assessment { font-size:.72rem; letter-spacing:.15em; color:var(--dim); border-left:2px solid var(--border); padding-left:.8rem; margin-top:.6rem; min-height:1.2em; }
+
+    /* Selector de habilidades */
+    .skill-pool-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.6rem; }
+    .skill-counter { font-size:.65rem; letter-spacing:.3em; color:var(--dim); }
+    .skill-counter.complete { color:var(--green); }
+    .skill-pool { display:flex; flex-wrap:wrap; gap:.5rem; }
+    .skill-btn {
+      padding:.5rem 1rem; border:1px solid var(--border); background:transparent;
+      color:rgba(0,255,65,.5); font-family:'Share Tech Mono',monospace; font-size:.75rem;
+      letter-spacing:.1em; cursor:pointer; transition:all .2s; text-align:left;
+    }
+    .skill-btn::before { content:'[ ] '; color:var(--dim); }
+    .skill-btn:hover { border-color:var(--dim); color:var(--green); }
+    .skill-btn.selected { border-color:var(--green); color:var(--green); background:rgba(0,255,65,.07); }
+    .skill-btn.selected::before { content:'[✓] '; color:var(--green); }
+    .skill-btn.locked { opacity:.3; cursor:not-allowed; }
+    .skill-btn.locked::before { content:'[ ] '; }
     .generate-btn {
       width:100%; padding:1rem; border:1px solid var(--green); background:rgba(0,255,65,.05);
       color:var(--green); font-family:'Share Tech Mono',monospace; font-size:.9rem;
@@ -437,28 +458,40 @@
     <div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
         <span class="section-label" style="margin:0">ESTADÍSTICAS PRIMARIAS</span>
-        <button class="roll-btn" id="roll-btn" onclick="rollStats()">⚄ TIRAR DADOS</button>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem">
+          <button class="roll-btn" id="roll-btn" onclick="rollStats()">⚄ TIRAR DADOS</button>
+          <span class="roll-counter" id="roll-counter">3 tiradas disponibles</span>
+        </div>
       </div>
       <div class="stats-grid">
-        <div class="stat-box"><div class="stat-name">STRENGTH</div><div class="stat-val" id="st-str">—</div></div>
-        <div class="stat-box"><div class="stat-name">SPEED</div><div class="stat-val" id="st-spd">—</div></div>
-        <div class="stat-box"><div class="stat-name">INTELLECT</div><div class="stat-val" id="st-int">—</div></div>
-        <div class="stat-box"><div class="stat-name">COMBAT</div><div class="stat-val" id="st-com">—</div></div>
+        <div class="stat-box"><div class="stat-name">FUERZA</div><div class="stat-val" id="st-str">—</div></div>
+        <div class="stat-box"><div class="stat-name">VELOCIDAD</div><div class="stat-val" id="st-spd">—</div></div>
+        <div class="stat-box"><div class="stat-name">INTELECTO</div><div class="stat-val" id="st-int">—</div></div>
+        <div class="stat-box"><div class="stat-name">COMBATE</div><div class="stat-val" id="st-com">—</div></div>
       </div>
+      <div class="roll-assessment" id="roll-assessment"></div>
     </div>
 
     <!-- Saves -->
     <div>
       <div class="section-label">SALVADAS SECUNDARIAS</div>
       <div class="saves-grid">
-        <div class="save-box"><div class="save-name">BODY SAVE</div><div class="save-val" id="sv-body">—</div></div>
-        <div class="save-box"><div class="save-name">FEAR SAVE</div><div class="save-val" id="sv-fear">—</div></div>
-        <div class="save-box"><div class="save-name">SANITY SAVE</div><div class="save-val" id="sv-san">—</div></div>
+        <div class="save-box"><div class="save-name">CUERPO</div><div class="save-val" id="sv-body">—</div></div>
+        <div class="save-box"><div class="save-name">MIEDO</div><div class="save-val" id="sv-fear">—</div></div>
+        <div class="save-box"><div class="save-name">CORDURA</div><div class="save-val" id="sv-san">—</div></div>
       </div>
     </div>
 
-    <!-- Habilidades y equipo -->
-    <div class="skills-list"><div class="list-title">HABILIDADES DE CLASE</div><ul id="skills-ul"></ul></div>
+    <!-- Habilidades seleccionables -->
+    <div>
+      <div class="skill-pool-header">
+        <span class="section-label" style="margin:0">HABILIDADES</span>
+        <span class="skill-counter" id="skill-counter">0/4 seleccionadas</span>
+      </div>
+      <div class="skill-pool" id="skill-pool"></div>
+    </div>
+
+    <!-- Equipo -->
     <div class="skills-list"><div class="list-title">EQUIPO INICIAL</div><ul id="equip-ul"></ul></div>
 
     <button class="generate-btn" id="gen-btn" onclick="generateSheet()" disabled>GENERAR FICHA Y GUARDAR →</button>
@@ -653,30 +686,48 @@ document.addEventListener('click', () => {
 }, { once: false });
 
 // ══ DATOS DE CLASES ══════════════════════════════════════════════════
+const SKILL_PICKS = 4; // habilidades a seleccionar
+
 const CLASSES = {
   Marine: {
     desc: 'Entrenado para el combate y el control de situaciones de alto riesgo. Primer escudo de la tripulación.',
     statBonus: { combat: 10 }, fearSaveBase: 30,
-    skills: ['Combat Training', 'First Aid', 'Military Weapons', 'Tactics', 'Zero-G Combat'],
-    equipment: ['Revolver (.357)', 'Combat Knife', 'Flak Vest (Armor 1)', 'Rations (3 days)', 'Flare Gun'],
+    skillPool: [
+      'Entrenamiento en Combate', 'Primeros Auxilios', 'Armamento Militar',
+      'Tácticas de Asalto', 'Combate en Microgravedad', 'Armas Pesadas',
+      'Explosivos', 'Vigilancia y Reconocimiento',
+    ],
+    equipment: ['Revólver (.357)', 'Cuchillo de combate', 'Chaleco antibalas (Armadura 1)', 'Raciones (3 días)', 'Pistola de bengalas'],
   },
   Teamster: {
     desc: 'Trabajador espacial de línea. Resolutivo, práctico y capaz de mantener operativa cualquier nave.',
     statBonus: { speed: 10 }, fearSaveBase: 25,
-    skills: ['Piloting', 'Mechanical Repair', 'Explosives', 'Athletics', 'Asteroid Mining'],
-    equipment: ['Crowbar', 'Welding Torch', 'Patch Kit', 'Rations (3 days)', 'Work Suit'],
+    skillPool: [
+      'Pilotaje', 'Reparación Mecánica', 'Improvisación Técnica',
+      'Minería de Asteroides', 'Maquinaria Pesada', 'Explosivos Industriales',
+      'Atletismo', 'Navegación Espacial',
+    ],
+    equipment: ['Palanca', 'Soplete de soldadura', 'Kit de reparación', 'Raciones (3 días)', 'Traje de trabajo'],
   },
   Scientist: {
     desc: 'Especialista en análisis, investigación y comprensión de lo desconocido. Conocimiento como arma.',
     statBonus: { intellect: 10 }, fearSaveBase: 20,
-    skills: ['Research', 'Pathology', 'Xenobiology', 'Computer Repair', 'Geology'],
-    equipment: ['Scalpel', 'Med Kit', 'Hazard Suit', 'Sample Kit', 'Research Tablet'],
+    skillPool: [
+      'Investigación', 'Patología', 'Xenobiología',
+      'Reparación Informática', 'Geología', 'Química',
+      'Física Aplicada', 'Primeros Auxilios Avanzados',
+    ],
+    equipment: ['Bisturí', 'Kit médico', 'Traje de materiales peligrosos', 'Kit de muestras', 'Tablet de investigación'],
   },
   Android: {
     desc: 'Unidad de inteligencia artificial con forma humanoide. Sin estrés emocional. Sin miedo. Sin piedad.',
     statBonus: { intellect: 5, combat: 5 }, fearSaveBase: 0,
-    skills: ['Linguistics', 'Mathematics', 'Computer Repair', 'Mechanical Repair', 'Psychology'],
-    equipment: ['Built-in Scanner', 'Self-Repair Kit', 'Data Link', 'Synthetic Blood Pack', 'Encrypted Log'],
+    skillPool: [
+      'Lingüística', 'Matemáticas', 'Reparación Informática',
+      'Reparación Mecánica', 'Psicología', 'Análisis de Datos',
+      'Protocolos de Crisis', 'Biometría',
+    ],
+    equipment: ['Escáner integrado', 'Kit de autoreparación', 'Enlace de datos', 'Pack de sangre sintética', 'Registro encriptado'],
   },
 };
 
@@ -975,10 +1026,12 @@ function showRecruitment(){
 // ══ CHARGEN ══════════════════════════════════════════════════════════
 let charData={}, selectedGender=null, selectedPortraitKey=null, selectedBackground=null;
 let portraitList=[], portraitIndex=0;
+let selectedSkills=new Set(), rollsLeft=3;
 
 function initChargen(cls){
   charData={class:cls, quizAnswers};
   selectedGender=null; selectedPortraitKey=null; selectedBackground=null;
+  selectedSkills=new Set(); rollsLeft=3;
   const info=CLASSES[cls];
 
   document.getElementById('cg-ship-badge').textContent = selectedShip ? `ENROLADO EN: ${selectedShip.name}` : '—';
@@ -1001,13 +1054,15 @@ function initChargen(cls){
     document.querySelectorAll('.gender-btn').forEach(b=>b.classList.remove('selected'));
   }
 
-  // Skills / equipo
-  document.getElementById('skills-ul').innerHTML=info.skills.map(s=>`<li>${s}</li>`).join('');
+  // Skills y equipo
+  renderSkillPool(cls);
   document.getElementById('equip-ul').innerHTML=info.equipment.map(e=>`<li>${e}</li>`).join('');
 
   // Reset stats
   ['str','spd','int','com'].forEach(s=>{ const el=document.getElementById(`st-${s}`); el.textContent='—'; el.classList.remove('rolling'); });
   ['body','fear','san'].forEach(s=>document.getElementById(`sv-${s}`).textContent='—');
+  document.getElementById('roll-assessment').textContent='';
+  updateRollCounter();
   document.getElementById('gen-btn').disabled=true;
 }
 
@@ -1052,16 +1107,75 @@ function randomBackground(){
 }
 
 function checkGenBtn(){
-  const hasBg = selectedBackground!==null;
+  const hasBg       = selectedBackground!==null;
   const hasPortrait = selectedPortraitKey!==null;
-  const hasGender = charData.class==='Android' || selectedGender!==null;
-  const hasStats = !!charData.strength;
-  document.getElementById('gen-btn').disabled = !(hasBg && hasPortrait && hasGender && hasStats);
+  const hasGender   = charData.class==='Android' || selectedGender!==null;
+  const hasStats    = !!charData.strength;
+  const hasSkills   = selectedSkills.size >= SKILL_PICKS;
+  document.getElementById('gen-btn').disabled = !(hasBg && hasPortrait && hasGender && hasStats && hasSkills);
+}
+
+// ── HABILIDADES ──
+function renderSkillPool(cls){
+  selectedSkills = new Set();
+  document.getElementById('skill-pool').innerHTML = CLASSES[cls].skillPool.map(s=>`
+    <button class="skill-btn" onclick="toggleSkill('${s.replace(/'/g,"\\'")}',this)">${s}</button>
+  `).join('');
+  updateSkillCounter();
+}
+
+function toggleSkill(skill, el){
+  if(selectedSkills.has(skill)){
+    selectedSkills.delete(skill);
+    el.classList.remove('selected');
+  } else {
+    if(selectedSkills.size >= SKILL_PICKS) return;
+    selectedSkills.add(skill);
+    el.classList.add('selected');
+  }
+  // Bloquear botones no seleccionados cuando se llega al límite
+  const full = selectedSkills.size >= SKILL_PICKS;
+  document.querySelectorAll('.skill-btn:not(.selected)').forEach(b => b.classList.toggle('locked', full));
+  updateSkillCounter();
+  checkGenBtn();
+}
+
+function updateSkillCounter(){
+  const el = document.getElementById('skill-counter');
+  el.textContent = `${selectedSkills.size}/${SKILL_PICKS} seleccionadas`;
+  el.className = 'skill-counter' + (selectedSkills.size >= SKILL_PICKS ? ' complete' : '');
+}
+
+// ── TIRADAS ──
+function updateRollCounter(){
+  const el = document.getElementById('roll-counter');
+  const btn = document.getElementById('roll-btn');
+  if(rollsLeft <= 0){
+    el.textContent = 'Sin tiradas restantes';
+    el.className = 'roll-counter done';
+    btn.disabled = true;
+  } else if(rollsLeft === 1){
+    el.textContent = '1 tirada restante — última oportunidad';
+    el.className = 'roll-counter warn';
+  } else {
+    el.textContent = `${rollsLeft} tiradas restantes`;
+    el.className = 'roll-counter';
+  }
+}
+
+function getRollAssessment(rolls){
+  const avg = (rolls.strength + rolls.speed + rolls.intellect + rolls.combat) / 4;
+  if(avg >= 58) return '▲ RENDIMIENTO SUPERIOR — Un perfil excepcional. Pocas veces se ve algo así.';
+  if(avg >= 50) return '◆ RESULTADO SÓLIDO — Tripulante competente. Por encima de la media sectorial.';
+  if(avg >= 42) return '◇ PERFIL ESTÁNDAR — Dentro de los parámetros habituales de reclutamiento.';
+  return '▼ PERFIL BÁSICO — Por debajo de la media. Compensar con habilidad y experiencia.';
 }
 
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
 async function rollStats(){
+  if(rollsLeft <= 0) return;
+  rollsLeft--;
   const btn=document.getElementById('roll-btn');
   btn.disabled=true;
   const ids=['st-str','st-spd','st-int','st-com'];
@@ -1085,8 +1199,9 @@ async function rollStats(){
   document.getElementById('sv-body').textContent=body;
   document.getElementById('sv-fear').textContent=fear;
   document.getElementById('sv-san').textContent=sanity;
+  document.getElementById('roll-assessment').textContent=getRollAssessment(rolls);
   charData={...charData,...rolls,body_save:body,fear_save:fear,sanity_save:sanity};
-  btn.disabled=false;
+  updateRollCounter();
   checkGenBtn();
 }
 
@@ -1105,7 +1220,7 @@ async function generateSheet(){
     player_name:playerName, char_name:charName, class:charData.class,
     strength:charData.strength, speed:charData.speed, intellect:charData.intellect, combat:charData.combat,
     sanity_save:charData.sanity_save, fear_save:charData.fear_save, body_save:charData.body_save,
-    max_stress:20, skills:info.skills, equipment:info.equipment, trinket, quiz_answers:charData.quizAnswers,
+    max_stress:20, skills:Array.from(selectedSkills), equipment:info.equipment, trinket, quiz_answers:charData.quizAnswers,
     ship_id: selectedShip?.id || null,
   };
 
