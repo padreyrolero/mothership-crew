@@ -255,22 +255,42 @@
     .roll-counter.done { color:#aa2200; }
     .roll-assessment { font-size:.72rem; letter-spacing:.15em; color:var(--dim); border-left:2px solid var(--border); padding-left:.8rem; margin-top:.6rem; min-height:1.2em; }
 
-    /* Selector de habilidades */
-    .skill-pool-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:.6rem; }
-    .skill-counter { font-size:.65rem; letter-spacing:.3em; color:var(--dim); }
-    .skill-counter.complete { color:var(--green); }
-    .skill-pool { display:flex; flex-wrap:wrap; gap:.5rem; }
-    .skill-btn {
-      padding:.5rem 1rem; border:1px solid var(--border); background:transparent;
-      color:rgba(0,255,65,.5); font-family:'Share Tech Mono',monospace; font-size:.75rem;
-      letter-spacing:.1em; cursor:pointer; transition:all .2s; text-align:left;
+    /* Árbol de habilidades */
+    .skill-hdr-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:.6rem; }
+    .pts-badge { font-size:.65rem; letter-spacing:.3em; padding:.15rem .5rem; border:1px solid var(--border); color:var(--dim); }
+    .pts-badge.zero { color:var(--green); border-color:rgba(0,255,65,.4); }
+    .pts-badge.warn { color:#ff8c00; border-color:#ff8c00; }
+    .start-choice-wrap { margin-bottom:.8rem; }
+    .start-choice-label { font-size:.6rem; letter-spacing:.35em; color:var(--dim); margin-bottom:.4rem; }
+    .start-choice-btns { display:flex; flex-wrap:wrap; gap:.4rem; }
+    .stc-btn {
+      background:none; border:1px solid var(--border); color:rgba(0,255,65,.5);
+      font-family:'Share Tech Mono',monospace; font-size:.72rem; padding:.3rem .7rem;
+      cursor:pointer; letter-spacing:.05em; transition:all .2s;
     }
-    .skill-btn::before { content:'[ ] '; color:var(--dim); }
-    .skill-btn:hover { border-color:var(--dim); color:var(--green); }
-    .skill-btn.selected { border-color:var(--green); color:var(--green); background:rgba(0,255,65,.07); }
-    .skill-btn.selected::before { content:'[✓] '; color:var(--green); }
-    .skill-btn.locked { opacity:.3; cursor:not-allowed; }
-    .skill-btn.locked::before { content:'[ ] '; }
+    .stc-btn:hover { border-color:rgba(0,255,65,.5); color:var(--green); }
+    .stc-btn.chosen { border-color:var(--green); color:var(--green); background:rgba(0,255,65,.07); }
+    .stc-btn.fixed { border-color:rgba(0,255,65,.35); color:rgba(0,255,65,.6); cursor:default; }
+    .stc-status { font-size:.6rem; letter-spacing:.3em; color:var(--dim); margin-top:.4rem; }
+    .stc-status.done { color:var(--green); }
+    .skill-tier-block { margin-top:.9rem; }
+    .skill-tier-hdr { display:flex; justify-content:space-between; align-items:baseline; padding:.25rem 0; border-bottom:1px solid var(--border); margin-bottom:.4rem; }
+    .tier-lbl { font-size:.62rem; letter-spacing:.4em; font-weight:bold; }
+    .tier-meta { font-size:.6rem; letter-spacing:.2em; color:var(--dim); }
+    .skill-grid { display:flex; flex-wrap:wrap; gap:.35rem; }
+    .stk-btn {
+      background:none; border:1px solid var(--border); color:rgba(0,255,65,.4);
+      font-family:'Share Tech Mono',monospace; font-size:.7rem; padding:.3rem .55rem;
+      cursor:pointer; letter-spacing:.04em; transition:all .15s; text-align:left;
+      line-height:1.35;
+    }
+    .stk-btn .sreq { display:block; font-size:.57rem; color:var(--dim); margin-top:.1rem; }
+    .stk-btn:hover:not(:disabled) { border-color:rgba(0,255,65,.5); color:rgba(0,255,65,.8); }
+    .stk-btn.available { color:rgba(0,255,65,.75); border-color:rgba(0,255,65,.35); }
+    .stk-btn.taken { border-color:var(--green); color:var(--green); background:rgba(0,255,65,.07); }
+    .stk-btn.starting { border-color:rgba(0,255,65,.4); color:rgba(0,255,65,.65); cursor:default; }
+    .stk-btn.locked { opacity:.2; cursor:not-allowed; }
+    .stk-btn.broke { opacity:.45; cursor:not-allowed; }
     .generate-btn {
       width:100%; padding:1rem; border:1px solid var(--green); background:rgba(0,255,65,.05);
       color:var(--green); font-family:'Share Tech Mono',monospace; font-size:.9rem;
@@ -482,13 +502,14 @@
       </div>
     </div>
 
-    <!-- Habilidades seleccionables -->
-    <div>
-      <div class="skill-pool-header">
-        <span class="section-label" style="margin:0">HABILIDADES</span>
-        <span class="skill-counter" id="skill-counter">0/4 seleccionadas</span>
+    <!-- Árbol de habilidades -->
+    <div id="skill-section">
+      <div class="skill-hdr-row">
+        <span class="section-label" style="margin:0">ÁRBOL DE HABILIDADES</span>
+        <span class="pts-badge" id="pts-badge">— ptos</span>
       </div>
-      <div class="skill-pool" id="skill-pool"></div>
+      <div id="skill-start-wrap"></div>
+      <div id="skill-tree-wrap"></div>
     </div>
 
     <!-- Equipo -->
@@ -686,47 +707,37 @@ document.addEventListener('click', () => {
 }, { once: false });
 
 // ══ DATOS DE CLASES ══════════════════════════════════════════════════
-const SKILL_PICKS = 4; // habilidades a seleccionar
-
 const CLASSES = {
   Marine: {
     desc: 'Entrenado para el combate y el control de situaciones de alto riesgo. Primer escudo de la tripulación.',
     statBonus: { combat: 10 }, fearSaveBase: 30,
-    skillPool: [
-      'Entrenamiento en Combate', 'Primeros Auxilios', 'Armamento Militar',
-      'Tácticas de Asalto', 'Combate en Microgravedad', 'Armas Pesadas',
-      'Explosivos', 'Vigilancia y Reconocimiento',
-    ],
+    startingFixed: ['military_training'],
+    startingChoice: null,
+    freePoints: 3,
     equipment: ['Revólver (.357)', 'Cuchillo de combate', 'Chaleco antibalas (Armadura 1)', 'Raciones (3 días)', 'Pistola de bengalas'],
   },
   Teamster: {
     desc: 'Trabajador espacial de línea. Resolutivo, práctico y capaz de mantener operativa cualquier nave.',
     statBonus: { speed: 10 }, fearSaveBase: 25,
-    skillPool: [
-      'Pilotaje', 'Reparación Mecánica', 'Improvisación Técnica',
-      'Minería de Asteroides', 'Maquinaria Pesada', 'Explosivos Industriales',
-      'Atletismo', 'Navegación Espacial',
-    ],
+    startingFixed: ['zero_g', 'mech_repair'],
+    startingChoice: { pick:1, from:['heavy_machinery','piloting'] },
+    freePoints: 4,
     equipment: ['Palanca', 'Soplete de soldadura', 'Kit de reparación', 'Raciones (3 días)', 'Traje de trabajo'],
   },
   Scientist: {
     desc: 'Especialista en análisis, investigación y comprensión de lo desconocido. Conocimiento como arma.',
     statBonus: { intellect: 10 }, fearSaveBase: 20,
-    skillPool: [
-      'Investigación', 'Patología', 'Xenobiología',
-      'Reparación Informática', 'Geología', 'Química',
-      'Física Aplicada', 'Primeros Auxilios Avanzados',
-    ],
+    startingFixed: [],
+    startingChoice: { pick:2, from:['biology','hydroponics','geology','computers','mathematics','chemistry'] },
+    freePoints: 3,
     equipment: ['Bisturí', 'Kit médico', 'Traje de materiales peligrosos', 'Kit de muestras', 'Tablet de investigación'],
   },
   Android: {
     desc: 'Unidad de inteligencia artificial con forma humanoide. Sin estrés emocional. Sin miedo. Sin piedad.',
     statBonus: { intellect: 5, combat: 5 }, fearSaveBase: 0,
-    skillPool: [
-      'Lingüística', 'Matemáticas', 'Reparación Informática',
-      'Reparación Mecánica', 'Psicología', 'Análisis de Datos',
-      'Protocolos de Crisis', 'Biometría',
-    ],
+    startingFixed: ['linguistics','computers','mathematics'],
+    startingChoice: null,
+    freePoints: 2,
     equipment: ['Escáner integrado', 'Kit de autoreparación', 'Enlace de datos', 'Pack de sangre sintética', 'Registro encriptado'],
   },
 };
@@ -765,6 +776,66 @@ const BACKGROUNDS = {
     'Unidad de recuperación de datos serie MNEMO. Catorce misiones previas. Recuerda todas. Y algo más.',
     'Prototipo experimental de fabricante desconocido. ARMACORP lo adquirió en una subasta. Sin documentación.',
   ],
+};
+
+// ══ ÁRBOL DE HABILIDADES (Mothership 0e) ════════════════════════════
+const TIER_COST  = { T:1, E:2, M:3 };
+const TIER_BONUS = { T:'+10%', E:'+15%', M:'+20%' };
+const TIER_LABEL = { T:'APRENDIZ', E:'EXPERTO', M:'MAESTRO' };
+const TIER_COLOR = { T:'var(--green)', E:'#00ccff', M:'#ff8c00' };
+
+const SKILL_TREE = {
+  // ── APRENDIZ (Trained) ──────────────────────────────────────────
+  chemistry:        { es:'Química',                   tier:'T', req:[] },
+  athletics:        { es:'Atletismo',                 tier:'T', req:[] },
+  rimwise:          { es:'Callejero del Borde',        tier:'T', req:[] },
+  theology:         { es:'Teología',                  tier:'T', req:[] },
+  archaeology:      { es:'Arqueología',               tier:'T', req:[] },
+  art:              { es:'Arte',                      tier:'T', req:[] },
+  mathematics:      { es:'Matemáticas',               tier:'T', req:[] },
+  piloting:         { es:'Pilotaje',                  tier:'T', req:[] },
+  mech_repair:      { es:'Reparación Mecánica',       tier:'T', req:[] },
+  heavy_machinery:  { es:'Maquinaria Pesada',         tier:'T', req:[] },
+  zero_g:           { es:'Microgravedad (0-G)',        tier:'T', req:[] },
+  geology:          { es:'Geología',                  tier:'T', req:[] },
+  hydroponics:      { es:'Hidroponía',                tier:'T', req:[] },
+  first_aid:        { es:'Primeros Auxilios',          tier:'T', req:[] },
+  biology:          { es:'Biología',                  tier:'T', req:[] },
+  linguistics:      { es:'Lingüística',               tier:'T', req:[] },
+  firearms:         { es:'Armas de Fuego',            tier:'T', req:[] },
+  computers:        { es:'Informática',               tier:'T', req:[] },
+  driving:          { es:'Conducción',                tier:'T', req:[] },
+  military_training:{ es:'Adiestramiento Militar',    tier:'T', req:[] },
+  explosives:       { es:'Explosivos',                tier:'T', req:[] },
+  scavenging:       { es:'Saqueo / Salvamento',       tier:'T', req:[] },
+  asteroid_mining:  { es:'Minería de Asteroides',     tier:'T', req:[] },
+  cqc:              { es:'Combate Cercano',           tier:'T', req:[] },
+  // ── EXPERTO (Expert) ────────────────────────────────────────────
+  gunnery:          { es:'Artillería',                tier:'E', req:['firearms'] },
+  tactics:          { es:'Tácticas',                  tier:'E', req:['military_training'] },
+  astrogation:      { es:'Astrogación',               tier:'E', req:['piloting'] },
+  hacking:          { es:'Hacking',                   tier:'E', req:['computers'] },
+  jury_rigging:     { es:'Impr. Técnica (Jury-Rig)',  tier:'E', req:['mech_repair'] },
+  engineering:      { es:'Ingeniería',                tier:'E', req:['mech_repair','heavy_machinery'] },
+  planetology:      { es:'Planetología',              tier:'E', req:['geology'] },
+  botany:           { es:'Botánica',                  tier:'E', req:['hydroponics','biology'] },
+  pathology:        { es:'Patología',                 tier:'E', req:['first_aid','biology'] },
+  genetics:         { es:'Genética',                  tier:'E', req:['biology'] },
+  psychology:       { es:'Psicología',                tier:'E', req:['linguistics'] },
+  vehicle_spec:     { es:'Esp. Vehículos',            tier:'E', req:['driving'] },
+  mysticism:        { es:'Misticismo',                tier:'E', req:['theology','rimwise'] },
+  physics:          { es:'Física',                    tier:'E', req:['mathematics','chemistry'] },
+  // ── MAESTRO (Master) ────────────────────────────────────────────
+  weapon_spec:      { es:'Esp. en Armas',             tier:'M', req:['gunnery'] },
+  command:          { es:'Mando',                     tier:'M', req:['tactics'] },
+  hyperspace:       { es:'Hiperespacio',              tier:'M', req:['astrogation','physics'] },
+  ai_skill:         { es:'Inteligencia Artificial',   tier:'M', req:['hacking'] },
+  cybernetics:      { es:'Cibernética',               tier:'M', req:['hacking','engineering'] },
+  robotics:         { es:'Robótica',                  tier:'M', req:['engineering'] },
+  xenobiology:      { es:'Xenobiología',              tier:'M', req:['genetics','pathology'] },
+  surgery:          { es:'Cirugía',                   tier:'M', req:['pathology'] },
+  sophontology:     { es:'Sophontología',             tier:'M', req:['psychology'] },
+  xenoesotericism:  { es:'Xenoesotericismo',          tier:'M', req:['mysticism'] },
 };
 
 // ══ RETRATOS — imágenes de la carpeta portraits/ ══════════════════════
@@ -1026,12 +1097,18 @@ function showRecruitment(){
 // ══ CHARGEN ══════════════════════════════════════════════════════════
 let charData={}, selectedGender=null, selectedPortraitKey=null, selectedBackground=null;
 let portraitList=[], portraitIndex=0;
-let selectedSkills=new Set(), rollsLeft=3;
+let rollsLeft=3;
+// Skill state
+let charSkills    = new Set();   // all skill IDs the character has
+let paidSkills    = new Map();   // skillId → cost (only bought with free points)
+let startChosen   = new Set();   // chosen optional starting skills (free)
+let skillPoints   = 0;           // remaining free points to spend
 
 function initChargen(cls){
   charData={class:cls, quizAnswers};
   selectedGender=null; selectedPortraitKey=null; selectedBackground=null;
-  selectedSkills=new Set(); rollsLeft=3;
+  rollsLeft=3;
+  charSkills=new Set(); paidSkills=new Map(); startChosen=new Set();
   const info=CLASSES[cls];
 
   document.getElementById('cg-ship-badge').textContent = selectedShip ? `ENROLADO EN: ${selectedShip.name}` : '—';
@@ -1055,7 +1132,8 @@ function initChargen(cls){
   }
 
   // Skills y equipo
-  renderSkillPool(cls);
+  initSkillState(cls);
+  renderSkillTree(cls);
   document.getElementById('equip-ul').innerHTML=info.equipment.map(e=>`<li>${e}</li>`).join('');
 
   // Reset stats
@@ -1111,39 +1189,159 @@ function checkGenBtn(){
   const hasPortrait = selectedPortraitKey!==null;
   const hasGender   = charData.class==='Android' || selectedGender!==null;
   const hasStats    = !!charData.strength;
-  const hasSkills   = selectedSkills.size >= SKILL_PICKS;
-  document.getElementById('gen-btn').disabled = !(hasBg && hasPortrait && hasGender && hasStats && hasSkills);
+  const choicesDone = startingChoicesDone();
+  const ptsSpent    = skillPoints === 0;
+  document.getElementById('gen-btn').disabled = !(hasBg && hasPortrait && hasGender && hasStats && choicesDone && ptsSpent);
 }
 
-// ── HABILIDADES ──
-function renderSkillPool(cls){
-  selectedSkills = new Set();
-  document.getElementById('skill-pool').innerHTML = CLASSES[cls].skillPool.map(s=>`
-    <button class="skill-btn" onclick="toggleSkill('${s.replace(/'/g,"\\'")}',this)">${s}</button>
-  `).join('');
-  updateSkillCounter();
+function startingChoicesDone(){
+  const info = CLASSES[charData.class];
+  if(!info.startingChoice) return true;
+  return startChosen.size >= info.startingChoice.pick;
 }
 
-function toggleSkill(skill, el){
-  if(selectedSkills.has(skill)){
-    selectedSkills.delete(skill);
-    el.classList.remove('selected');
-  } else {
-    if(selectedSkills.size >= SKILL_PICKS) return;
-    selectedSkills.add(skill);
-    el.classList.add('selected');
+// ── HABILIDADES — árbol completo Mothership 0e ──
+
+function initSkillState(cls){
+  const info = CLASSES[cls];
+  charSkills.clear(); paidSkills.clear(); startChosen.clear();
+  skillPoints = info.freePoints;
+  // Add fixed starting skills
+  for(const id of info.startingFixed) charSkills.add(id);
+}
+
+function prereqsMet(id){
+  const s = SKILL_TREE[id];
+  if(!s.req.length) return true;
+  return s.req.some(r => charSkills.has(r));
+}
+
+function cascadeRemove(id){
+  if(!charSkills.has(id)) return;
+  const refund = paidSkills.has(id) ? paidSkills.get(id) : 0;
+  charSkills.delete(id); paidSkills.delete(id); startChosen.delete(id);
+  skillPoints += refund;
+  // Remove any skills that now have unmet prereqs
+  for(const [sid, s] of Object.entries(SKILL_TREE)){
+    if(charSkills.has(sid) && s.req.includes(id) && !prereqsMet(sid)){
+      cascadeRemove(sid);
+    }
   }
-  // Bloquear botones no seleccionados cuando se llega al límite
-  const full = selectedSkills.size >= SKILL_PICKS;
-  document.querySelectorAll('.skill-btn:not(.selected)').forEach(b => b.classList.toggle('locked', full));
-  updateSkillCounter();
+}
+
+function renderSkillTree(cls){
+  updatePtsBadge();
+  renderStartChoices(cls);
+  const wrap = document.getElementById('skill-tree-wrap');
+  wrap.innerHTML = ['T','E','M'].map(tier => {
+    const skills = Object.entries(SKILL_TREE).filter(([,s])=>s.tier===tier);
+    return `
+      <div class="skill-tier-block">
+        <div class="skill-tier-hdr">
+          <span class="tier-lbl" style="color:${TIER_COLOR[tier]}">${TIER_LABEL[tier]}</span>
+          <span class="tier-meta">${TIER_BONUS[tier]} al stat · ${TIER_COST[tier]} pto${TIER_COST[tier]>1?'s':''} c/u</span>
+        </div>
+        <div class="skill-grid">${skills.map(([id])=>skillBtnHTML(id)).join('')}</div>
+      </div>`;
+  }).join('');
+}
+
+function skillBtnHTML(id){
+  const s = SKILL_TREE[id];
+  const cls = charData.class;
+  const info = CLASSES[cls];
+  const isFixed   = info.startingFixed.includes(id);
+  const isChosen  = startChosen.has(id);
+  const isTaken   = paidSkills.has(id);
+  const inSet     = charSkills.has(id);
+  const metReqs   = prereqsMet(id);
+  const cost      = TIER_COST[s.tier];
+  const canAfford = skillPoints >= cost;
+  const reqNote   = s.req.length ? `<span class="sreq">← ${s.req.map(r=>SKILL_TREE[r]?.es||r).join(' / ')}</span>` : '';
+  let cls_list = 'stk-btn';
+  let disabled = '';
+  if(isFixed){
+    cls_list += ' starting'; disabled = 'disabled';
+  } else if(isChosen || isTaken){
+    cls_list += ' taken';
+  } else if(!metReqs){
+    cls_list += ' locked'; disabled = 'disabled';
+  } else if(!canAfford){
+    cls_list += ' broke'; disabled = 'disabled';
+  } else {
+    cls_list += ' available';
+  }
+  return `<button class="${cls_list}" id="stk-${id}" onclick="toggleSkillTree('${id}')" ${disabled}>${s.es}${reqNote}</button>`;
+}
+
+function toggleSkillTree(id){
+  const info = CLASSES[charData.class];
+  const cost = TIER_COST[SKILL_TREE[id].tier];
+  if(charSkills.has(id)){
+    // Remove — cascade if needed
+    const isFixed = info.startingFixed.includes(id);
+    if(isFixed) return; // can't remove fixed
+    cascadeRemove(id);
+  } else {
+    // Add
+    if(!prereqsMet(id)) return;
+    if(skillPoints < cost) return;
+    charSkills.add(id);
+    paidSkills.set(id, cost);
+    skillPoints -= cost;
+  }
+  // Re-render skill buttons only
+  renderSkillTree(charData.class);
   checkGenBtn();
 }
 
-function updateSkillCounter(){
-  const el = document.getElementById('skill-counter');
-  el.textContent = `${selectedSkills.size}/${SKILL_PICKS} seleccionadas`;
-  el.className = 'skill-counter' + (selectedSkills.size >= SKILL_PICKS ? ' complete' : '');
+function toggleStartChoice(id){
+  const info = CLASSES[charData.class];
+  const sc = info.startingChoice;
+  if(startChosen.has(id)){
+    cascadeRemove(id); // removes from charSkills too
+  } else {
+    if(startChosen.size >= sc.pick) return;
+    startChosen.add(id);
+    charSkills.add(id);
+  }
+  renderSkillTree(charData.class);
+  checkGenBtn();
+}
+
+function renderStartChoices(cls){
+  const info = CLASSES[cls];
+  const wrap = document.getElementById('skill-start-wrap');
+  if(!info.startingFixed.length && !info.startingChoice){ wrap.innerHTML=''; return; }
+  const fixedBtns = info.startingFixed.map(id=>`
+    <button class="stc-btn fixed" disabled>${SKILL_TREE[id].es}</button>`).join('');
+  let choiceBtns = '';
+  if(info.startingChoice){
+    const { pick, from } = info.startingChoice;
+    const done = startChosen.size >= pick;
+    choiceBtns = `
+      <div class="start-choice-label" style="margin-top:${info.startingFixed.length?'.5rem':'0'}">
+        ELIGE ${pick} HABILIDAD${pick>1?'ES':''} DE CLASE:
+      </div>
+      <div class="start-choice-btns">
+        ${from.map(id=>`<button class="stc-btn ${startChosen.has(id)?'chosen':''}"
+          onclick="toggleStartChoice('${id}')" ${(!startChosen.has(id)&&done)?'disabled':''}>${SKILL_TREE[id].es}</button>`).join('')}
+      </div>
+      <div class="stc-status ${startChosen.size>=pick?'done':''}">
+        ${startChosen.size}/${pick} elegida${pick>1?'s':''}
+      </div>`;
+  }
+  const label = info.startingFixed.length ? `
+    <div class="start-choice-label">HABILIDADES FIJAS DE CLASE:</div>
+    <div class="start-choice-btns">${fixedBtns}</div>` : '';
+  wrap.innerHTML = `<div class="start-choice-wrap">${label}${choiceBtns}</div>`;
+}
+
+function updatePtsBadge(){
+  const el = document.getElementById('pts-badge');
+  if(!el) return;
+  el.textContent = skillPoints > 0 ? `${skillPoints} pto${skillPoints!==1?'s':''} disponible${skillPoints!==1?'s':''}` : 'puntos gastados ✓';
+  el.className = 'pts-badge' + (skillPoints===0 ? ' zero' : skillPoints>0 ? ' warn' : '');
 }
 
 // ── TIRADAS ──
@@ -1220,7 +1418,7 @@ async function generateSheet(){
     player_name:playerName, char_name:charName, class:charData.class,
     strength:charData.strength, speed:charData.speed, intellect:charData.intellect, combat:charData.combat,
     sanity_save:charData.sanity_save, fear_save:charData.fear_save, body_save:charData.body_save,
-    max_stress:20, skills:Array.from(selectedSkills), equipment:info.equipment, trinket, quiz_answers:charData.quizAnswers,
+    max_stress:20, skills:Array.from(charSkills).map(id=>`${SKILL_TREE[id].es} [${TIER_LABEL[SKILL_TREE[id].tier]}]`), equipment:info.equipment, trinket, quiz_answers:charData.quizAnswers,
     ship_id: selectedShip?.id || null,
   };
 
@@ -1264,7 +1462,13 @@ function renderSheet(r){
     </div>
 
     <div class="sheet-bottom">
-      <div class="sheet-section"><div class="sec-title">HABILIDADES</div><ul>${r.skills.map(s=>`<li>${s}</li>`).join('')}</ul></div>
+      <div class="sheet-section"><div class="sec-title">HABILIDADES</div><ul>${r.skills.map(s=>{
+        const m=s.match(/^(.*)\s\[(APRENDIZ|EXPERTO|MAESTRO)\]$/);
+        if(!m) return `<li>${s}</li>`;
+        const colors={APRENDIZ:'#00ff41',EXPERTO:'#00ccff',MAESTRO:'#ff8c00'};
+        const bonuses={APRENDIZ:'+10%',EXPERTO:'+15%',MAESTRO:'+20%'};
+        return `<li>${m[1]} <span style="color:${colors[m[2]]};font-size:.65em">${m[2]} ${bonuses[m[2]]}</span></li>`;
+      }).join('')}</ul></div>
       <div class="sheet-section"><div class="sec-title">EQUIPO INICIAL</div><ul>${r.equipment.map(e=>`<li>${e}</li>`).join('')}</ul></div>
       <div class="trinket-box"><div class="sec-title">OBJETO PERSONAL</div>${r.trinket}</div>
       <div class="stress-track"><div class="sec-title">ESTRÉS (MAX 20)</div><div class="stress-boxes">${stressBoxes}</div></div>
