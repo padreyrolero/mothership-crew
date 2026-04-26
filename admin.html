@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARMACORP — Panel GM</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700&display=swap');
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --green:  #00ff41;
+      --dim:    #00aa2a;
+      --dark:   #001a05;
+      --black:  #000;
+      --border: #003a10;
+      --amber:  #ffb300;
+    }
+
+    body {
+      background: var(--black);
+      font-family: 'Share Tech Mono', 'Courier New', monospace;
+      color: var(--green);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        to bottom, transparent 0px, transparent 3px,
+        rgba(0,0,0,0.1) 3px, rgba(0,0,0,0.1) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .admin-header {
+      max-width: 1100px;
+      margin: 0 auto 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .admin-header h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(1rem, 2.5vw, 1.5rem);
+      color: var(--green);
+      letter-spacing: 0.3em;
+    }
+
+    .admin-header .sub {
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      color: var(--dim);
+      margin-top: 0.3rem;
+    }
+
+    .admin-actions { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+
+    .btn {
+      padding: 0.5rem 1.2rem;
+      border: 1px solid var(--dim);
+      background: transparent;
+      color: var(--dim);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover, .btn.primary { border-color: var(--green); color: var(--green); }
+    .btn.primary { text-shadow: 0 0 6px var(--green); }
+
+    #status {
+      max-width: 1100px;
+      margin: 0 auto 1.5rem;
+      font-size: 0.75rem;
+      color: var(--dim);
+      letter-spacing: 0.2em;
+    }
+
+    /* Grid de fichas */
+    #chars-grid {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .char-card {
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      background: rgba(0,255,65,0.01);
+      break-inside: avoid;
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.8rem;
+    }
+
+    .card-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.1rem;
+      color: var(--green);
+    }
+
+    .card-player { font-size: 0.65rem; color: var(--dim); margin-top: 0.2rem; }
+
+    .card-class {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+      color: var(--green);
+      border: 1px solid var(--border);
+      padding: 0.3rem 0.6rem;
+    }
+
+    .card-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.4rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .cs { text-align: center; border: 1px solid var(--border); padding: 0.4rem; }
+    .cs .cl { font-size: 0.5rem; letter-spacing: 0.2em; color: var(--dim); }
+    .cs .cv { font-family: 'Orbitron', monospace; font-size: 1.1rem; color: var(--green); }
+
+    .card-saves {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.4rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .sv { text-align: center; border: 1px solid var(--border); padding: 0.3rem; }
+    .sv .sl { font-size: 0.45rem; letter-spacing: 0.2em; color: var(--dim); }
+    .sv .sv2 { font-family: 'Orbitron', monospace; font-size: 0.9rem; color: var(--amber); }
+
+    .card-lists {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .cl-sec { border: 1px solid var(--border); padding: 0.6rem; }
+    .cl-sec .cl-title { font-size: 0.5rem; letter-spacing: 0.3em; color: var(--dim); margin-bottom: 0.4rem; }
+    .cl-sec ul { list-style: none; font-size: 0.7rem; color: rgba(0,255,65,0.7); line-height: 1.7; }
+    .cl-sec ul li::before { content: '▸ '; color: var(--green); }
+
+    .card-trinket {
+      font-size: 0.7rem;
+      color: rgba(0,255,65,0.5);
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.8rem;
+      margin-bottom: 0.6rem;
+    }
+    .card-trinket .tl { font-size: 0.5rem; letter-spacing: 0.3em; color: var(--dim); margin-bottom: 0.2rem; }
+
+    .card-date {
+      font-size: 0.55rem;
+      color: rgba(0,255,65,0.25);
+      letter-spacing: 0.2em;
+    }
+
+    /* ── PRINT ───────────────────────────────────────────────────── */
+    @media print {
+      body { background: white; color: black; padding: 1rem; }
+      body::after { display: none; }
+      .admin-header, .admin-actions, #status { display: none; }
+      :root {
+        --green: #007700; --dim: #555;
+        --border: #ccc; --amber: #996600;
+        --black: white;
+      }
+      #chars-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+      .char-card { border-color: #ccc; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-header">
+  <div>
+    <h1>PANEL DE GM — ARMACORP</h1>
+    <div class="sub">A.R.V. ALEXIS · MISIÓN ALX-7734 · FICHAS DE TRIPULACIÓN</div>
+  </div>
+  <div class="admin-actions">
+    <button class="btn" onclick="loadChars()">↻ ACTUALIZAR</button>
+    <button class="btn primary" onclick="window.print()">⎙ IMPRIMIR TODAS</button>
+  </div>
+</div>
+
+<div id="status">Cargando fichas...</div>
+<div id="chars-grid"></div>
+
+<script>
+const SUPA_URL = 'https://vbmftksmuvpbcizvfola.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZibWZ0a3NtdXZwYmNpenZmb2xhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMDUyMDEsImV4cCI6MjA5Mjc4MTIwMX0.J20XCeZlACV_xToBthVtl3aOohj6NDI-pQSVFpy5lXo';
+
+async function loadChars() {
+  document.getElementById('status').textContent = 'Cargando fichas...';
+  try {
+    const res = await fetch(
+      `${SUPA_URL}/rest/v1/characters?order=created_at.asc&select=*`,
+      { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
+    );
+    const chars = await res.json();
+
+    if (!chars.length) {
+      document.getElementById('status').textContent = 'No hay fichas aún. Los jugadores aún no han completado el formulario.';
+      document.getElementById('chars-grid').innerHTML = '';
+      return;
+    }
+
+    document.getElementById('status').textContent =
+      `${chars.length} ficha${chars.length > 1 ? 's' : ''} registrada${chars.length > 1 ? 's' : ''} · Misión ALX-7734`;
+
+    document.getElementById('chars-grid').innerHTML = chars.map(c => `
+      <div class="char-card">
+        <div class="card-top">
+          <div>
+            <div class="card-name">${c.char_name}</div>
+            <div class="card-player">Jugador: ${c.player_name}</div>
+          </div>
+          <div class="card-class">${c.class}</div>
+        </div>
+
+        <div class="card-stats">
+          <div class="cs"><div class="cl">STR</div><div class="cv">${c.strength}</div></div>
+          <div class="cs"><div class="cl">SPD</div><div class="cv">${c.speed}</div></div>
+          <div class="cs"><div class="cl">INT</div><div class="cv">${c.intellect}</div></div>
+          <div class="cs"><div class="cl">COM</div><div class="cv">${c.combat}</div></div>
+        </div>
+
+        <div class="card-saves">
+          <div class="sv"><div class="sl">BODY</div><div class="sv2">${c.body_save}%</div></div>
+          <div class="sv"><div class="sl">FEAR</div><div class="sv2">${c.fear_save}%</div></div>
+          <div class="sv"><div class="sl">SANITY</div><div class="sv2">${c.sanity_save}%</div></div>
+        </div>
+
+        <div class="card-lists">
+          <div class="cl-sec">
+            <div class="cl-title">HABILIDADES</div>
+            <ul>${c.skills.map(s => `<li>${s}</li>`).join('')}</ul>
+          </div>
+          <div class="cl-sec">
+            <div class="cl-title">EQUIPO</div>
+            <ul>${c.equipment.map(e => `<li>${e}</li>`).join('')}</ul>
+          </div>
+        </div>
+
+        ${c.trinket ? `
+          <div class="card-trinket">
+            <div class="tl">OBJETO PERSONAL</div>
+            ${c.trinket}
+          </div>` : ''}
+
+        <div class="card-date">
+          Registrado: ${new Date(c.created_at).toLocaleString('es-ES')}
+        </div>
+      </div>
+    `).join('');
+
+  } catch(e) {
+    document.getElementById('status').textContent = 'Error cargando fichas. Comprueba la conexión.';
+  }
+}
+
+loadChars();
+</script>
+</body>
+</html>
