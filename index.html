@@ -676,19 +676,56 @@ const BACKGROUNDS = {
 };
 
 // ══ RETRATOS — imágenes de la carpeta portraits/ ══════════════════════
-// Convención de nombres:
-//   marine-m.jpg · marine-f.jpg · teamster-m.jpg · teamster-f.jpg
-//   scientist-m.jpg · scientist-f.jpg · android.jpg
-function portraitPath(cls, key) {
-  if (key === 'A') return 'portraits/android.jpg';
-  return `portraits/${cls.toLowerCase()}-${key.toLowerCase()}.jpg`;
+// Convención: {clase}-{genero}-{n}.jpg  (n = 1..10)
+//   marine-m-1.jpg · marine-f-3.jpg · android-2.jpg · etc.
+function probeImage(src) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload  = () => resolve(src);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
 }
 
-function portraitImg(cls, key, label) {
-  const src = portraitPath(cls, key);
-  return `<img src="${src}" alt="${label}"
-    onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-    <div class="portrait-placeholder" style="display:none">👤</div>`;
+function candidatePaths(cls) {
+  const base = cls.toLowerCase();
+  if (cls === 'Android') {
+    return Array.from({length:10}, (_,i) => `portraits/android-${i+1}.jpg`);
+  }
+  const paths = [];
+  for (const g of ['m','f'])
+    for (let n = 1; n <= 10; n++)
+      paths.push(`portraits/${base}-${g}-${n}.jpg`);
+  return paths;
+}
+
+function labelFromPath(path) {
+  const m = path.match(/portraits\/\w+-([mfa])-?(\d+)\.jpg/i);
+  if (!m) return path;
+  const g = m[1].toLowerCase();
+  const n = m[2];
+  if (g === 'a') return `UNIDAD ${n}`;
+  return g === 'm' ? `SR. ${n}` : `SRA. ${n}`;
+}
+
+async function renderPortraits(cls) {
+  const grid = document.getElementById('portrait-grid');
+  grid.innerHTML = '<div style="color:var(--dim);font-size:.7rem;letter-spacing:.3em;padding:1rem">ESCANEANDO ARCHIVOS...</div>';
+
+  const results = await Promise.all(candidatePaths(cls).map(probeImage));
+  const found = results.filter(Boolean);
+
+  if (!found.length) {
+    grid.innerHTML = '<div style="color:var(--dim);font-size:.7rem;letter-spacing:.2em;padding:1rem">SIN RETRATOS DISPONIBLES</div>';
+    return;
+  }
+
+  grid.innerHTML = found.map(path => `
+    <div class="portrait-option ${selectedPortraitKey===path?'selected':''}" onclick="selectPortrait('${path}',this)">
+      <img src="${path}" alt="${labelFromPath(path)}">
+      <div class="p-label">${labelFromPath(path)}</div>
+    </div>
+  `).join('');
 }
 
 
@@ -801,13 +838,12 @@ function initChargen(cls){
   const genderSec=document.getElementById('gender-section');
   genderSec.style.display = cls==='Android' ? 'none' : 'block';
 
-  // Si es Android, seleccionar automáticamente
+  // Si es Android, mostrar directamente retratos (sin selección de género)
   if(cls==='Android'){
-    selectedGender='A'; selectedPortraitKey='A';
+    selectedGender='A';
     document.getElementById('portrait-section').style.display='block';
-    document.getElementById('bg-section').style.display='block';
-    renderPortraits(cls,'A');
-    renderBackgrounds(cls);
+    document.getElementById('bg-section').style.display='none';
+    renderPortraits(cls);
   } else {
     document.getElementById('portrait-section').style.display='none';
     document.getElementById('bg-section').style.display='none';
@@ -828,25 +864,10 @@ function selectGender(g, btn){
   selectedGender=g; selectedPortraitKey=null; selectedBackground=null;
   document.querySelectorAll('.gender-btn').forEach(b=>b.classList.remove('selected'));
   btn.classList.add('selected');
-  const cls=charData.class;
-  const portraitGender = g==='M'?'M':'F';
   document.getElementById('portrait-section').style.display='block';
   document.getElementById('bg-section').style.display='none';
-  renderPortraits(cls, portraitGender);
+  renderPortraits(charData.class);
   checkGenBtn();
-}
-
-function renderPortraits(cls, gender){
-  const all = cls==='Android'
-    ? [{key:'A', label:'UNIDAD SINTÉTICA'}]
-    : [{key:'M', label:'SR.'}, {key:'F', label:'SRA. / SRE.'}];
-
-  document.getElementById('portrait-grid').innerHTML = all.map(p=>`
-    <div class="portrait-option ${selectedPortraitKey===p.key?'selected':''}" onclick="selectPortrait('${p.key}', this)">
-      ${portraitImg(cls, p.key, p.label)}
-      <div class="p-label">${p.label}</div>
-    </div>
-  `).join('');
 }
 
 function selectPortrait(key, el){
@@ -938,7 +959,7 @@ async function generateSheet(){
 
   try { await supaInsert(record); } catch(e){ console.warn('Supabase error:',e); }
 
-  renderSheet({...record, background:bg, portraitPath: portraitPath(charData.class, selectedPortraitKey), genderLabel});
+  renderSheet({...record, background:bg, portraitPath: selectedPortraitKey||'', genderLabel});
   showScreen('sheet');
 }
 
