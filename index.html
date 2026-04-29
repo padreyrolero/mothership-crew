@@ -366,198 +366,170 @@
 
     /* ── PRINT ────────────────────────────────────────────────────── */
     @media print {
-      @page { size: A4 portrait; margin: 11mm 13mm; }
+      @page { size: A4 portrait; margin: 10mm 12mm; }
 
-      /* Ocultar todo excepto la ficha */
       body::after, .sheet-actions { display:none !important; }
       #splash,#ship-select,#recruitment,#quiz,#chargen { display:none !important; }
       .screen { display:none !important; }
       #sheet { display:block !important; padding:0 !important; background:white !important; }
-
       body { background:white !important; color:black !important; margin:0; }
 
-      /* Evitar saltos de página inesperados */
-      .character-sheet, .sheet-bottom, .sheet-section { page-break-inside:avoid; }
+      /* ══ PÁGINA 1 — FICHA ══════════════════════════════════════════ */
 
-      /* ── LOGO HEADER ── */
-      .print-header {
-        display:flex !important;
-        justify-content:space-between;
-        align-items:flex-end;
-        border-bottom:2pt solid black;
-        padding-bottom:2.5mm;
-        margin-bottom:3.5mm;
-      }
-      .print-logo {
-        font-family:'Orbitron',sans-serif;
-        font-size:20pt;
-        font-weight:900;
-        color:black;
-        letter-spacing:5pt;
-        line-height:1;
-      }
-      .print-logo-sub {
-        font-family:'Share Tech Mono',monospace;
-        font-size:6pt;
-        color:#555;
-        letter-spacing:2pt;
-        display:block;
-        margin-top:1mm;
-      }
-      .print-doc-title {
-        font-family:'Share Tech Mono',monospace;
-        font-size:7pt;
-        color:#333;
-        letter-spacing:3pt;
-        text-align:right;
-      }
-
-      /* ── CONTENEDOR FICHA ── */
+      /* Contenedor principal — ocupa toda la página */
       .sheet-wrap { max-width:100% !important; }
       .character-sheet {
         border:1pt solid black !important;
         background:white !important;
-        padding:4mm 5mm !important;
+        padding:3mm 4mm !important;
         position:relative;
+        /* Altura total: 297mm - márgenes (20mm) - header (11mm) - gap (3mm) */
+        height:263mm;
+        display:flex !important;
+        flex-direction:column !important;
+        box-sizing:border-box !important;
+        page-break-inside:avoid;
       }
       .character-sheet::before { display:none !important; }
 
-      /* ── CABECERA ── */
-      .sheet-top {
-        grid-template-columns:72pt 1fr auto !important;
-        gap:3mm !important;
-        padding-bottom:3mm !important;
-        margin-bottom:3mm !important;
-        border-bottom:0.5pt solid #888 !important;
+      /* Logo header */
+      .print-header {
+        display:flex !important;
+        justify-content:space-between;
+        align-items:flex-end;
+        border-bottom:1.5pt solid black;
+        padding-bottom:2mm;
+        margin-bottom:3mm;
+        flex-shrink:0;
       }
-      .sheet-portrait { width:72pt !important; height:96pt !important; border:0.5pt solid black !important; }
-      .sheet-portrait img { filter:grayscale(1) contrast(1.1) !important; }
-      .sheet-identity .char-name { font-size:15pt !important; color:black !important; text-shadow:none !important; }
-      .sheet-identity .char-class { font-size:7pt !important; color:#444 !important; margin-top:1mm !important; }
-      .sheet-identity .char-player { font-size:6.5pt !important; color:#555 !important; }
-      .sheet-identity .char-bg { font-size:7.5pt !important; color:#333 !important; border-left:1.5pt solid black !important; padding-left:2mm !important; margin-top:2mm !important; line-height:1.45 !important; }
-      .sheet-class-badge { border:0.5pt solid black !important; padding:2mm 3mm !important; min-width:auto !important; }
-      .sheet-class-badge .badge-label { font-size:5.5pt !important; color:#555 !important; }
-      .sheet-class-badge .badge-class { font-size:9pt !important; color:black !important; }
-      .sheet-class-badge .badge-gender { font-size:6pt !important; color:#555 !important; }
+      .print-logo { font-family:'Orbitron',sans-serif; font-size:16pt; font-weight:900; color:black; letter-spacing:4pt; line-height:1; }
+      .print-logo-sub { font-family:'Share Tech Mono',monospace; font-size:5.5pt; color:#555; letter-spacing:2pt; display:block; margin-top:0.8mm; }
+      .print-doc-title { font-family:'Share Tech Mono',monospace; font-size:6.5pt; color:#333; letter-spacing:2.5pt; text-align:right; }
 
-      /* ── SECTION LABELS ── */
-      .section-label { font-size:6pt !important; color:#444 !important; letter-spacing:3pt !important; margin-bottom:2mm !important; margin-top:2mm !important; }
+      /* Cabecera de personaje */
+      .sheet-top {
+        grid-template-columns:64pt 1fr auto !important;
+        gap:2.5mm !important;
+        padding-bottom:2.5mm !important;
+        margin-bottom:2.5mm !important;
+        border-bottom:0.5pt solid #888 !important;
+        flex-shrink:0;
+      }
+      .sheet-portrait { width:64pt !important; height:85pt !important; border:0.5pt solid black !important; }
+      .sheet-portrait img { filter:grayscale(1) contrast(1.1) !important; }
+      .sheet-identity .char-name { font-size:13pt !important; color:black !important; text-shadow:none !important; }
+      .sheet-identity .char-class { font-size:6.5pt !important; color:#444 !important; margin-top:0.8mm !important; }
+      .sheet-identity .char-player { font-size:6pt !important; color:#555 !important; }
+      .sheet-identity .char-bg { font-size:7pt !important; color:#333 !important; border-left:1pt solid black !important; padding-left:1.5mm !important; margin-top:1.5mm !important; line-height:1.4 !important; }
+      .sheet-class-badge { border:0.5pt solid black !important; padding:1.5mm 2.5mm !important; min-width:auto !important; }
+      .sheet-class-badge .badge-label { font-size:5pt !important; color:#555 !important; }
+      .sheet-class-badge .badge-class { font-size:8pt !important; color:black !important; }
+      .sheet-class-badge .badge-gender { font-size:5.5pt !important; color:#555 !important; }
+
+      /* Labels de sección */
+      .section-label { font-size:5.5pt !important; color:#444 !important; letter-spacing:2.5pt !important; margin-bottom:1.5mm !important; margin-top:1.5mm !important; flex-shrink:0; }
       .section-label span { display:none !important; }
 
-      /* ── STATS ── */
-      .sheet-stats-row { gap:2mm !important; margin-bottom:2.5mm !important; }
-      .sheet-stat { border:0.5pt solid black !important; padding:1.5mm 2mm !important; }
-      .sheet-stat .s-label { font-size:5.5pt !important; color:#555 !important; margin-bottom:1mm !important; }
-      .sheet-stat .s-val { font-size:19pt !important; color:black !important; }
+      /* Stats */
+      .sheet-stats-row { gap:1.5mm !important; margin-bottom:0 !important; flex-shrink:0; }
+      .sheet-stat { border:0.5pt solid black !important; padding:1mm 1.5mm !important; }
+      .sheet-stat .s-label { font-size:5pt !important; color:#555 !important; margin-bottom:0.8mm !important; }
+      .sheet-stat .s-val { font-size:16pt !important; color:black !important; }
 
-      /* ── SAVES (4 columnas) ── */
-      .sheet-saves-row { gap:2mm !important; margin-bottom:2.5mm !important; }
-      .sheet-save { border:0.5pt solid black !important; padding:1.5mm 2mm !important; }
-      .sheet-save .sv-label { font-size:5.5pt !important; color:#555 !important; margin-bottom:1mm !important; }
-      .sheet-save .sv-val { font-size:16pt !important; color:black !important; }
+      /* Saves */
+      .sheet-saves-row { gap:1.5mm !important; margin-bottom:0 !important; flex-shrink:0; }
+      .sheet-save { border:0.5pt solid black !important; padding:1mm 1.5mm !important; }
+      .sheet-save .sv-label { font-size:5pt !important; color:#555 !important; margin-bottom:0.8mm !important; }
+      .sheet-save .sv-val { font-size:13pt !important; color:black !important; }
       .armor-save { border:0.5pt solid black !important; }
       .armor-save .sv-label { color:#333 !important; }
       .armor-save .sv-val { color:black !important; }
 
-      /* ── REGLA ESPECIAL ── */
+      /* Regla especial */
       .sheet-special-rule {
-        color:black !important;
-        background:none !important;
-        border-left:2pt solid black !important;
-        font-size:7pt !important;
-        padding:1.5mm 3mm !important;
-        margin:2mm 0 !important;
-        line-height:1.5 !important;
+        color:black !important; background:none !important;
+        border-left:1.5pt solid black !important;
+        font-size:6.5pt !important; padding:1mm 2.5mm !important;
+        margin:1.5mm 0 !important; line-height:1.4 !important;
+        flex-shrink:0;
       }
 
-      /* ── SECCIÓN INFERIOR ── */
-      .sheet-bottom { gap:2.5mm !important; }
-      .sheet-section { border:0.5pt solid black !important; padding:2.5mm 3mm !important; }
-      .sheet-section .sec-title { font-size:5.5pt !important; color:#444 !important; border-bottom:0.5pt solid #aaa !important; padding-bottom:1mm !important; margin-bottom:1.5mm !important; }
-      .sheet-section ul { font-size:7.5pt !important; color:black !important; line-height:1.65 !important; }
+      /* Sección inferior — crece para llenar el espacio restante */
+      .sheet-bottom {
+        gap:1.5mm !important;
+        flex:1 !important;
+        grid-template-rows:auto auto auto 1fr !important;
+        min-height:0 !important;
+      }
+      .sheet-section { border:0.5pt solid black !important; padding:2mm 2.5mm !important; }
+      .sheet-section .sec-title { font-size:5pt !important; color:#444 !important; border-bottom:0.5pt solid #aaa !important; padding-bottom:0.8mm !important; margin-bottom:1mm !important; }
+      .sheet-section ul { font-size:7pt !important; color:black !important; line-height:1.55 !important; }
       .sheet-section ul li::before { color:black !important; }
       .skill-t, .skill-e, .skill-m { color:#333 !important; font-size:.65em; }
 
-      /* ── BARATIJA Y PARCHE ── */
-      .trinket-box { border:0.5pt solid black !important; padding:2mm 3mm !important; font-size:7.5pt !important; color:black !important; }
-      .trinket-box .sec-title { font-size:5.5pt !important; color:#444 !important; margin-bottom:1mm !important; }
+      .trinket-box { border:0.5pt solid black !important; padding:1.5mm 2.5mm !important; font-size:7pt !important; color:black !important; }
+      .trinket-box .sec-title { font-size:5pt !important; color:#444 !important; margin-bottom:0.8mm !important; }
 
-      /* ── ESTRÉS ── */
-      .stress-track { border:0.5pt solid black !important; padding:2.5mm 3mm !important; }
-      .stress-boxes { gap:1.5mm !important; margin-top:2mm !important; }
-      .stress-box { width:14pt !important; height:14pt !important; border:0.5pt solid black !important; font-size:5pt !important; color:#666 !important; }
+      .stress-track { border:0.5pt solid black !important; padding:2mm 2.5mm !important; }
+      .stress-boxes { gap:1mm !important; margin-top:1.5mm !important; }
+      .stress-box { width:12pt !important; height:12pt !important; border:0.5pt solid black !important; font-size:4.5pt !important; color:#666 !important; }
       .stress-track .sec-title { color:#444 !important; }
-      /* Créditos en estrés */
       .stress-track div[style] { color:black !important; }
       .stress-track span[style] { color:black !important; }
 
-      /* ── REVERSO ── */
+      /* Sección de notas */
+      .notes-box {
+        grid-column:1 / -1 !important;
+        border:0.5pt solid black !important;
+        padding:2mm 2.5mm !important;
+        flex:1;
+        display:flex !important;
+        flex-direction:column !important;
+      }
+      .notes-box .sec-title { font-size:5pt !important; color:#444 !important; border-bottom:0.5pt solid #aaa !important; padding-bottom:0.8mm !important; margin-bottom:0 !important; font-family:'Share Tech Mono',monospace; letter-spacing:2pt; }
+      .notes-lines { flex:1; display:flex; flex-direction:column; justify-content:space-around; padding-top:1mm; }
+      .notes-line { border-bottom:0.3pt solid #ccc; height:6mm; }
+
+      /* ══ PÁGINA 2 — REVERSO ════════════════════════════════════════ */
       #sheet-back {
-        display: block !important;
-        page-break-before: always;
-        font-family: 'Share Tech Mono', 'Courier New', monospace;
-        font-size: 7pt;
-        color: black;
-        line-height: 1.55;
+        display:block !important;
+        page-break-before:always;
+        font-family:'Share Tech Mono','Courier New',monospace;
+        font-size:6pt;
+        color:black;
+        line-height:1.35;
+        height:277mm;
+        box-sizing:border-box;
+        overflow:hidden;
       }
       .back-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        border-bottom: 1.5pt solid black;
-        padding-bottom: 2mm;
-        margin-bottom: 3.5mm;
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-end;
+        border-bottom:1.5pt solid black;
+        padding-bottom:1.5mm;
+        margin-bottom:2.5mm;
       }
-      .back-logo {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 14pt;
-        font-weight: 900;
-        letter-spacing: 4pt;
-        line-height: 1;
-      }
-      .back-logo span {
-        display: block;
-        font-family: 'Share Tech Mono', monospace;
-        font-size: 5.5pt;
-        letter-spacing: 2pt;
-        color: #444;
-        margin-top: 1mm;
-        font-weight: 400;
-      }
-      .back-title {
-        font-family: 'Share Tech Mono', monospace;
-        font-size: 7pt;
-        letter-spacing: 3pt;
-        color: #333;
-        text-align: right;
-      }
-      .back-cols {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 5mm;
-      }
-      .back-col { display: flex; flex-direction: column; gap: 1.5mm; }
+      .back-logo { font-family:'Orbitron',sans-serif; font-size:12pt; font-weight:900; color:black; letter-spacing:3pt; line-height:1; }
+      .back-logo span { display:block; font-family:'Share Tech Mono',monospace; font-size:5pt; letter-spacing:1.5pt; color:#444; margin-top:0.5mm; font-weight:400; }
+      .back-title { font-family:'Share Tech Mono',monospace; font-size:6pt; letter-spacing:2.5pt; color:#333; text-align:right; }
+      .back-cols { display:grid; grid-template-columns:1fr 1fr; gap:4mm; }
+      .back-col { display:flex; flex-direction:column; gap:0; }
       .back-section-title {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 6pt;
-        letter-spacing: 2pt;
-        font-weight: 700;
-        border-bottom: 0.5pt solid black;
-        padding-bottom: 0.8mm;
-        margin-top: 2mm;
-        margin-bottom: 0.5mm;
+        font-family:'Orbitron',sans-serif; font-size:5.5pt; letter-spacing:1.5pt; font-weight:700;
+        border-bottom:0.5pt solid black; padding-bottom:0.5mm; margin-top:2mm; margin-bottom:0.8mm;
       }
-      #sheet-back p { margin: 0 0 1mm; }
-      #sheet-back ul, #sheet-back ol { margin: 0 0 1mm; padding-left: 4mm; }
-      #sheet-back li { margin-bottom: 0.5mm; }
-      #sheet-back strong { font-weight: bold; }
-      .back-table { width: 100%; border-collapse: collapse; margin: 1mm 0; }
-      .bt-row { display: grid; grid-template-columns: 1fr 2fr; gap: 1mm; border-bottom: 0.3pt solid #ccc; padding: 0.6mm 0; font-size: 6.5pt; }
-      .bt-row.bt-head { font-weight: bold; border-bottom: 0.5pt solid black; font-size: 6pt; letter-spacing: 1pt; }
-      .panic-table .bt-row { grid-template-columns: 18mm 1fr; }
-    }
-  </style>
+      .back-col:first-child .back-section-title:first-child { margin-top:0; }
+      #sheet-back p { margin:0 0 0.8mm; }
+      #sheet-back ul, #sheet-back ol { margin:0 0 0.8mm; padding-left:3.5mm; }
+      #sheet-back li { margin-bottom:0.3mm; }
+      #sheet-back strong { font-weight:bold; }
+      .back-table { width:100%; margin:0.5mm 0 1mm; }
+      .bt-row { display:grid; grid-template-columns:22mm 1fr; gap:1mm; border-bottom:0.3pt solid #ddd; padding:0.4mm 0; font-size:5.8pt; }
+      .bt-row.bt-head { font-weight:bold; border-bottom:0.5pt solid black; font-size:5.5pt; letter-spacing:0.5pt; }
+      .bt-row.no-prefix { grid-template-columns:14mm 1fr; }
+      .panic-table .bt-row { grid-template-columns:14mm 1fr; }
+    }  </style>
 </head>
 <body>
 
@@ -757,91 +729,88 @@
     <!-- ══ REVERSO — solo visible al imprimir ══ -->
     <div id="sheet-back">
       <div class="back-header">
-        <div class="back-logo">MOTHERSHIP <span>SCI-FI HORROR RPG · 0E</span></div>
+        <div class="back-logo">MOTHERSHIP <span>SCI-FI HORROR RPG · 0E EDITION</span></div>
         <div class="back-title">REFERENCIA RÁPIDA DE REGLAS</div>
       </div>
       <div class="back-cols">
 
+        <!-- COLUMNA IZQUIERDA -->
         <div class="back-col">
+
           <div class="back-section-title">CHEQUEOS DE ESTADÍSTICA</div>
-          <p>Tira d% (dos d10) e intenta sacar <strong>igual o menor</strong> que tu estadística. Éxito = pasas. Fallo = fallas.</p>
-          <p><strong>Ventaja:</strong> tira dos veces, quédate con el mejor resultado.</p>
-          <p><strong>Desventaja:</strong> tira dos veces, quédate con el peor resultado.</p>
-          <p><strong>Crítico:</strong> resultado con dígitos iguales (11, 22, 33…). <strong>00 = éxito crítico siempre. 99 = fallo crítico siempre.</strong></p>
+          <p>Tira <strong>d%</strong> (dos d10) e intenta sacar <strong>igual o menor</strong> que tu estadística.</p>
+          <p><strong>Ventaja [+]:</strong> tira dos veces, quédate con el mejor resultado.</p>
+          <p><strong>Desventaja [−]:</strong> tira dos veces, quédate con el peor resultado.</p>
+          <p><strong>Crítico:</strong> dígitos iguales (11, 22…). 00 = éxito crítico. 99 = fallo crítico.</p>
+          <p><strong>Chequeo enfrentado:</strong> ambos tiran; gana quien saque más alto sin pasarse de su stat. Éxito crítico vence a éxito normal.</p>
 
           <div class="back-section-title">HABILIDADES</div>
           <div class="back-table">
-            <div class="bt-row bt-head"><span>Nivel</span><span>Bono</span></div>
-            <div class="bt-row"><span>Aprendiz</span><span>+10%</span></div>
-            <div class="bt-row"><span>Experto</span><span>+15%</span></div>
-            <div class="bt-row"><span>Maestro</span><span>+20%</span></div>
+            <div class="bt-row bt-head"><span>Nivel</span><span>Bono al stat</span></div>
+            <div class="bt-row"><span>Aprendiz (T)</span><span>+10%</span></div>
+            <div class="bt-row"><span>Experto (E)</span><span>+15%</span></div>
+            <div class="bt-row"><span>Maestro (M)</span><span>+20%</span></div>
           </div>
-          <p style="margin-top:.4rem">Suma el bono a tu estadística antes de tirar.</p>
 
           <div class="back-section-title">SALVADAS</div>
-          <p>Tira d% igual o menor que tu valor de salvada. Si fallas, ganas <strong>1+ Estrés</strong> y sufres la consecuencia.</p>
-          <p><strong>Fallo crítico:</strong> además, haz una tirada de Pánico.</p>
-          <ul>
-            <li><strong>Cordura</strong> — ilusiones, locura, lo incomprensible</li>
-            <li><strong>Miedo</strong> — trauma emocional, terror, soledad</li>
-            <li><strong>Cuerpo</strong> — reflejos, enfermedad, hambre, organismos</li>
-            <li><strong>Armadura</strong> — daño en combate (balas, garras, etc.)</li>
-          </ul>
+          <p>Tira d% igual o menor que tu valor. Si fallas: <strong>+1 Estrés</strong> y sufres consecuencias. Fallo crítico: además haz Tirada de Pánico.</p>
+          <p>· <strong>Cordura</strong> — lo incomprensible, ilusiones &nbsp;· <strong>Miedo</strong> — terror, trauma emocional</p>
+          <p>· <strong>Cuerpo</strong> — reflejos, enfermedad, hambre &nbsp;· <strong>Armadura</strong> — daño físico en combate</p>
 
-          <div class="back-section-title">CURACIÓN</div>
-          <p>Tras 6h de descanso: tira Salvada de Cuerpo. Si pasas, cura tantos PV como la diferencia entre tu Cuerpo y el resultado. Fallo crítico: pierde 1d10 PV. Solo una vez al día.</p>
-          <p><strong>PV máximos = Fuerza × 2.</strong></p>
+          <div class="back-section-title">CURACIÓN Y DESCANSO</div>
+          <p>Tras <strong>6 h de descanso</strong>: tira Salvada de Cuerpo. Éxito: cura tantos PV como la diferencia (stat − resultado). Fallo crítico: pierde 1d10 PV. Máx. una vez al día.</p>
+          <p><strong>PV máx. = Fuerza × 2.</strong></p>
 
           <div class="back-section-title">INCONSCIENCIA Y MUERTE</div>
-          <p>Al llegar a 0 PV: tira Salvada de Cuerpo. Fallo = muerto. Éxito = inconsciente (el DJ tira en secreto cuándo despiertas).</p>
+          <p>A <strong>0 PV</strong>: tira Salvada de Cuerpo. Fallo = muerte. Éxito = inconsciente (DJ tira en secreto cuándo despiertas y con qué penalizaciones permanentes).</p>
+
+          <div class="back-section-title">ESTRÉS</div>
+          <p>El Estrés sube al fallar salvadas, ver morir compañeros, recibir daño crítico, 24 h sin dormir, nave impactada, etc. Por sí solo no hace nada, pero cuanto más alto, más devastador el Pánico.</p>
+          <p><strong>Reducir estrés:</strong> descanso + Salvada de Miedo exitosa → alivia 1 Estrés por cada 10 puntos de margen.</p>
+
         </div>
 
+        <!-- COLUMNA DERECHA -->
         <div class="back-col">
-          <div class="back-section-title">COMBATE</div>
-          <p><strong>Iniciativa:</strong> chequeo de Velocidad. Los que pasan actúan antes que los enemigos.</p>
-          <p><strong>Turno:</strong> ~10 segundos. Tienes <strong>2 acciones significativas</strong> por turno.</p>
-          <p><strong>Atacar (distancia):</strong> chequeo enfrentado de Combate del atacante vs. Salvada de Armadura del defensor. Si el atacante gana, tira daño.</p>
-          <p><strong>CQC:</strong> el defensor elige oponer Armadura (aguantar), Combate (contraatacar) o Cuerpo (huir).</p>
-          <p><strong>Cobertura:</strong> Ventaja en Salvadas de Armadura contra ataques a distancia.</p>
-          <p><strong>Movimiento:</strong> Velocidad/2 metros por acción, o Velocidad metros si usas ambas acciones.</p>
-          <p><strong>Apuntar:</strong> usa ambas acciones sin recibir daño → Ventaja en el siguiente disparo.</p>
 
-          <div class="back-section-title">RANGOS DE DISTANCIA</div>
+          <div class="back-section-title">COMBATE</div>
+          <p><strong>Iniciativa:</strong> chequeo de Velocidad. Éxito → actúas antes que enemigos. Éxito crítico: acción extra. Fallo crítico: solo 1 acción.</p>
+          <p><strong>Turno:</strong> ~10 s reales. Tienes <strong>2 acciones significativas</strong> (atacar, recargar, moverse a fondo, usar terminal, curar…).</p>
+          <p><strong>Ataque a distancia:</strong> Combate [atacante] vs. Armadura [defensor] — chequeo enfrentado. Ganador del atacante → tira daño.</p>
+          <p><strong>CQC:</strong> defensor elige oponer Armadura (aguantar), Combate (contraatacar) o Cuerpo (escapar).</p>
+          <p><strong>Cobertura:</strong> Ventaja en Salvada de Armadura contra disparos. <strong>Apuntar:</strong> 2 acciones sin recibir daño → Ventaja en el siguiente disparo.</p>
+          <p><strong>Movimiento:</strong> Velocidad ÷ 2 m (1 acción) o Velocidad m (2 acciones).</p>
+
+          <div class="back-section-title">RANGOS</div>
           <div class="back-table">
-            <div class="bt-row bt-head"><span>Rango</span><span>Penalización</span></div>
+            <div class="bt-row bt-head"><span>Distancia</span><span>Penalización al Combate</span></div>
             <div class="bt-row"><span>Corto</span><span>Sin penalización</span></div>
-            <div class="bt-row"><span>Medio</span><span>−10% Combate</span></div>
-            <div class="bt-row"><span>Largo</span><span>Desventaja</span></div>
+            <div class="bt-row"><span>Medio</span><span>−10%</span></div>
+            <div class="bt-row"><span>Largo</span><span>Desventaja [−]</span></div>
           </div>
 
-          <div class="back-section-title">ESTRÉS Y PÁNICO</div>
-          <p>El Estrés sube al fallar salvadas u otras situaciones. Por sí solo no hace nada, pero cuanto más alto, más peligroso el Pánico.</p>
-          <p><strong>Cuándo tirar Pánico:</strong> fallo crítico en una salvada, impacto crítico recibido, perder más de la mitad de PV máximos de un golpe, ver morir a un compañero, etc.</p>
-          <p><strong>Tirada de Pánico (2 pasos):</strong></p>
-          <ol>
-            <li>Tira 2d10. Si el resultado es <strong>mayor</strong> que tu Estrés actual: no entras en Pánico y pierdes 1 Estrés.</li>
-            <li>Si entras en Pánico: tira 2d10 de nuevo y <strong>suma tu Estrés</strong> al resultado → consulta la tabla.</li>
-          </ol>
-          <p><strong>Resolve:</strong> cada punto resta 1 al resultado final de la tabla de Pánico. Empieza en 0, máximo 5.</p>
-
-          <div class="back-section-title">TABLA DE PÁNICO (2d10 + Estrés)</div>
+          <div class="back-section-title">TIRADA DE PÁNICO (cuándo: fallo crítico en salvada, impacto crítico, perder &gt;½ PV máx. de un golpe, ver morir a un compañero…)</div>
+          <p><strong>Paso 1 — Chequeo de Estrés (2d10):</strong> si el resultado es <strong>mayor</strong> que tu Estrés actual → no entras en Pánico y pierdes 1 Estrés. Si igual o menor → Paso 2.</p>
+          <p><strong>Paso 2 — Efecto (2d10 + Estrés actual):</strong> resta tu <strong>Resolve</strong> al total (máx. −5). Consulta tabla:</p>
           <div class="back-table panic-table">
-            <div class="bt-row bt-head"><span>Resultado</span><span>Efecto</span></div>
-            <div class="bt-row"><span>2–3</span><span>Enfoque total. Ventaja en todo 1d10h.</span></div>
-            <div class="bt-row"><span>4–5</span><span>Adrenalina. Ventaja en todo 3d10 min.</span></div>
-            <div class="bt-row"><span>6–7</span><span>Adrenalina leve. Ventaja 1d10 min.</span></div>
+            <div class="bt-row bt-head"><span>Total</span><span>Efecto</span></div>
+            <div class="bt-row"><span>2–3</span><span>Enfoque total. Ventaja en todo durante 1d10 h.</span></div>
+            <div class="bt-row"><span>4–5</span><span>Adrenalina. Ventaja en todo durante 3d10 min.</span></div>
+            <div class="bt-row"><span>6–7</span><span>Adrenalina leve. Ventaja durante 1d10 min.</span></div>
             <div class="bt-row"><span>8–9</span><span>Ansioso. +1 Estrés.</span></div>
             <div class="bt-row"><span>10–11</span><span>Tic nervioso. +2 Estrés; compañero cercano +1.</span></div>
-            <div class="bt-row"><span>12–13</span><span>Cobardía. +1 Estrés; Salvada de Miedo para combatir 1d10h.</span></div>
-            <div class="bt-row"><span>14–15</span><span>Alucinaciones. 2d10h sin distinguir realidad.</span></div>
-            <div class="bt-row"><span>16–17</span><span>Terror paralizante. Nueva fobia permanente.</span></div>
+            <div class="bt-row"><span>12–13</span><span>Cobardía. +1 Estrés; necesitas Salvada de Miedo para combatir (1d10 h).</span></div>
+            <div class="bt-row"><span>14–15</span><span>Alucinaciones. 2d10 h confundiendo realidad y fantasía.</span></div>
+            <div class="bt-row"><span>16–17</span><span>Terror. Nueva fobia permanente; Desventaja ante ella.</span></div>
             <div class="bt-row"><span>18–19</span><span>Desbordado. +1d10 Estrés.</span></div>
-            <div class="bt-row"><span>20–21</span><span>Sacudido. Desventaja en todo 2d10 min.</span></div>
-            <div class="bt-row"><span>22–25</span><span>Paranoico / Pulsión de muerte / Catatónico.</span></div>
-            <div class="bt-row"><span>26–27</span><span>Roto. Tira Pánico cada vez que un compañero falle.</span></div>
-            <div class="bt-row"><span>28–29</span><span>Psicótico / Problemas compuestos (tira 2 veces).</span></div>
-            <div class="bt-row"><span>30+</span><span>Colapso total / Ataque al corazón. Muerte instantánea.</span></div>
+            <div class="bt-row"><span>20–21</span><span>Sacudido. Desventaja en todo durante 2d10 min.</span></div>
+            <div class="bt-row"><span>22–23</span><span>Paranoico. Salvada de Miedo cada vez que alguien se reúna al grupo (1d10 días).</span></div>
+            <div class="bt-row"><span>24–25</span><span>Pulsión de muerte / Catatónico (Xd10 días, X = Estrés).</span></div>
+            <div class="bt-row"><span>26–27</span><span>Roto. Tira Pánico cada vez que un compañero falle una salvada (Xd10 días).</span></div>
+            <div class="bt-row"><span>28–29</span><span>Psicótico (ataca al compañero más cercano) / Tira dos veces en esta tabla.</span></div>
+            <div class="bt-row"><span>30+</span><span>Colapso psicológico permanente o Ataque al corazón — muerte instantánea.</span></div>
           </div>
+
         </div>
 
       </div><!-- /back-cols -->
@@ -1971,6 +1940,17 @@ function renderSheet(r){
           <div style="font-size:.65rem;color:var(--dim);letter-spacing:.2em">CRÉDITOS INICIALES: <span style="color:var(--green)">${r.credits}</span></div>
         </div>
         <div class="stress-boxes">${stressBoxes}</div>
+      </div>
+      <div class="notes-box">
+        <div class="sec-title">NOTAS</div>
+        <div class="notes-lines">
+          <div class="notes-line"></div><div class="notes-line"></div>
+          <div class="notes-line"></div><div class="notes-line"></div>
+          <div class="notes-line"></div><div class="notes-line"></div>
+          <div class="notes-line"></div><div class="notes-line"></div>
+          <div class="notes-line"></div><div class="notes-line"></div>
+          <div class="notes-line"></div><div class="notes-line"></div>
+        </div>
       </div>
     </div>
   `;
