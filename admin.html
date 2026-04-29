@@ -135,24 +135,35 @@
 
     /* Personaje card */
     .char-card { border: 1px solid var(--border); padding: 1.2rem; background: rgba(0,255,65,.01); }
-    .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: .8rem; border-bottom: 1px solid var(--border); padding-bottom: .6rem; }
+    .card-top { display: grid; grid-template-columns: auto 1fr auto; gap: .8rem; margin-bottom: .8rem; border-bottom: 1px solid var(--border); padding-bottom: .6rem; align-items: start; }
+    .card-portrait { width: 56px; height: 75px; border: 1px solid var(--border); overflow: hidden; flex-shrink: 0; }
+    .card-portrait img { display: block; width: 100%; height: 100%; object-fit: cover; filter: grayscale(.4); }
+    .card-portrait-empty { width: 56px; height: 75px; border: 1px solid var(--border); background: rgba(0,255,65,.03); }
     .card-name { font-family: 'Orbitron', monospace; font-size: 1rem; color: var(--green); }
     .card-player { font-size: .6rem; color: var(--dim); margin-top: .2rem; }
+    .card-bg { font-size: .6rem; color: rgba(0,255,65,.4); margin-top: .4rem; line-height: 1.5; border-left: 1px solid var(--border); padding-left: .5rem; }
     .card-class { font-family: 'Orbitron', monospace; font-size: .7rem; color: var(--green); border: 1px solid var(--border); padding: .25rem .5rem; white-space: nowrap; }
+    .card-special { font-size: .6rem; color: #00ccff; border-left: 2px solid #00ccff; padding: .3rem .6rem; margin-bottom: .6rem; line-height: 1.5; background: rgba(0,204,255,.03); }
     .card-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: .3rem; margin-bottom: .6rem; }
     .cs { text-align: center; border: 1px solid var(--border); padding: .35rem; }
     .cs .cl { font-size: .45rem; letter-spacing: .2em; color: var(--dim); }
     .cs .cv { font-family: 'Orbitron', monospace; font-size: 1rem; color: var(--green); }
-    .card-saves { display: grid; grid-template-columns: repeat(3,1fr); gap: .3rem; margin-bottom: .6rem; }
+    .card-saves { display: grid; grid-template-columns: repeat(4,1fr); gap: .3rem; margin-bottom: .6rem; }
     .sv { text-align: center; border: 1px solid var(--border); padding: .25rem; }
     .sv .sl { font-size: .4rem; letter-spacing: .2em; color: var(--dim); }
     .sv .sv2 { font-family: 'Orbitron', monospace; font-size: .85rem; color: var(--amber); }
+    .sv.armor .sv2 { color: #ff8c00; }
+    .sv.armor { border-color: #ff8c00; }
     .card-lists { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-bottom: .6rem; }
     .cl-sec { border: 1px solid var(--border); padding: .5rem; }
     .cl-sec .cl-title { font-size: .45rem; letter-spacing: .3em; color: var(--dim); margin-bottom: .3rem; }
     .cl-sec ul { list-style: none; font-size: .65rem; color: rgba(0,255,65,.7); line-height: 1.7; }
     .cl-sec ul li::before { content: '▸ '; color: var(--green); }
-    .card-trinket { font-size: .65rem; color: rgba(0,255,65,.5); border: 1px solid var(--border); padding: .4rem .7rem; margin-bottom: .5rem; }
+    .skill-t { color: var(--green); font-size: .6em; }
+    .skill-e { color: #00ccff; font-size: .6em; }
+    .skill-m { color: #ff8c00; font-size: .6em; }
+    .card-items-row { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-bottom: .5rem; }
+    .card-trinket { font-size: .65rem; color: rgba(0,255,65,.5); border: 1px solid var(--border); padding: .4rem .7rem; }
     .card-trinket .tl { font-size: .45rem; letter-spacing: .3em; color: var(--dim); margin-bottom: .2rem; }
     .card-date { font-size: .5rem; color: rgba(0,255,65,.2); letter-spacing: .2em; }
 
@@ -258,6 +269,13 @@ const SUPA_URL = 'https://vbmftksmuvpbcizvfola.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZibWZ0a3NtdXZwYmNpenZmb2xhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMDUyMDEsImV4cCI6MjA5Mjc4MTIwMX0.J20XCeZlACV_xToBthVtl3aOohj6NDI-pQSVFpy5lXo';
 const HDR = { 'Content-Type':'application/json', 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}` };
 const MAX_CREW = 5;
+
+const CLASS_RULES = {
+  Marine:    '+5 Velocidad y +5 Combate con otro Marine aliado cercano. Cuando un Marine entra en Pánico, todos los aliados deben hacer una tirada de Miedo.',
+  Teamster:  'Una vez por sesión puede retirar una tirada en la Tabla de Pánico.',
+  Scientist: 'Cuando falla una tirada de Cordura, todos los aliados cercanos ganan 1 punto de Estrés.',
+  Android:   'Las tiradas de Miedo realizadas en presencia de un Android tienen Desventaja.',
+};
 
 // ── LOGIN ──
 function doLogin() {
@@ -421,16 +439,30 @@ async function saveLog(shipId) {
   document.getElementById('status').textContent = `✓ Diario guardado · ${new Date().toLocaleTimeString('es-ES')}`;
 }
 
+function formatSkill(s) {
+  const m = s.match(/^(.*)\s\[(APRENDIZ|EXPERTO|MAESTRO)\]$/);
+  if (!m) return `<li>${s}</li>`;
+  const cls = { APRENDIZ:'skill-t', EXPERTO:'skill-e', MAESTRO:'skill-m' };
+  const bon = { APRENDIZ:'+10%', EXPERTO:'+15%', MAESTRO:'+20%' };
+  return `<li>${m[1]} <span class="${cls[m[2]]}">${m[2]} ${bon[m[2]]}</span></li>`;
+}
+
 function charCard(c) {
+  const portrait = c.portrait_path
+    ? `<div class="card-portrait"><img src="${c.portrait_path}" alt="" onerror="this.parentNode.className='card-portrait-empty'"></div>`
+    : `<div class="card-portrait-empty"></div>`;
+  const specialRule = CLASS_RULES[c.class] || '';
   return `
     <div class="char-card">
       <div class="card-top">
+        ${portrait}
         <div>
           <div class="card-name">${c.char_name}</div>
           <div class="card-player">Jugador: ${c.player_name}</div>
         </div>
         <div class="card-class">${c.class}</div>
       </div>
+      ${specialRule ? `<div class="card-special">◆ ${specialRule}</div>` : ''}
       <div class="card-stats">
         <div class="cs"><div class="cl">STR</div><div class="cv">${c.strength}</div></div>
         <div class="cs"><div class="cl">SPD</div><div class="cv">${c.speed}</div></div>
@@ -438,21 +470,25 @@ function charCard(c) {
         <div class="cs"><div class="cl">COM</div><div class="cv">${c.combat}</div></div>
       </div>
       <div class="card-saves">
-        <div class="sv"><div class="sl">BODY</div><div class="sv2">${c.body_save}%</div></div>
-        <div class="sv"><div class="sl">FEAR</div><div class="sv2">${c.fear_save}%</div></div>
-        <div class="sv"><div class="sl">SANITY</div><div class="sv2">${c.sanity_save}%</div></div>
+        <div class="sv"><div class="sl">CUERPO</div><div class="sv2">${c.body_save}%</div></div>
+        <div class="sv"><div class="sl">MIEDO</div><div class="sv2">${c.fear_save}%</div></div>
+        <div class="sv"><div class="sl">CORDURA</div><div class="sv2">${c.sanity_save}%</div></div>
+        <div class="sv armor"><div class="sl">ARMADURA</div><div class="sv2">${c.armor_save ?? '—'}%</div></div>
       </div>
       <div class="card-lists">
         <div class="cl-sec">
           <div class="cl-title">HABILIDADES</div>
-          <ul>${c.skills.map(s=>`<li>${s}</li>`).join('')}</ul>
+          <ul>${c.skills.map(formatSkill).join('')}</ul>
         </div>
         <div class="cl-sec">
           <div class="cl-title">EQUIPO</div>
           <ul>${c.equipment.map(e=>`<li>${e}</li>`).join('')}</ul>
         </div>
       </div>
-      ${c.trinket ? `<div class="card-trinket"><div class="tl">OBJETO PERSONAL</div>${c.trinket}</div>` : ''}
+      <div class="card-items-row">
+        ${c.trinket ? `<div class="card-trinket"><div class="tl">BARATIJA PERSONAL</div>${c.trinket}</div>` : '<div></div>'}
+        ${c.patch   ? `<div class="card-trinket"><div class="tl">PARCHE</div>${c.patch}</div>` : '<div></div>'}
+      </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.4rem">
         <div class="card-date">Registrado: ${new Date(c.created_at).toLocaleString('es-ES')}</div>
         <button class="btn danger" style="font-size:.6rem;padding:.3rem .6rem" onclick="deleteChar('${c.id}')">✕ BORRAR</button>
