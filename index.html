@@ -24,6 +24,7 @@
       font-family: 'Share Tech Mono', 'Courier New', monospace;
       color: var(--green);
       overflow-x: hidden;
+      font-size: 18px;
     }
 
     body::after {
@@ -664,6 +665,7 @@
     </div>
     <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
       <button class="cv-save-btn" onclick="saveCharChanges()">✓ GUARDAR CAMBIOS</button>
+      <button class="cv-save-btn" onclick="printCharView()" style="border-color:var(--dim);color:var(--dim)">⎙ IMPRIMIR FICHA</button>
       <div class="cv-msg" id="cv-save-msg"></div>
     </div>
   </div>
@@ -1239,8 +1241,6 @@ async function renderPortraits(cls, gender) {
       <span id="carousel-counter">${portraitIndex+1} / ${found.length}${takenNote}</span>
     </div>`;
 
-  document.getElementById('bg-section').style.display = 'block';
-  renderBackgrounds(cls);
   checkGenBtn();
 }
 
@@ -1670,14 +1670,17 @@ function initChargen(cls){
   genderSec.style.display = cls==='Android' ? 'none' : 'block';
 
   // Si es Android, mostrar directamente retratos (sin selección de género)
+  // Trasfondo siempre visible desde el inicio
+  document.getElementById('bg-section').style.display='block';
+  document.getElementById('bg-custom').value='';
+  renderBackgrounds(cls);
+
   if(cls==='Android'){
     selectedGender='A';
     document.getElementById('portrait-section').style.display='block';
-    document.getElementById('bg-section').style.display='none';
     renderPortraits(cls, 'A');
   } else {
     document.getElementById('portrait-section').style.display='none';
-    document.getElementById('bg-section').style.display='none';
     document.querySelectorAll('.gender-btn').forEach(b=>b.classList.remove('selected'));
   }
 
@@ -1715,8 +1718,6 @@ function selectPortrait(key, el){
   selectedPortraitKey=key;
   document.querySelectorAll('.portrait-option').forEach(p=>p.classList.remove('selected'));
   el.classList.add('selected');
-  document.getElementById('bg-section').style.display='block';
-  renderBackgrounds(charData.class);
   checkGenBtn();
 }
 
@@ -2000,6 +2001,7 @@ function generateCode(){
 }
 
 let currentCharId = null;
+let currentCharData = null;
 
 async function lookupByCode(){
   const code = document.getElementById('code-inp').value.trim().toUpperCase();
@@ -2020,6 +2022,7 @@ async function lookupByCode(){
 
 function loadCharView(c){
   currentCharId = c.id;
+  currentCharData = c;
   document.getElementById('cv-name').textContent = c.char_name;
   document.getElementById('cv-meta').textContent = `${c.class.toUpperCase()} · Jugador: ${c.player_name}`;
   document.getElementById('cv-code-label').textContent = `CÓDIGO: ${c.access_code}`;
@@ -2033,6 +2036,37 @@ function loadCharView(c){
   document.getElementById('cv-notes').value = c.notes || '';
   document.getElementById('cv-save-msg').textContent = '';
   showScreen('char-view');
+}
+
+function printCharView(){
+  if(!currentCharData) return;
+  const c = currentCharData;
+  // Actualizar trasfondo y notas con lo que hay en pantalla antes de imprimir
+  c.background = document.getElementById('cv-bg').value.trim();
+  c.notes      = document.getElementById('cv-notes').value.trim();
+  const info = CLASSES[c.class] || {};
+  renderSheet({
+    char_name:   c.char_name,
+    player_name: c.player_name,
+    class:       c.class,
+    genderLabel: '',
+    shipName:    '',
+    background:  c.background,
+    portraitPath: c.portrait_path || '',
+    strength:    c.strength, speed:   c.speed,
+    intellect:   c.intellect, combat: c.combat,
+    body_save:   c.body_save, fear_save: c.fear_save,
+    sanity_save: c.sanity_save, armor_save: c.armor_save ?? 25,
+    skills:      c.skills || [],
+    equipment:   c.equipment || [],
+    trinket:     c.trinket || '—',
+    patch:       c.patch   || '—',
+    credits:     '—',
+    specialRule: info.specialRule || CLASS_RULES?.[c.class] || '',
+    access_code: c.access_code || '',
+  });
+  document.getElementById('access-code-box').style.display = 'none';
+  showScreen('sheet');
 }
 
 async function saveCharChanges(){
@@ -2089,7 +2123,7 @@ async function generateSheet(){
     return;
   }
 
-  renderSheet({...record, background:bg, portraitPath:selectedPortraitKey||'', genderLabel, shipName:selectedShip?.name||'', credits, specialRule:info.specialRule, patch});
+  renderSheet({...record, background:bg, portraitPath:selectedPortraitKey||'', genderLabel, shipName:selectedShip?.name||'', credits, specialRule:info.specialRule, patch, access_code});
   document.getElementById('access-code-display').textContent = access_code;
   document.getElementById('access-code-box').style.display = 'block';
   showScreen('sheet');
@@ -2108,6 +2142,7 @@ function renderSheet(r){
         <div class="print-armacorp-sub">LOGISTICS &amp; DEEP SPACE RECOVERY INC.</div>
         <div class="print-armacorp-slogan">TU SACRIFICIO, NUESTRO ACTIVO.</div>
         <div class="print-doc-title" style="margin-top:1.5mm">FICHA DE TRIPULACIÓN</div>
+        ${r.access_code ? `<div style="margin-top:1.5mm;font-size:6pt;color:#555;letter-spacing:1pt">CÓDIGO: <strong style="font-size:8pt;letter-spacing:3pt;color:#222">${r.access_code}</strong></div>` : ''}
       </div>
     </div>
     <div class="sheet-top">
