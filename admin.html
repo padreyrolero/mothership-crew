@@ -112,6 +112,21 @@
     .recruit-textarea::placeholder { color: rgba(0,255,65,.2); }
     .recruit-label { font-size: .55rem; letter-spacing: .4em; color: var(--dim); margin-bottom: .3rem; }
 
+    /* ── IMAGEN DE NAVE ── */
+    .ship-image-wrap {
+      width: 120px; height: 80px; flex-shrink: 0;
+      border: 1px solid var(--border); overflow: hidden; background: rgba(0,255,65,.02);
+    }
+    .ship-image-wrap img { display:block; width:100%; height:100%; object-fit:cover; filter:grayscale(.3) brightness(.9); }
+    .ship-image-edit { display:flex; gap:.4rem; margin-top:.4rem; align-items:center; }
+    .ship-image-inp {
+      flex:1; background:transparent; border:1px solid var(--border);
+      color:var(--green); font-family:'Share Tech Mono',monospace; font-size:.7rem;
+      padding:.3rem .6rem; outline:none;
+    }
+    .ship-image-inp:focus { border-color:var(--dim); }
+    .ship-image-inp::placeholder { color:rgba(0,255,65,.2); }
+
     /* ── NAVES ── */
     .ships-container { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 2.5rem; }
 
@@ -267,6 +282,10 @@
       <button class="btn primary" onclick="createShip()">+ REGISTRAR</button>
     </div>
     <div>
+      <div class="recruit-label">IMAGEN DE LA NAVE (URL — se muestra a los jugadores)</div>
+      <input type="text" id="ship-image-inp" placeholder="https://... (URL de imagen)" style="width:100%">
+    </div>
+    <div>
       <div class="recruit-label">TEXTO DE RECLUTAMIENTO (editable — se muestra a los jugadores)</div>
       <textarea class="recruit-textarea" id="ship-recruit-inp" placeholder="Se generará automáticamente al escribir el nombre de la nave..."></textarea>
     </div>
@@ -354,15 +373,17 @@ async function createShip() {
   const name = document.getElementById('ship-name-inp').value.trim();
   const description = document.getElementById('ship-desc-inp').value.trim();
   const recruitment_text = document.getElementById('ship-recruit-inp').value.trim();
+  const image_url = document.getElementById('ship-image-inp').value.trim();
   if (!name) { alert('Introduce un nombre de nave.'); return; }
   await fetch(`${SUPA_URL}/rest/v1/ships`, {
     method: 'POST',
     headers: { ...HDR, 'Prefer':'return=representation' },
-    body: JSON.stringify({ name, description, recruitment_text })
+    body: JSON.stringify({ name, description, recruitment_text, image_url })
   });
   document.getElementById('ship-name-inp').value = '';
   document.getElementById('ship-desc-inp').value = '';
   document.getElementById('ship-recruit-inp').value = '';
+  document.getElementById('ship-image-inp').value = '';
   loadAll();
 }
 
@@ -374,9 +395,14 @@ function renderAll(ships, chars) {
     return `
       <div class="ship-section" id="ship-${ship.id}">
         <div class="ship-section-header">
-          <div>
+          ${ship.image_url ? `<div class="ship-image-wrap" style="width:160px;height:100px"><img src="${ship.image_url}" alt="${ship.name}" onerror="this.parentNode.style.display='none'"></div>` : ''}
+          <div style="flex:1">
             <div class="ship-section-name">${ship.name}</div>
             ${ship.description ? `<div class="ship-section-desc">${ship.description}</div>` : ''}
+            <div class="ship-image-edit" style="margin-top:.6rem">
+              <input class="ship-image-inp" id="img-inp-${ship.id}" type="text" value="${ship.image_url||''}" placeholder="URL de imagen de la nave...">
+              <button class="btn" style="font-size:.6rem;padding:.3rem .7rem;white-space:nowrap" onclick="saveShipImage('${ship.id}')">✓ GUARDAR IMG</button>
+            </div>
           </div>
           <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:.5rem">
             <div class="ship-crew-count">${crew.length}/${MAX_CREW} tripulante${crew.length!==1?'s':''}${crew.length>=MAX_CREW?' · COMPLETA':''}</div>
@@ -436,6 +462,17 @@ function toggleLogEdit(shipId) {
     editor.style.display = 'block';
     editor.focus();
   }
+}
+
+async function saveShipImage(shipId) {
+  const url = document.getElementById(`img-inp-${shipId}`).value.trim();
+  await fetch(`${SUPA_URL}/rest/v1/ships?id=eq.${shipId}`, {
+    method: 'PATCH',
+    headers: { ...HDR, 'Prefer':'return=minimal' },
+    body: JSON.stringify({ image_url: url })
+  });
+  document.getElementById('status').textContent = `✓ Imagen guardada · ${new Date().toLocaleTimeString('es-ES')}`;
+  loadAll();
 }
 
 async function saveLog(shipId) {

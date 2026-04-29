@@ -93,7 +93,9 @@
       top:-.7rem; left:2rem; font-size:.6rem; letter-spacing:.4em; color:var(--dim);
       background:var(--black); padding:0 .5rem;
     }
-    .corp-header { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border); padding-bottom:1.5rem; margin-bottom:2rem; gap:2rem; }
+    .corp-header { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border); padding-bottom:1.5rem; margin-bottom:2rem; gap:2rem; flex-wrap:wrap; }
+    .corp-ship-img { width:180px; border:1px solid var(--border); overflow:hidden; flex-shrink:0; }
+    .corp-ship-img img { display:block; width:100%; height:auto; filter:grayscale(.3) brightness(.85); }
     .corp-name { font-family:'Orbitron',monospace; font-size:clamp(1.2rem,3vw,2rem); font-weight:700; color:var(--green); text-shadow:0 0 10px rgba(0,255,65,.4); }
     .corp-name span { display:block; font-size:.6rem; letter-spacing:.4em; color:var(--dim); font-family:'Share Tech Mono',monospace; font-weight:400; margin-top:.2rem; }
     .corp-meta { text-align:right; font-size:.65rem; color:var(--dim); line-height:1.8; }
@@ -181,10 +183,14 @@
     .ship-sel-sub { font-size:.7rem; letter-spacing:.3em; color:var(--dim); text-align:center; }
     .ship-list { width:100%; display:flex; flex-direction:column; gap:.8rem; }
     .ship-opt {
-      border:1px solid var(--border); padding:1.2rem 1.5rem;
+      border:1px solid var(--border); padding:0; overflow:hidden;
       cursor:pointer; transition:all .2s; background:transparent; text-align:left; width:100%;
-      font-family:'Share Tech Mono',monospace;
+      font-family:'Share Tech Mono',monospace; display:flex; align-items:stretch;
     }
+    .ship-opt-img { width:110px; flex-shrink:0; overflow:hidden; }
+    .ship-opt-img img { display:block; width:100%; height:100%; object-fit:cover; filter:grayscale(.4) brightness(.8); transition:filter .2s; }
+    .ship-opt:hover .ship-opt-img img { filter:grayscale(.2) brightness(.95); }
+    .ship-opt-body { padding:1.2rem 1.5rem; flex:1; }
     .ship-opt:hover { border-color:var(--dim); }
     .ship-opt.selected { border-color:var(--green); box-shadow:0 0 12px rgba(0,255,65,.15); }
     .ship-opt-name { font-family:'Orbitron',monospace; font-size:1rem; color:var(--green); }
@@ -565,6 +571,9 @@
 <div id="recruitment" class="screen">
   <div class="corp-doc">
     <div class="corp-header">
+      <div id="recruit-ship-img-wrap" style="display:none" class="corp-ship-img">
+        <img id="recruit-ship-img" src="" alt="">
+      </div>
       <div>
         <div class="corp-name">ARMACORP<span>LOGISTICS & DEEP SPACE RECOVERY INC.</span></div>
       </div>
@@ -1449,7 +1458,7 @@ async function loadShips(){
   el.innerHTML = '<div style="color:var(--dim);font-size:.7rem;letter-spacing:.3em">CONSULTANDO REGISTRO DE NAVES...</div>';
   try {
     const [shipsRes, charsRes] = await Promise.all([
-      fetch(`${SUPA_URL}/rest/v1/ships?select=id,name,description,recruitment_text&order=created_at.asc`, { headers:{ 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}` } }),
+      fetch(`${SUPA_URL}/rest/v1/ships?select=id,name,description,recruitment_text,image_url&order=created_at.asc`, { headers:{ 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}` } }),
       fetch(`${SUPA_URL}/rest/v1/characters?select=ship_id`, { headers:{ 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}` } }),
     ]);
     const ships = await shipsRes.json();
@@ -1466,13 +1475,17 @@ async function loadShips(){
     el.innerHTML = ships.map(s => {
       const count = countByShip[s.id] || 0;
       const full = count >= MAX_CREW;
+      const imgAttr = `'${(s.image_url||'').replace(/'/g,"\\'")}'`;
       return `
-        <button class="ship-opt${full?' full':''}" ${full?'disabled':''} onclick="selectShipOpt('${s.id}','${s.name.replace(/'/g,"\\'")}','${(s.recruitment_text||'').replace(/'/g,"\\'").replace(/\n/g,'\\n')}',this)">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div class="ship-opt-name">${s.name}</div>
-            <div class="ship-crew-badge${full?' full':''}">${count}/${MAX_CREW}${full?' · COMPLETA':''}</div>
+        <button class="ship-opt${full?' full':''}" ${full?'disabled':''} onclick="selectShipOpt('${s.id}','${s.name.replace(/'/g,"\\'")}','${(s.recruitment_text||'').replace(/'/g,"\\'").replace(/\n/g,'\\n')}',${imgAttr},this)">
+          ${s.image_url ? `<div class="ship-opt-img"><img src="${s.image_url}" alt="${s.name}" onerror="this.parentNode.style.display='none'"></div>` : ''}
+          <div class="ship-opt-body">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div class="ship-opt-name">${s.name}</div>
+              <div class="ship-crew-badge${full?' full':''}">${count}/${MAX_CREW}${full?' · COMPLETA':''}</div>
+            </div>
+            ${s.description ? `<div class="ship-opt-desc">${s.description}</div>` : ''}
           </div>
-          ${s.description ? `<div class="ship-opt-desc">${s.description}</div>` : ''}
         </button>`;
     }).join('');
   } catch(e) {
@@ -1480,8 +1493,8 @@ async function loadShips(){
   }
 }
 
-function selectShipOpt(id, name, recruitText, el){
-  selectedShip = {id, name, recruitText: recruitText.replace(/\\n/g,'\n')};
+function selectShipOpt(id, name, recruitText, imageUrl, el){
+  selectedShip = {id, name, recruitText: recruitText.replace(/\\n/g,'\n'), imageUrl};
   document.querySelectorAll('.ship-opt').forEach(b=>b.classList.remove('selected'));
   el.classList.add('selected');
   document.getElementById('ship-proceed-btn').disabled = false;
@@ -1497,6 +1510,14 @@ function showRecruitment(){
       .filter(p => p.trim())
       .map(p => `<p>${p.trim()}</p>`)
       .join('');
+  }
+  const imgWrap = document.getElementById('recruit-ship-img-wrap');
+  const imgEl   = document.getElementById('recruit-ship-img');
+  if (selectedShip.imageUrl) {
+    imgEl.src = selectedShip.imageUrl;
+    imgWrap.style.display = 'block';
+  } else {
+    imgWrap.style.display = 'none';
   }
   showScreen('recruitment');
 }

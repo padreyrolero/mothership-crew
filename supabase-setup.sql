@@ -78,3 +78,6 @@ alter table characters add column if not exists patch text;
 
 -- Ruta del retrato para bloquear duplicados (añadida en v4)
 alter table characters add column if not exists portrait_path text;
+
+-- Imagen de nave (añadida en v5)
+alter table ships add column if not exists image_url text default '';
