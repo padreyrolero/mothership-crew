@@ -1001,6 +1001,8 @@ function stopAmbient() {
 
 
 // ══ DATOS DE CLASES ══════════════════════════════════════════════════
+const CLASS_ES = { Marine:'Marine', Teamster:'Teamster', Scientist:'Científico', Android:'Androide' };
+
 const CLASSES = {
   Marine: {
     desc: 'Entrenado para el combate y el control de situaciones de alto riesgo. Primer escudo de la tripulación.',
@@ -1662,7 +1664,7 @@ function initChargen(cls){
   const info=CLASSES[cls];
 
   document.getElementById('cg-ship-badge').textContent = selectedShip ? `ENROLADO EN: ${selectedShip.name}` : '—';
-  document.getElementById('cg-class').textContent=cls.toUpperCase();
+  document.getElementById('cg-class').textContent=(CLASS_ES[cls]||cls).toUpperCase();
   document.getElementById('cg-class-desc').textContent=info.desc;
 
   // Gender section (hide for Android)
@@ -2024,7 +2026,7 @@ function loadCharView(c){
   currentCharId = c.id;
   currentCharData = c;
   document.getElementById('cv-name').textContent = c.char_name;
-  document.getElementById('cv-meta').textContent = `${c.class.toUpperCase()} · Jugador: ${c.player_name}`;
+  document.getElementById('cv-meta').textContent = `${(CLASS_ES[c.class]||c.class).toUpperCase()} · Jugador: ${c.player_name}`;
   document.getElementById('cv-code-label').textContent = `CÓDIGO: ${c.access_code}`;
   document.getElementById('cv-stats').innerHTML = [
     ['FUERZA',c.strength],['VELOCIDAD',c.speed],['INTELECTO',c.intellect],['COMBATE',c.combat]
@@ -2149,13 +2151,13 @@ function renderSheet(r){
       <div class="sheet-portrait"><img src="${r.portraitPath}" alt="Retrato" onerror="this.parentNode.style.opacity='.15'"></div>
       <div class="sheet-identity">
         <div class="char-name">${r.genderLabel} ${r.char_name}</div>
-        <div class="char-class">${r.class.toUpperCase()}${r.shipName ? ' — ' + r.shipName : ''}</div>
+        <div class="char-class">${(CLASS_ES[r.class]||r.class).toUpperCase()}${r.shipName ? ' — ' + r.shipName : ''}</div>
         <div class="char-player">Jugador: ${r.player_name}</div>
         <div class="char-bg">${r.background}</div>
       </div>
       <div class="sheet-class-badge">
         <div class="badge-label">CLASE</div>
-        <div class="badge-class">${r.class}</div>
+        <div class="badge-class">${CLASS_ES[r.class]||r.class}</div>
         <div class="badge-gender">${r.genderLabel}</div>
       </div>
     </div>

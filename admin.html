@@ -210,6 +210,15 @@
     }
     .log-editor:focus { border-color: var(--dim); }
 
+    /* ── MODAL EDICIÓN ── */
+    .em-inp {
+      width:100%; background:transparent; border:1px solid var(--border);
+      color:var(--green); font-family:'Share Tech Mono',monospace; font-size:.85rem;
+      padding:.5rem .8rem; outline:none;
+    }
+    .em-inp:focus { border-color:var(--green); }
+    .em-ta { font-size:.78rem; min-height:70px; }
+
     /* ── SIN NAVE ── */
     .unassigned-section { max-width: 1100px; margin: 0 auto 2rem; }
     .unassigned-title {
@@ -443,6 +452,53 @@
 <!-- Contenedor de fichas para imprimir (invisible en pantalla) -->
 <div id="print-container"></div>
 
+<!-- Modal de edición de personaje -->
+<div id="edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:5000;overflow-y:auto;padding:2rem">
+  <div style="max-width:700px;margin:0 auto;border:1px solid var(--border);background:#000;padding:2rem">
+    <div style="font-family:'Orbitron',monospace;font-size:.9rem;letter-spacing:.4em;color:var(--green);margin-bottom:1.5rem;border-bottom:1px solid var(--border);padding-bottom:.8rem">EDITAR TRIPULANTE</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:.8rem">
+      <div><div class="recruit-label">NOMBRE DEL PERSONAJE</div><input class="em-inp" id="em-char-name" type="text"></div>
+      <div><div class="recruit-label">NOMBRE DEL JUGADOR</div><input class="em-inp" id="em-player-name" type="text"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.8rem;margin-bottom:.8rem">
+      <div><div class="recruit-label">STRENGTH</div><input class="em-inp" id="em-strength" type="number"></div>
+      <div><div class="recruit-label">SPEED</div><input class="em-inp" id="em-speed" type="number"></div>
+      <div><div class="recruit-label">INTELLECT</div><input class="em-inp" id="em-intellect" type="number"></div>
+      <div><div class="recruit-label">COMBAT</div><input class="em-inp" id="em-combat" type="number"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.8rem;margin-bottom:.8rem">
+      <div><div class="recruit-label">CUERPO %</div><input class="em-inp" id="em-body-save" type="number"></div>
+      <div><div class="recruit-label">MIEDO %</div><input class="em-inp" id="em-fear-save" type="number"></div>
+      <div><div class="recruit-label">CORDURA %</div><input class="em-inp" id="em-sanity-save" type="number"></div>
+      <div><div class="recruit-label">ARMADURA %</div><input class="em-inp" id="em-armor-save" type="number"></div>
+    </div>
+    <div style="margin-bottom:.8rem">
+      <div class="recruit-label">HABILIDADES (una por línea)</div>
+      <textarea class="recruit-textarea em-ta" id="em-skills" style="min-height:90px"></textarea>
+    </div>
+    <div style="margin-bottom:.8rem">
+      <div class="recruit-label">EQUIPO (uno por línea)</div>
+      <textarea class="recruit-textarea em-ta" id="em-equipment" style="min-height:90px"></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:.8rem">
+      <div><div class="recruit-label">BARATIJA PERSONAL</div><input class="em-inp" id="em-trinket" type="text"></div>
+      <div><div class="recruit-label">PARCHE</div><input class="em-inp" id="em-patch" type="text"></div>
+    </div>
+    <div style="margin-bottom:.8rem">
+      <div class="recruit-label">TRASFONDO</div>
+      <textarea class="recruit-textarea em-ta" id="em-background" style="min-height:70px"></textarea>
+    </div>
+    <div style="margin-bottom:1.5rem">
+      <div class="recruit-label">NOTAS</div>
+      <textarea class="recruit-textarea em-ta" id="em-notes" style="min-height:70px"></textarea>
+    </div>
+    <div style="display:flex;gap:.8rem;justify-content:flex-end">
+      <button class="btn" onclick="closeEditModal()">CANCELAR</button>
+      <button class="btn primary" onclick="saveEdit()">GUARDAR CAMBIOS</button>
+    </div>
+  </div>
+</div>
+
 <!-- Sin nave asignada -->
 <div class="unassigned-section" id="unassigned-section" style="display:none">
   <div class="unassigned-title">SIN NAVE ASIGNADA</div>
@@ -456,6 +512,8 @@ const SUPA_URL = 'https://vbmftksmuvpbcizvfola.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZibWZ0a3NtdXZwYmNpenZmb2xhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMDUyMDEsImV4cCI6MjA5Mjc4MTIwMX0.J20XCeZlACV_xToBthVtl3aOohj6NDI-pQSVFpy5lXo';
 const HDR = { 'Content-Type':'application/json', 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}` };
 const MAX_CREW = 5;
+
+const CLASS_ES = { Marine:'Marine', Teamster:'Teamster', Scientist:'Científico', Android:'Androide' };
 
 const CLASS_RULES = {
   Marine:    '+5 Velocidad y +5 Combate con otro Marine aliado cercano. Cuando un Marine entra en Pánico, todos los aliados deben hacer una tirada de Miedo.',
@@ -645,6 +703,68 @@ async function saveLog(shipId) {
   document.getElementById('status').textContent = `✓ Diario guardado · ${new Date().toLocaleTimeString('es-ES')}`;
 }
 
+let editingCharId = null;
+
+function openEditModal(id) {
+  const c = allChars.find(ch => ch.id === id);
+  if (!c) return;
+  editingCharId = id;
+  document.getElementById('em-char-name').value   = c.char_name || '';
+  document.getElementById('em-player-name').value  = c.player_name || '';
+  document.getElementById('em-strength').value     = c.strength ?? '';
+  document.getElementById('em-speed').value        = c.speed ?? '';
+  document.getElementById('em-intellect').value    = c.intellect ?? '';
+  document.getElementById('em-combat').value       = c.combat ?? '';
+  document.getElementById('em-body-save').value    = c.body_save ?? '';
+  document.getElementById('em-fear-save').value    = c.fear_save ?? '';
+  document.getElementById('em-sanity-save').value  = c.sanity_save ?? '';
+  document.getElementById('em-armor-save').value   = c.armor_save ?? '';
+  document.getElementById('em-skills').value       = (c.skills || []).join('\n');
+  document.getElementById('em-equipment').value    = (c.equipment || []).join('\n');
+  document.getElementById('em-trinket').value      = c.trinket || '';
+  document.getElementById('em-patch').value        = c.patch || '';
+  document.getElementById('em-background').value   = c.background || '';
+  document.getElementById('em-notes').value        = c.notes || '';
+  document.getElementById('edit-modal').style.display = 'block';
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').style.display = 'none';
+  editingCharId = null;
+}
+
+async function saveEdit() {
+  if (!editingCharId) return;
+  const toInt = id => parseInt(document.getElementById(id).value) || 0;
+  const toArr = id => document.getElementById(id).value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const body = {
+    char_name:    document.getElementById('em-char-name').value.trim(),
+    player_name:  document.getElementById('em-player-name').value.trim(),
+    strength:     toInt('em-strength'),
+    speed:        toInt('em-speed'),
+    intellect:    toInt('em-intellect'),
+    combat:       toInt('em-combat'),
+    body_save:    toInt('em-body-save'),
+    fear_save:    toInt('em-fear-save'),
+    sanity_save:  toInt('em-sanity-save'),
+    armor_save:   toInt('em-armor-save'),
+    skills:       toArr('em-skills'),
+    equipment:    toArr('em-equipment'),
+    trinket:      document.getElementById('em-trinket').value.trim(),
+    patch:        document.getElementById('em-patch').value.trim(),
+    background:   document.getElementById('em-background').value.trim(),
+    notes:        document.getElementById('em-notes').value.trim(),
+  };
+  const res = await fetch(`${SUPA_URL}/rest/v1/characters?id=eq.${editingCharId}`, {
+    method: 'PATCH',
+    headers: { ...HDR, 'Prefer': 'return=representation' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) { alert('Error al guardar: ' + await res.text()); return; }
+  closeEditModal();
+  loadAll();
+}
+
 function formatSkill(s) {
   const m = s.match(/^(.*)\s\[(APRENDIZ|EXPERTO|MAESTRO)\]$/);
   if (!m) return `<li>${s}</li>`;
@@ -671,7 +791,7 @@ function charCard(c) {
           <div class="card-name">${c.char_name}</div>
           <div class="card-player">Jugador: ${c.player_name}</div>
         </div>
-        <div class="card-class">${c.class}</div>
+        <div class="card-class">${CLASS_ES[c.class]||c.class}</div>
       </div>
       ${specialRule ? `<div class="card-special">◆ ${specialRule}</div>` : ''}
       <div class="card-stats">
@@ -702,7 +822,10 @@ function charCard(c) {
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.4rem">
         <div class="card-date">Registrado: ${new Date(c.created_at).toLocaleString('es-ES')}${c.access_code ? ` · Código: <strong style="color:var(--green);letter-spacing:.15em">${c.access_code}</strong>` : ''}</div>
-        <button class="btn danger" style="font-size:.6rem;padding:.3rem .6rem" onclick="deleteChar('${c.id}')">✕ BORRAR</button>
+        <div style="display:flex;gap:.4rem">
+          <button class="btn primary" style="font-size:.6rem;padding:.3rem .6rem" onclick="openEditModal('${c.id}')">✎ EDITAR</button>
+          <button class="btn danger" style="font-size:.6rem;padding:.3rem .6rem" onclick="deleteChar('${c.id}')">✕ BORRAR</button>
+        </div>
       </div>
     </div>`;
 }
@@ -773,13 +896,13 @@ function renderAdminSheet(c) {
       </div>
       <div>
         <div class="ps-char-name">${c.char_name}</div>
-        <div class="ps-char-class">${c.class.toUpperCase()}</div>
+        <div class="ps-char-class">${(CLASS_ES[c.class]||c.class).toUpperCase()}</div>
         <div class="ps-char-player">Jugador: ${c.player_name}</div>
         ${c.background ? `<div style="font-size:7pt;color:#333;margin-top:1mm;border-left:1pt solid black;padding-left:1.5mm;line-height:1.4">${c.background}</div>` : ''}
       </div>
       <div class="ps-class-badge">
         <div class="ps-badge-label">CLASE</div>
-        <div class="ps-badge-class">${c.class}</div>
+        <div class="ps-badge-class">${CLASS_ES[c.class]||c.class}</div>
       </div>
     </div>
 
