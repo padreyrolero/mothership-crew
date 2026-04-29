@@ -202,14 +202,31 @@
       color: var(--dim); margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: .6rem;
     }
 
+    /* ── CHECKBOX SELECCIÓN ── */
+    .card-check-row {
+      display: flex; justify-content: flex-end; margin-bottom: .5rem;
+    }
+    .card-check-label {
+      display: flex; align-items: center; gap: .4rem;
+      font-size: .55rem; letter-spacing: .2em; color: var(--dim); cursor: pointer;
+    }
+    .card-check-label input[type=checkbox] {
+      accent-color: var(--green); width: 14px; height: 14px; cursor: pointer;
+    }
+    .card-check-label:hover { color: var(--green); }
+
     /* ── PRINT ── */
     @media print {
       body { background: white; color: black; padding: 1rem; }
       body::after { display: none; }
       .admin-header, .admin-actions, #status, .section-block, .ship-log, .btn { display: none; }
+      .card-check-row { display: none; }
       :root { --green: #007700; --dim: #555; --border: #ccc; --amber: #996600; --black: white; }
       .chars-subgrid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-      .char-card { border-color: #ccc; break-inside: avoid; }
+      .char-card { display: none; border-color: #ccc; break-inside: avoid; }
+      .char-card.will-print { display: block; }
+      .ship-section-header .btn { display: none; }
+      .ship-section { break-inside: avoid; }
     }
   </style>
 </head>
@@ -233,7 +250,8 @@
   </div>
   <div class="admin-actions">
     <button class="btn" onclick="loadAll()">↻ ACTUALIZAR</button>
-    <button class="btn primary" onclick="window.print()">⎙ IMPRIMIR TODO</button>
+    <button class="btn" onclick="toggleSelectAll()">☐ TODOS</button>
+    <button class="btn primary" onclick="printSelected()">⎙ IMPRIMIR SELECCIÓN</button>
   </div>
 </div>
 
@@ -453,7 +471,12 @@ function charCard(c) {
     : `<div class="card-portrait-empty"></div>`;
   const specialRule = CLASS_RULES[c.class] || '';
   return `
-    <div class="char-card">
+    <div class="char-card" id="card-${c.id}">
+      <div class="card-check-row">
+        <label class="card-check-label">
+          <input type="checkbox" class="card-check"> INCLUIR EN IMPRESIÓN
+        </label>
+      </div>
       <div class="card-top">
         ${portrait}
         <div>
@@ -509,6 +532,27 @@ async function deleteChar(id) {
     headers: HDR
   });
   loadAll();
+}
+
+function printSelected() {
+  const allCards = document.querySelectorAll('.char-card');
+  const checked  = document.querySelectorAll('.card-check:checked');
+  if (checked.length === 0) {
+    alert('Selecciona al menos un personaje para imprimir.');
+    return;
+  }
+  allCards.forEach(card => card.classList.remove('will-print'));
+  checked.forEach(cb => cb.closest('.char-card').classList.add('will-print'));
+  window.print();
+  allCards.forEach(card => card.classList.remove('will-print'));
+}
+
+function toggleSelectAll() {
+  const checks = document.querySelectorAll('.card-check');
+  const allChecked = [...checks].every(c => c.checked);
+  checks.forEach(c => c.checked = !allChecked);
+  const btn = document.querySelector('[onclick="toggleSelectAll()"]');
+  if (btn) btn.textContent = allChecked ? '☐ TODOS' : '☑ TODOS';
 }
 
 loadAll();
