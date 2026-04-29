@@ -500,7 +500,7 @@
   <div class="logo-subtitle">SCI-FI HORROR ROLEPLAYING GAME · 0E</div>
   <div class="mission-date">
     <div class="label">FECHA DE EMBARQUE</div>
-    <div class="date">08 · 05 · 2026</div>
+    <div class="date">15 · 05 · 2026</div>
     <div class="time">19:00 H · HORA LOCAL</div>
   </div>
   <button class="splash-btn" onclick="showScreen('ship-select'); loadShips()">INICIAR PROCESO DE SELECCIÓN</button>
@@ -529,7 +529,7 @@
         <div class="corp-name">ARMACORP<span>LOGISTICS & DEEP SPACE RECOVERY INC.</span></div>
       </div>
       <div class="corp-meta">
-        <div>REF: ALX-7734-NG</div><div>FECHA: 08.05.2026</div>
+        <div>REF: ALX-7734-NG</div><div>FECHA: 15.05.2026</div>
         <div>PRIORIDAD: <strong>ALTA</strong></div><div>ESTADO: <strong>ACTIVO</strong></div>
       </div>
     </div>
@@ -688,6 +688,8 @@
   </div>
 </div>
 
+<audio id="ambient-audio" src="Then it disappeared.mp3" loop preload="auto"></audio>
+
 <script>
 // ══ SUPABASE ════════════════════════════════════════════════════════
 const SUPA_URL = 'https://vbmftksmuvpbcizvfola.supabase.co';
@@ -712,159 +714,28 @@ function showScreen(id) {
 }
 
 // ══ MÚSICA AMBIENTE ══════════════════════════════════════════════════
-let ambientCtx = null, ambientNodes = {}, ambientRunning = false;
+const ambientAudio = document.getElementById('ambient-audio');
 
 function startAmbient() {
-  if (ambientRunning) return;
-  try {
-    ambientCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const ac = ambientCtx, t = ac.currentTime;
-
-    // Master bus con fade in lento
-    const master = ac.createGain();
-    master.gain.setValueAtTime(0, t);
-    master.gain.linearRampToValueAtTime(0.65, t + 6);
-    master.connect(ac.destination);
-    ambientNodes.master = master;
-
-    // — CAPA 1: Sub drone 38 Hz con respiración lenta (tremolo 0.05 Hz) —
-    const sub = ac.createOscillator();
-    sub.type = 'sine'; sub.frequency.value = 38;
-    const subTremoloOsc = ac.createOscillator();
-    subTremoloOsc.type = 'sine'; subTremoloOsc.frequency.value = 0.05;
-    const subTremoloGain = ac.createGain(); subTremoloGain.gain.value = 0.07;
-    const subGain = ac.createGain(); subGain.gain.value = 0.28;
-    subTremoloOsc.connect(subTremoloGain); subTremoloGain.connect(subGain.gain);
-    sub.connect(subGain); subGain.connect(master);
-    sub.start(); subTremoloOsc.start();
-    ambientNodes.subGain = subGain;
-
-    // — CAPA 2: Ruido marrón filtrado — maquinaria lejana —
-    const nBuf = ac.createBuffer(1, ac.sampleRate * 5, ac.sampleRate);
-    const nd = nBuf.getChannelData(0);
-    let last = 0;
-    for (let i = 0; i < nd.length; i++) { last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; nd[i] = last * 3.5; }
-    const noise = ac.createBufferSource(); noise.buffer = nBuf; noise.loop = true;
-    const nFilt = ac.createBiquadFilter(); nFilt.type = 'bandpass'; nFilt.frequency.value = 220; nFilt.Q.value = 1.8;
-    const nLFO = ac.createOscillator(); nLFO.type = 'sine'; nLFO.frequency.value = 0.025;
-    const nLFOG = ac.createGain(); nLFOG.gain.value = 160;
-    nLFO.connect(nLFOG); nLFOG.connect(nFilt.frequency);
-    const nGain = ac.createGain(); nGain.gain.value = 0;
-    nGain.gain.linearRampToValueAtTime(0.09, t + 9);
-    noise.connect(nFilt); nFilt.connect(nGain); nGain.connect(master);
-    noise.start(); nLFO.start();
-
-    // — CAPA 3: Acorde disonante con batido entre osciladores —
-    // Tres osciladores levemente desafinados: intervalos de segunda menor + tritono
-    [[76, 'sawtooth', 0.04], [76.9, 'sawtooth', 0.035], [113.8, 'triangle', 0.025]].forEach(([freq, type, vol]) => {
-      const o = ac.createOscillator(); o.type = type; o.frequency.value = freq;
-      const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 280; lp.Q.value = 0.6;
-      const g = ac.createGain(); g.gain.value = 0;
-      g.gain.linearRampToValueAtTime(vol, t + 11);
-      o.connect(lp); lp.connect(g); g.connect(master); o.start();
-    });
-
-    // — CAPA 4: Resonancia de sala grave con barrido —
-    const metal = ac.createOscillator(); metal.type = 'triangle'; metal.frequency.value = 92;
-    const metalLP = ac.createBiquadFilter(); metalLP.type = 'lowpass'; metalLP.frequency.value = 320; metalLP.Q.value = 1.2;
-    const metalLFO = ac.createOscillator(); metalLFO.type = 'sine'; metalLFO.frequency.value = 0.04;
-    const metalLFOG = ac.createGain(); metalLFOG.gain.value = 18;
-    metalLFO.connect(metalLFOG); metalLFOG.connect(metal.frequency);
-    const metalG = ac.createGain(); metalG.gain.value = 0;
-    metalG.gain.linearRampToValueAtTime(0.07, t + 14);
-    metal.connect(metalLP); metalLP.connect(metalG); metalG.connect(master);
-    metal.start(); metalLFO.start();
-
-    // — CAPA 5: Pulso cardíaco irregular —
-    schedulePulse();
-
-    // — EVENTOS ALEATORIOS —
-    scheduleEvent();
-
-    ambientRunning = true;
-  } catch(e) {}
+  if (!ambientAudio.paused) return;
+  ambientAudio.volume = 0;
+  ambientAudio.play().catch(() => {});
+  let v = 0;
+  const fade = setInterval(() => {
+    v = Math.min(v + 0.65 / 40, 0.65);
+    ambientAudio.volume = v;
+    if (v >= 0.65) clearInterval(fade);
+  }, 100);
 }
 
 function stopAmbient() {
-  if (!ambientRunning || !ambientCtx) return;
-  try {
-    ambientNodes.master.gain.linearRampToValueAtTime(0, ambientCtx.currentTime + 2);
-    setTimeout(() => { ambientCtx.close(); ambientCtx = null; ambientRunning = false; }, 2200);
-  } catch(e) {}
+  if (ambientAudio.paused) return;
+  const fade = setInterval(() => {
+    ambientAudio.volume = Math.max(ambientAudio.volume - 0.05, 0);
+    if (ambientAudio.volume === 0) { ambientAudio.pause(); clearInterval(fade); }
+  }, 100);
 }
 
-// Pulso grave e irregular (latido de la nave)
-function schedulePulse() {
-  if (!ambientRunning) return;
-  const delay = 1800 + Math.random() * 1400;
-  setTimeout(() => {
-    if (!ambientCtx || !ambientRunning) return;
-    const ac = ambientCtx, now = ac.currentTime;
-    const dur = 0.06 + Math.random() * 0.04;
-    const osc = ac.createOscillator(); osc.type = 'sine'; osc.frequency.value = 52 + Math.random() * 12;
-    const g = ac.createGain();
-    g.gain.setValueAtTime(0.18, now);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-    osc.connect(g); g.connect(ambientNodes.master);
-    osc.start(now); osc.stop(now + dur);
-    schedulePulse();
-  }, delay);
-}
-
-// Eventos aleatorios: golpe metálico, blip descendente, rumble
-function scheduleEvent() {
-  if (!ambientRunning) return;
-  setTimeout(() => {
-    if (!ambientCtx || !ambientRunning) return;
-    const r = Math.random();
-    if (r < 0.4) ambientClang();
-    else if (r < 0.72) ambientBlip();
-    else ambientRumble();
-    scheduleEvent();
-  }, 5000 + Math.random() * 13000);
-}
-
-function ambientClang() {
-  // Golpe de tubería grave — sin frecuencias agudas
-  const ac = ambientCtx, now = ac.currentTime;
-  const buf = ac.createBuffer(1, ac.sampleRate * 0.9, ac.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ac.sampleRate * 0.18));
-  const src = ac.createBufferSource(); src.buffer = buf;
-  const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 180 + Math.random() * 220; f.Q.value = 1.2;
-  const g = ac.createGain(); g.gain.setValueAtTime(0.04, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
-  src.connect(f); f.connect(g); g.connect(ambientNodes.master); src.start(now);
-}
-
-function ambientBlip() {
-  // Pitido de terminal descendente — tono suave
-  const ac = ambientCtx, now = ac.currentTime;
-  const osc = ac.createOscillator(); osc.type = 'sine';
-  osc.frequency.setValueAtTime(280 + Math.random() * 180, now);
-  osc.frequency.exponentialRampToValueAtTime(80 + Math.random() * 60, now + 0.5);
-  const g = ac.createGain(); g.gain.setValueAtTime(0.018, now); g.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
-  osc.connect(g); g.connect(ambientNodes.master); osc.start(now); osc.stop(now + 0.5);
-}
-
-function ambientRumble() {
-  const ac = ambientCtx, now = ac.currentTime;
-  const buf = ac.createBuffer(1, ac.sampleRate * 2.5, ac.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-  const src = ac.createBufferSource(); src.buffer = buf;
-  const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 55;
-  const g = ac.createGain();
-  g.gain.setValueAtTime(0, now);
-  g.gain.linearRampToValueAtTime(0.13, now + 0.4);
-  g.gain.setValueAtTime(0.13, now + 1.8);
-  g.gain.linearRampToValueAtTime(0, now + 2.5);
-  src.connect(f); f.connect(g); g.connect(ambientNodes.master); src.start(now);
-}
-
-// Desbloquear audio en primer toque
-document.addEventListener('click', () => {
-  if (ambientCtx && ambientCtx.state === 'suspended') ambientCtx.resume();
-}, { once: false });
 
 // ══ DATOS DE CLASES ══════════════════════════════════════════════════
 const CLASSES = {
@@ -931,7 +802,7 @@ const BACKGROUNDS = {
   Scientist: [
     'Xenobiólogo con publicaciones clasificadas por orden corporativa. No sabe exactamente por qué.',
     'Médico forense de colonias periféricas. Especialidad: causas de muerte de origen no identificado.',
-    'Arqueólogo espacial especializado en artefactos de procedencia no humana. El Alexis era su destino.',
+    'Arqueólogo espacial especializado en artefactos de procedencia no humana. La Taurus era su destino.',
     'Investigador corporativo cuyo programa fue cancelado sin explicación. Los datos, confiscados.',
     'Patólogo de campo veterano de tres brotes de origen desconocido. Dos de ellos, sin clasificar aún.',
     'Físico teórico expulsado de la Universidad de Nueva Tokio por sus conclusiones sobre espacio-tiempo.',
