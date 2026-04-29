@@ -1049,36 +1049,60 @@ const CLASSES = {
 // ══ TRASFONDOS ═══════════════════════════════════════════════════════
 const BACKGROUNDS = {
   Marine: [
-    'Soldado colonial retirado de las Fuerzas Federales tras doce años de servicio activo en el borde exterior.',
-    'Contratista de seguridad corporativa. Ex-empleado de ARMACORP, dado de baja sin explicación oficial.',
-    'Guarda de la Penitenciaría Orbital-7, sector Delta. Vio cosas que no hablan en los informes.',
-    'Mercenario independiente. Veterano de tres conflictos no declarados. Sin lealtades fijas.',
-    'Agente de control de disturbios coloniales, dado de baja por "uso desproporcionado de la fuerza".',
-    'Desertor de las fuerzas del borde exterior. Las razones de su abandono están clasificadas.',
+    { m: 'Soldado colonial retirado de las Fuerzas Federales tras doce años de servicio activo en el borde exterior.',
+      f: 'Soldado colonial retirada de las Fuerzas Federales tras doce años de servicio activo en el borde exterior.' },
+    { m: 'Contratista de seguridad corporativa. Ex-empleado de ARMACORP, dado de baja sin explicación oficial.',
+      f: 'Contratista de seguridad corporativa. Ex-empleada de ARMACORP, dada de baja sin explicación oficial.' },
+    { m: 'Guarda de la Penitenciaría Orbital-7, sector Delta. Vio cosas que no hablan en los informes.',
+      f: 'Guarda de la Penitenciaría Orbital-7, sector Delta. Vio cosas que no hablan en los informes.' },
+    { m: 'Mercenario independiente. Veterano de tres conflictos no declarados. Sin lealtades fijas.',
+      f: 'Mercenaria independiente. Veterana de tres conflictos no declarados. Sin lealtades fijas.' },
+    { m: 'Agente de control de disturbios coloniales, dado de baja por "uso desproporcionado de la fuerza".',
+      f: 'Agente de control de disturbios coloniales, dada de baja por "uso desproporcionado de la fuerza".' },
+    { m: 'Desertor de las fuerzas del borde exterior. Las razones de su abandono están clasificadas.',
+      f: 'Desertora de las fuerzas del borde exterior. Las razones de su abandono están clasificadas.' },
   ],
   Teamster: [
-    'Minero de asteroides con doce años en el cinturón exterior. Su espalda lo sabe.',
-    'Piloto de carga de largo recorrido. Rutas trans-sectoriales en solitario durante años.',
-    'Mecánico de mantenimiento de estaciones orbitales. Ha reparado cosas que no deberían repararse.',
-    'Operario de salvamento espacial autónomo. Sabe lo que flotar en el vacío le hace a una persona.',
-    'Técnico de explosivos en demolición minera. Sus manos cuentan su propia historia.',
-    'Conductor de vehículos de superficie planetaria. Ha pisado suelo en ocho mundos distintos.',
+    { m: 'Minero de asteroides con doce años en el cinturón exterior. Su espalda lo sabe.',
+      f: 'Minera de asteroides con doce años en el cinturón exterior. Su espalda lo sabe.' },
+    { m: 'Piloto de carga de largo recorrido. Rutas trans-sectoriales en solitario durante años.',
+      f: 'Piloto de carga de largo recorrido. Rutas trans-sectoriales en solitario durante años.' },
+    { m: 'Mecánico de mantenimiento de estaciones orbitales. Ha reparado cosas que no deberían repararse.',
+      f: 'Mecánica de mantenimiento de estaciones orbitales. Ha reparado cosas que no deberían repararse.' },
+    { m: 'Operario de salvamento espacial autónomo. Sabe lo que flotar en el vacío le hace a una persona.',
+      f: 'Operaria de salvamento espacial autónoma. Sabe lo que flotar en el vacío le hace a una persona.' },
+    { m: 'Técnico de explosivos en demolición minera. Sus manos cuentan su propia historia.',
+      f: 'Técnica de explosivos en demolición minera. Sus manos cuentan su propia historia.' },
+    { m: 'Conductor de vehículos de superficie planetaria. Ha pisado suelo en ocho mundos distintos.',
+      f: 'Conductora de vehículos de superficie planetaria. Ha pisado suelo en ocho mundos distintos.' },
   ],
   Scientist: [
-    'Xenobiólogo con publicaciones clasificadas por orden corporativa. No sabe exactamente por qué.',
-    'Médico forense de colonias periféricas. Especialidad: causas de muerte de origen no identificado.',
-    'Arqueólogo espacial especializado en artefactos de procedencia no humana. La Taurus era su destino.',
-    'Investigador corporativo cuyo programa fue cancelado sin explicación. Los datos, confiscados.',
-    'Patólogo de campo veterano de tres brotes de origen desconocido. Dos de ellos, sin clasificar aún.',
-    'Físico teórico expulsado de la Universidad de Nueva Tokio por sus conclusiones sobre espacio-tiempo.',
+    { m: 'Xenobiólogo con publicaciones clasificadas por orden corporativa. No sabe exactamente por qué.',
+      f: 'Xenobióloga con publicaciones clasificadas por orden corporativa. No sabe exactamente por qué.' },
+    { m: 'Médico forense de colonias periféricas. Especialidad: causas de muerte de origen no identificado.',
+      f: 'Médica forense de colonias periféricas. Especialidad: causas de muerte de origen no identificado.' },
+    { m: 'Arqueólogo espacial especializado en artefactos de procedencia no humana. La Taurus era su destino.',
+      f: 'Arqueóloga espacial especializada en artefactos de procedencia no humana. La Taurus era su destino.' },
+    { m: 'Investigador corporativo cuyo programa fue cancelado sin explicación. Los datos, confiscados.',
+      f: 'Investigadora corporativa cuyo programa fue cancelado sin explicación. Los datos, confiscados.' },
+    { m: 'Patólogo de campo veterano de tres brotes de origen desconocido. Dos de ellos, sin clasificar aún.',
+      f: 'Patóloga de campo veterana de tres brotes de origen desconocido. Dos de ellos, sin clasificar aún.' },
+    { m: 'Físico teórico expulsado de la Universidad de Nueva Tokio por sus conclusiones sobre espacio-tiempo.',
+      f: 'Física teórica expulsada de la Universidad de Nueva Tokio por sus conclusiones sobre espacio-tiempo.' },
   ],
   Android: [
-    'Unidad de asistencia médica de tercera generación, reprogramada para operaciones de campo. Datos de misiones anteriores: borrados.',
-    'Androide de inteligencia táctica, modelo MIL-7. Declarado obsoleto por las Fuerzas Federales. Reasignado.',
-    'Unidad de investigación científica serie LOCUS. Historial de misiones: clasificado nivel Omega.',
-    'Sistema de soporte de nave embodied para operaciones terrestres. Primera misión con forma física.',
-    'Unidad de recuperación de datos serie MNEMO. Catorce misiones previas. Recuerda todas. Y algo más.',
-    'Prototipo experimental de fabricante desconocido. ARMACORP lo adquirió en una subasta. Sin documentación.',
+    { m: 'Unidad de asistencia médica de tercera generación, reprogramada para operaciones de campo. Datos de misiones anteriores: borrados.',
+      f: 'Unidad de asistencia médica de tercera generación, reprogramada para operaciones de campo. Datos de misiones anteriores: borrados.' },
+    { m: 'Androide de inteligencia táctica, modelo MIL-7. Declarado obsoleto por las Fuerzas Federales. Reasignado.',
+      f: 'Androide de inteligencia táctica, modelo MIL-7. Declarado obsoleto por las Fuerzas Federales. Reasignado.' },
+    { m: 'Unidad de investigación científica serie LOCUS. Historial de misiones: clasificado nivel Omega.',
+      f: 'Unidad de investigación científica serie LOCUS. Historial de misiones: clasificado nivel Omega.' },
+    { m: 'Sistema de soporte de nave embodied para operaciones terrestres. Primera misión con forma física.',
+      f: 'Sistema de soporte de nave embodied para operaciones terrestres. Primera misión con forma física.' },
+    { m: 'Unidad de recuperación de datos serie MNEMO. Catorce misiones previas. Recuerda todas. Y algo más.',
+      f: 'Unidad de recuperación de datos serie MNEMO. Catorce misiones previas. Recuerda todas. Y algo más.' },
+    { m: 'Prototipo experimental de fabricante desconocido. ARMACORP lo adquirió en una subasta. Sin documentación.',
+      f: 'Prototipo experimental de fabricante desconocido. ARMACORP lo adquirió en una subasta. Sin documentación.' },
   ],
 };
 
@@ -1712,6 +1736,8 @@ function selectGender(g, btn){
   btn.classList.add('selected');
   document.getElementById('portrait-section').style.display='block';
   renderPortraits(charData.class, g);
+  renderBackgrounds(charData.class);
+  document.getElementById('bg-custom').value='';
   checkGenBtn();
 }
 
@@ -1722,9 +1748,15 @@ function selectPortrait(key, el){
   checkGenBtn();
 }
 
+function getBgText(cls, i){
+  const bg = BACKGROUNDS[cls][i];
+  const g = selectedGender === 'F' ? 'f' : 'm';
+  return bg[g] || bg.m;
+}
+
 function renderBackgrounds(cls){
   document.getElementById('bg-grid').innerHTML = BACKGROUNDS[cls].map((bg,i)=>`
-    <button class="bg-card ${selectedBackground===i?'selected':''}" onclick="selectBackground(${i},this)">${bg}</button>
+    <button class="bg-card ${selectedBackground===i?'selected':''}" onclick="selectBackground(${i},this)">${getBgText(cls,i)}</button>
   `).join('');
 }
 
@@ -1732,7 +1764,7 @@ function selectBackground(i, el){
   selectedBackground=i;
   document.querySelectorAll('.bg-card').forEach(c=>c.classList.remove('selected'));
   el.classList.add('selected');
-  document.getElementById('bg-custom').value = BACKGROUNDS[charData.class][i];
+  document.getElementById('bg-custom').value = getBgText(charData.class, i);
   checkGenBtn();
 }
 
@@ -1741,7 +1773,7 @@ function randomBackground(){
   const i=Math.floor(Math.random()*BACKGROUNDS[cls].length);
   selectedBackground=i;
   renderBackgrounds(cls);
-  document.getElementById('bg-custom').value = BACKGROUNDS[cls][i];
+  document.getElementById('bg-custom').value = getBgText(cls, i);
   checkGenBtn();
 }
 
