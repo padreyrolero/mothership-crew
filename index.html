@@ -675,7 +675,7 @@
 
     <!-- Saves -->
     <div>
-      <div class="section-label">SALVADAS <span style="font-size:.6em;color:var(--dim);letter-spacing:.2em">(fijas por clase — se revelan al tirar stats)</span></div>
+      <div class="section-label">TIRADAS DE SALVACIÓN <span style="font-size:.6em;color:var(--dim);letter-spacing:.2em">(fijas por clase — se revelan al tirar stats)</span></div>
       <div class="saves-grid">
         <div class="save-box"><div class="save-name">CUERPO</div><div class="save-val" id="sv-body">—</div></div>
         <div class="save-box"><div class="save-name">MIEDO</div><div class="save-val" id="sv-fear">—</div></div>
@@ -752,21 +752,21 @@
             <div class="bt-row"><span>Maestro (M)</span><span>+20%</span></div>
           </div>
 
-          <div class="back-section-title">SALVADAS</div>
+          <div class="back-section-title">TIRADAS DE SALVACIÓN</div>
           <p>Tira d% igual o menor que tu valor. Si fallas: <strong>+1 Estrés</strong> y sufres consecuencias. Fallo crítico: además haz Tirada de Pánico.</p>
           <p>· <strong>Cordura</strong> — lo incomprensible, ilusiones &nbsp;· <strong>Miedo</strong> — terror, trauma emocional</p>
           <p>· <strong>Cuerpo</strong> — reflejos, enfermedad, hambre &nbsp;· <strong>Armadura</strong> — daño físico en combate</p>
 
           <div class="back-section-title">CURACIÓN Y DESCANSO</div>
-          <p>Tras <strong>6 h de descanso</strong>: tira Salvada de Cuerpo. Éxito: cura tantos PV como la diferencia (stat − resultado). Fallo crítico: pierde 1d10 PV. Máx. una vez al día.</p>
+          <p>Tras <strong>6 h de descanso</strong>: tira Tirada de salvación de Cuerpo. Éxito: cura tantos PV como la diferencia (stat − resultado). Fallo crítico: pierde 1d10 PV. Máx. una vez al día.</p>
           <p><strong>PV máx. = Fuerza × 2.</strong></p>
 
           <div class="back-section-title">INCONSCIENCIA Y MUERTE</div>
-          <p>A <strong>0 PV</strong>: tira Salvada de Cuerpo. Fallo = muerte. Éxito = inconsciente (DJ tira en secreto cuándo despiertas y con qué penalizaciones permanentes).</p>
+          <p>A <strong>0 PV</strong>: tira Tirada de salvación de Cuerpo. Fallo = muerte. Éxito = inconsciente (DJ tira en secreto cuándo despiertas y con qué penalizaciones permanentes).</p>
 
           <div class="back-section-title">ESTRÉS</div>
-          <p>El Estrés sube al fallar salvadas, ver morir compañeros, recibir daño crítico, 24 h sin dormir, nave impactada, etc. Por sí solo no hace nada, pero cuanto más alto, más devastador el Pánico.</p>
-          <p><strong>Reducir estrés:</strong> descanso + Salvada de Miedo exitosa → alivia 1 Estrés por cada 10 puntos de margen.</p>
+          <p>El Estrés sube al fallar tiradas de salvación, ver morir compañeros, recibir daño crítico, 24 h sin dormir, nave impactada, etc. Por sí solo no hace nada, pero cuanto más alto, más devastador el Pánico.</p>
+          <p><strong>Reducir estrés:</strong> descanso + Tirada de salvación de Miedo exitosa → alivia 1 Estrés por cada 10 puntos de margen.</p>
 
         </div>
 
@@ -778,7 +778,7 @@
           <p><strong>Turno:</strong> ~10 s reales. Tienes <strong>2 acciones significativas</strong> (atacar, recargar, moverse a fondo, usar terminal, curar…).</p>
           <p><strong>Ataque a distancia:</strong> Combate [atacante] vs. Armadura [defensor] — chequeo enfrentado. Ganador del atacante → tira daño.</p>
           <p><strong>CQC:</strong> defensor elige oponer Armadura (aguantar), Combate (contraatacar) o Cuerpo (escapar).</p>
-          <p><strong>Cobertura:</strong> Ventaja en Salvada de Armadura contra disparos. <strong>Apuntar:</strong> 2 acciones sin recibir daño → Ventaja en el siguiente disparo.</p>
+          <p><strong>Cobertura:</strong> Ventaja en Tirada de salvación de Armadura contra disparos. <strong>Apuntar:</strong> 2 acciones sin recibir daño → Ventaja en el siguiente disparo.</p>
           <p><strong>Movimiento:</strong> Velocidad ÷ 2 m (1 acción) o Velocidad m (2 acciones).</p>
 
           <div class="back-section-title">RANGOS</div>
@@ -789,7 +789,7 @@
             <div class="bt-row"><span>Largo</span><span>Desventaja [−]</span></div>
           </div>
 
-          <div class="back-section-title">TIRADA DE PÁNICO (cuándo: fallo crítico en salvada, impacto crítico, perder &gt;½ PV máx. de un golpe, ver morir a un compañero…)</div>
+          <div class="back-section-title">TIRADA DE PÁNICO (cuándo: fallo crítico en tirada de salvación, impacto crítico, perder &gt;½ PV máx. de un golpe, ver morir a un compañero…)</div>
           <p><strong>Paso 1 — Chequeo de Estrés (2d10):</strong> si el resultado es <strong>mayor</strong> que tu Estrés actual → no entras en Pánico y pierdes 1 Estrés. Si igual o menor → Paso 2.</p>
           <p><strong>Paso 2 — Efecto (2d10 + Estrés actual):</strong> resta tu <strong>Resolve</strong> al total (máx. −5). Consulta tabla:</p>
           <div class="back-table panic-table">
@@ -799,14 +799,14 @@
             <div class="bt-row"><span>6–7</span><span>Adrenalina leve. Ventaja durante 1d10 min.</span></div>
             <div class="bt-row"><span>8–9</span><span>Ansioso. +1 Estrés.</span></div>
             <div class="bt-row"><span>10–11</span><span>Tic nervioso. +2 Estrés; compañero cercano +1.</span></div>
-            <div class="bt-row"><span>12–13</span><span>Cobardía. +1 Estrés; necesitas Salvada de Miedo para combatir (1d10 h).</span></div>
+            <div class="bt-row"><span>12–13</span><span>Cobardía. +1 Estrés; necesitas Tirada de salvación de Miedo para combatir (1d10 h).</span></div>
             <div class="bt-row"><span>14–15</span><span>Alucinaciones. 2d10 h confundiendo realidad y fantasía.</span></div>
             <div class="bt-row"><span>16–17</span><span>Terror. Nueva fobia permanente; Desventaja ante ella.</span></div>
             <div class="bt-row"><span>18–19</span><span>Desbordado. +1d10 Estrés.</span></div>
             <div class="bt-row"><span>20–21</span><span>Sacudido. Desventaja en todo durante 2d10 min.</span></div>
-            <div class="bt-row"><span>22–23</span><span>Paranoico. Salvada de Miedo cada vez que alguien se reúna al grupo (1d10 días).</span></div>
+            <div class="bt-row"><span>22–23</span><span>Paranoico. Tirada de salvación de Miedo cada vez que alguien se reúna al grupo (1d10 días).</span></div>
             <div class="bt-row"><span>24–25</span><span>Pulsión de muerte / Catatónico (Xd10 días, X = Estrés).</span></div>
-            <div class="bt-row"><span>26–27</span><span>Roto. Tira Pánico cada vez que un compañero falle una salvada (Xd10 días).</span></div>
+            <div class="bt-row"><span>26–27</span><span>Roto. Tira Pánico cada vez que un compañero falle una tirada de salvación (Xd10 días).</span></div>
             <div class="bt-row"><span>28–29</span><span>Psicótico (ataca al compañero más cercano) / Tira dos veces en esta tabla.</span></div>
             <div class="bt-row"><span>30+</span><span>Colapso psicológico permanente o Ataque al corazón — muerte instantánea.</span></div>
           </div>
@@ -871,7 +871,7 @@ function stopAmbient() {
 const CLASSES = {
   Marine: {
     desc: 'Entrenado para el combate y el control de situaciones de alto riesgo. Primer escudo de la tripulación.',
-    statBonus: {},  // sin bonus estático — su ventaja son las salvadas y la regla de grupo
+    statBonus: {},  // sin bonus estático — su ventaja son las tiradas de salvación y la regla de grupo
     saves: { sanity:35, fear:25, body:30, armor:40 },
     specialRule: '+5 Velocidad y +5 Combate con otro Marine aliado cercano. Cuando un Marine entra en Pánico, todos los aliados deben hacer una tirada de Miedo.',
     startingFixed: ['military_training'],
