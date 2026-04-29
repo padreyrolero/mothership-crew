@@ -662,8 +662,10 @@
     <!-- Trasfondo -->
     <div id="bg-section" style="display:none">
       <div class="section-label">TRASFONDO</div>
+      <div style="font-size:.6rem;color:var(--dim);letter-spacing:.2em;margin-bottom:.5rem">Elige una sugerencia o escribe el tuyo propio</div>
       <button class="bg-random-btn" onclick="randomBackground()">⚄ ASIGNAR ALEATORIO</button>
       <div class="bg-grid" id="bg-grid"></div>
+      <textarea id="bg-custom" rows="3" placeholder="Escribe aquí el trasfondo del personaje..." style="width:100%;margin-top:.8rem;background:rgba(0,255,65,.02);border:1px solid var(--border);color:var(--green);font-family:'Share Tech Mono',monospace;font-size:.8rem;padding:.7rem 1rem;outline:none;resize:vertical;line-height:1.6;letter-spacing:.05em;" oninput="checkGenBtn()"></textarea>
     </div>
 
     <!-- Nombres -->
@@ -693,7 +695,6 @@
         <div class="stat-box"><div class="stat-name">INTELECTO</div><div class="stat-val" id="st-int">—</div></div>
         <div class="stat-box"><div class="stat-name">COMBATE</div><div class="stat-val" id="st-com">—</div></div>
       </div>
-      <div class="roll-assessment" id="roll-assessment"></div>
     </div>
 
     <!-- Saves -->
@@ -1626,6 +1627,7 @@ function selectBackground(i, el){
   selectedBackground=i;
   document.querySelectorAll('.bg-card').forEach(c=>c.classList.remove('selected'));
   el.classList.add('selected');
+  document.getElementById('bg-custom').value = BACKGROUNDS[charData.class][i];
   checkGenBtn();
 }
 
@@ -1634,11 +1636,12 @@ function randomBackground(){
   const i=Math.floor(Math.random()*BACKGROUNDS[cls].length);
   selectedBackground=i;
   renderBackgrounds(cls);
+  document.getElementById('bg-custom').value = BACKGROUNDS[cls][i];
   checkGenBtn();
 }
 
 function checkGenBtn(){
-  const hasBg       = selectedBackground!==null;
+  const hasBg       = (document.getElementById('bg-custom')?.value||'').trim().length > 0;
   const hasPortrait = selectedPortraitKey!==null;
   const hasGender   = charData.class==='Android' || selectedGender!==null;
   const hasStats    = !!charData.strength;
@@ -1883,7 +1886,6 @@ async function rollStats(){
   document.getElementById('sv-fear').textContent=sv.fear;
   document.getElementById('sv-san').textContent=sv.sanity;
   document.getElementById('sv-armor').textContent=sv.armor;
-  document.getElementById('roll-assessment').textContent=getRollAssessment(rolls);
   charData={...charData,...rolls,body_save:sv.body,fear_save:sv.fear,sanity_save:sv.sanity,armor_save:sv.armor};
   updateRollCounter();
   checkGenBtn();
@@ -1896,7 +1898,7 @@ async function generateSheet(){
   if(!charData.strength){ alert('Primero tira los dados.'); return; }
 
   const info=CLASSES[charData.class];
-  const bg=BACKGROUNDS[charData.class][selectedBackground];
+  const bg=document.getElementById('bg-custom').value.trim();
   const genderLabel={'M':'Sr.','F':'Sra.','N':'Sre.','A':''}[selectedGender]||'';
   const credits=Array.from({length:5},()=>Math.ceil(Math.random()*10)).reduce((a,b)=>a+b,0)*10;
   const trinket=selectedTrinket;
@@ -1908,6 +1910,7 @@ async function generateSheet(){
     sanity_save:charData.sanity_save, fear_save:charData.fear_save, body_save:charData.body_save,
     max_stress:20, armor_save:charData.armor_save,
     portrait_path: selectedPortraitKey || null,
+    background: bg,
     skills:Array.from(charSkills).map(id=>`${SKILL_TREE[id].es} [${TIER_LABEL[SKILL_TREE[id].tier]}]`),
     equipment:info.equipment, trinket, patch, quiz_answers:charData.quizAnswers,
     ship_id: selectedShip?.id || null,

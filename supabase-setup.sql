@@ -81,3 +81,6 @@ alter table characters add column if not exists portrait_path text;
 
 -- Imagen de nave (añadida en v5)
 alter table ships add column if not exists image_url text default '';
+
+-- Trasfondo libre escrito por el jugador (añadida en v6)
+alter table characters add column if not exists background text default '';

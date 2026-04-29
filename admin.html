@@ -775,6 +775,7 @@ function renderAdminSheet(c) {
         <div class="ps-char-name">${c.char_name}</div>
         <div class="ps-char-class">${c.class.toUpperCase()}</div>
         <div class="ps-char-player">Jugador: ${c.player_name}</div>
+        ${c.background ? `<div style="font-size:7pt;color:#333;margin-top:1mm;border-left:1pt solid black;padding-left:1.5mm;line-height:1.4">${c.background}</div>` : ''}
       </div>
       <div class="ps-class-badge">
         <div class="ps-badge-label">CLASE</div>
