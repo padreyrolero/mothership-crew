@@ -86,6 +86,61 @@
     .armacorp-badge-sub { font-size:.55rem; letter-spacing:.35em; color:var(--dim); margin-top:.25rem; }
     .armacorp-badge-slogan { font-size:.7rem; letter-spacing:.2em; color:rgba(0,255,65,.55); margin-top:.35rem; font-style:italic; }
 
+    /* ── CÓDIGO DE ACCESO ─────────────────────────────────────────── */
+    .code-lookup-wrap { border-top:1px solid var(--border); padding-top:1rem; margin-top:.5rem; display:flex; flex-direction:column; align-items:center; gap:.5rem; width:100%; max-width:400px; }
+    .code-lookup-label { font-size:.55rem; letter-spacing:.4em; color:var(--dim); }
+    .code-lookup-row { display:flex; gap:.5rem; width:100%; }
+    .code-input {
+      flex:1; background:transparent; border:1px solid var(--border); color:var(--green);
+      font-family:'Share Tech Mono',monospace; font-size:1.1rem; letter-spacing:.4em;
+      padding:.5rem 1rem; outline:none; text-transform:uppercase; text-align:center;
+    }
+    .code-input:focus { border-color:var(--green); }
+    .code-input::placeholder { color:rgba(0,255,65,.2); letter-spacing:.2em; font-size:.8rem; }
+    .code-submit-btn {
+      padding:.5rem 1.2rem; border:1px solid var(--dim); background:transparent;
+      color:var(--dim); font-family:'Share Tech Mono',monospace; font-size:.75rem;
+      letter-spacing:.2em; cursor:pointer; transition:all .2s; white-space:nowrap;
+    }
+    .code-submit-btn:hover { border-color:var(--green); color:var(--green); }
+
+    .access-code-box {
+      border:1px solid var(--green); padding:.8rem 1.5rem; text-align:center;
+      background:rgba(0,255,65,.04); margin-bottom:1rem;
+    }
+    .access-code-label { font-size:.55rem; letter-spacing:.4em; color:var(--dim); margin-bottom:.4rem; }
+    .access-code-value { font-family:'Orbitron',monospace; font-size:2rem; color:var(--green); letter-spacing:.5em; text-shadow:0 0 12px rgba(0,255,65,.5); }
+    .access-code-hint { font-size:.6rem; color:var(--dim); margin-top:.4rem; letter-spacing:.2em; }
+
+    /* ── PANTALLA CONSULTA ─────────────────────────────────────────── */
+    #char-view { background:var(--black); padding:2rem; align-items:flex-start; }
+    .cv-wrap { max-width:680px; width:100%; margin:0 auto; display:flex; flex-direction:column; gap:1.2rem; }
+    .cv-header { border-bottom:1px solid var(--border); padding-bottom:1rem; }
+    .cv-name { font-family:'Orbitron',monospace; font-size:clamp(1.2rem,3vw,1.8rem); color:var(--green); }
+    .cv-meta { font-size:.65rem; color:var(--dim); margin-top:.3rem; letter-spacing:.2em; }
+    .cv-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:.5rem; }
+    .cv-stat { border:1px solid var(--border); padding:.5rem; text-align:center; }
+    .cv-stat .cl { font-size:.5rem; letter-spacing:.2em; color:var(--dim); }
+    .cv-stat .cv2 { font-family:'Orbitron',monospace; font-size:1.2rem; color:var(--green); }
+    .cv-saves { display:grid; grid-template-columns:repeat(4,1fr); gap:.5rem; }
+    .cv-save { border:1px solid var(--border); padding:.4rem; text-align:center; }
+    .cv-save .cl { font-size:.45rem; letter-spacing:.2em; color:var(--dim); }
+    .cv-save .cv2 { font-family:'Orbitron',monospace; font-size:.9rem; color:var(--amber); }
+    .cv-field-label { font-size:.55rem; letter-spacing:.35em; color:var(--dim); margin-bottom:.4rem; }
+    .cv-textarea {
+      width:100%; background:rgba(0,255,65,.02); border:1px solid var(--border);
+      color:var(--green); font-family:'Share Tech Mono',monospace; font-size:.85rem;
+      padding:.7rem 1rem; outline:none; resize:vertical; line-height:1.6; letter-spacing:.04em;
+    }
+    .cv-textarea:focus { border-color:var(--dim); }
+    .cv-save-btn {
+      padding:.7rem 2rem; border:1px solid var(--green); background:transparent;
+      color:var(--green); font-family:'Share Tech Mono',monospace; font-size:.85rem;
+      letter-spacing:.3em; cursor:pointer; transition:all .3s; align-self:flex-start;
+    }
+    .cv-save-btn:hover { background:rgba(0,255,65,.07); box-shadow:0 0 15px rgba(0,255,65,.2); }
+    .cv-msg { font-size:.7rem; letter-spacing:.2em; color:var(--dim); min-height:1.2em; }
+
     /* ── CORPORATIVO ──────────────────────────────────────────────── */
     #recruitment { background:var(--black); align-items:flex-start; padding:3rem 2rem; }
     .corp-doc {
@@ -379,7 +434,8 @@
       @page { size: A4 portrait; margin: 10mm 12mm; }
 
       body::after, .sheet-actions { display:none !important; }
-      #splash,#ship-select,#recruitment,#quiz,#chargen { display:none !important; }
+      #splash,#ship-select,#recruitment,#quiz,#chargen,#char-view { display:none !important; }
+      .access-code-box { display:none !important; }
       .screen { display:none !important; }
       #sheet { display:block !important; padding:0 !important; background:white !important; }
       body { background:white !important; color:black !important; margin:0; }
@@ -564,10 +620,52 @@
     <div class="time">19:00 H · HORA LOCAL</div>
   </div>
   <button class="splash-btn" onclick="showScreen('ship-select'); loadShips()">INICIAR PROCESO DE SELECCIÓN</button>
+  <div class="code-lookup-wrap">
+    <div class="code-lookup-label">¿YA TIENES FICHA? CONSULTA CON TU CÓDIGO</div>
+    <div class="code-lookup-row">
+      <input class="code-input" id="code-inp" maxlength="6" placeholder="CÓDIGO" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')lookupByCode()">
+      <button class="code-submit-btn" onclick="lookupByCode()">ACCEDER →</button>
+    </div>
+    <div class="cv-msg" id="code-error"></div>
+  </div>
   <div class="splash-warning">
     ARMACORP LOGISTICS INC. · REF. MISIÓN ALX-7734 · SECTOR RHONDI<br>
     Al continuar aceptas los términos del contrato de tripulación.<br>
     ARMACORP no se responsabiliza de eventos acontecidos durante la misión.
+  </div>
+</div>
+
+<!-- ══ CONSULTA DE FICHA ═════════════════════════════════════════════ -->
+<div id="char-view" class="screen">
+  <div class="cv-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <button class="action-btn" onclick="showScreen('splash')">← VOLVER</button>
+      <div style="font-size:.6rem;letter-spacing:.3em;color:var(--dim)" id="cv-code-label"></div>
+    </div>
+    <div class="cv-header">
+      <div class="cv-name" id="cv-name"></div>
+      <div class="cv-meta" id="cv-meta"></div>
+    </div>
+    <div>
+      <div class="cv-field-label">ESTADÍSTICAS</div>
+      <div class="cv-stats" id="cv-stats"></div>
+    </div>
+    <div>
+      <div class="cv-field-label">TIRADAS DE SALVACIÓN</div>
+      <div class="cv-saves" id="cv-saves"></div>
+    </div>
+    <div>
+      <div class="cv-field-label">TRASFONDO</div>
+      <textarea class="cv-textarea" id="cv-bg" rows="4"></textarea>
+    </div>
+    <div>
+      <div class="cv-field-label">NOTAS</div>
+      <textarea class="cv-textarea" id="cv-notes" rows="6"></textarea>
+    </div>
+    <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+      <button class="cv-save-btn" onclick="saveCharChanges()">✓ GUARDAR CAMBIOS</button>
+      <div class="cv-msg" id="cv-save-msg"></div>
+    </div>
   </div>
 </div>
 
@@ -747,6 +845,11 @@
     <div class="sheet-actions">
       <button class="action-btn primary" onclick="window.print()">⎙ IMPRIMIR FICHA</button>
       <button class="action-btn" onclick="showScreen('splash')">↩ NUEVA FICHA</button>
+    </div>
+    <div class="access-code-box" id="access-code-box" style="display:none">
+      <div class="access-code-label">CÓDIGO DE ACCESO A TU FICHA</div>
+      <div class="access-code-value" id="access-code-display"></div>
+      <div class="access-code-hint">Guárdalo — te permite consultar y editar tu trasfondo y notas</div>
     </div>
     <div class="character-sheet" id="char-sheet-render"></div>
 
@@ -1891,6 +1994,66 @@ async function rollStats(){
   checkGenBtn();
 }
 
+function generateCode(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:6},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+}
+
+let currentCharId = null;
+
+async function lookupByCode(){
+  const code = document.getElementById('code-inp').value.trim().toUpperCase();
+  const errEl = document.getElementById('code-error');
+  if(code.length < 6){ errEl.textContent='Introduce los 6 caracteres del código.'; return; }
+  errEl.textContent='Buscando...';
+  try {
+    const res = await fetch(`${SUPA_URL}/rest/v1/characters?access_code=eq.${code}&select=*`, { headers:{ 'apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}` } });
+    const data = await res.json();
+    if(!data.length){ errEl.textContent='Código no encontrado. Comprueba los caracteres.'; return; }
+    errEl.textContent='';
+    document.getElementById('code-inp').value='';
+    loadCharView(data[0]);
+  } catch(e) {
+    errEl.textContent='Error de conexión.';
+  }
+}
+
+function loadCharView(c){
+  currentCharId = c.id;
+  document.getElementById('cv-name').textContent = c.char_name;
+  document.getElementById('cv-meta').textContent = `${c.class.toUpperCase()} · Jugador: ${c.player_name}`;
+  document.getElementById('cv-code-label').textContent = `CÓDIGO: ${c.access_code}`;
+  document.getElementById('cv-stats').innerHTML = [
+    ['FUERZA',c.strength],['VELOCIDAD',c.speed],['INTELECTO',c.intellect],['COMBATE',c.combat]
+  ].map(([l,v])=>`<div class="cv-stat"><div class="cl">${l}</div><div class="cv2">${v}</div></div>`).join('');
+  document.getElementById('cv-saves').innerHTML = [
+    ['CUERPO',c.body_save],['MIEDO',c.fear_save],['CORDURA',c.sanity_save],['ARMADURA',c.armor_save??25]
+  ].map(([l,v])=>`<div class="cv-save"><div class="cl">${l}</div><div class="cv2">${v}%</div></div>`).join('');
+  document.getElementById('cv-bg').value = c.background || '';
+  document.getElementById('cv-notes').value = c.notes || '';
+  document.getElementById('cv-save-msg').textContent = '';
+  showScreen('char-view');
+}
+
+async function saveCharChanges(){
+  if(!currentCharId) return;
+  const bg    = document.getElementById('cv-bg').value.trim();
+  const notes = document.getElementById('cv-notes').value.trim();
+  const msgEl = document.getElementById('cv-save-msg');
+  msgEl.textContent = 'Guardando...';
+  try {
+    const res = await fetch(`${SUPA_URL}/rest/v1/characters?id=eq.${currentCharId}`, {
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Prefer':'return=minimal'},
+      body: JSON.stringify({ background:bg, notes })
+    });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    msgEl.textContent = '✓ Cambios guardados.';
+  } catch(e) {
+    msgEl.textContent = `Error: ${e.message}`;
+  }
+}
+
 async function generateSheet(){
   const playerName=document.getElementById('inp-player').value.trim();
   const charName=document.getElementById('inp-char').value.trim();
@@ -1904,13 +2067,15 @@ async function generateSheet(){
   const trinket=selectedTrinket;
   const patch=selectedPatch;
 
+  const access_code = generateCode();
+
   const record={
     player_name:playerName, char_name:charName, class:charData.class,
     strength:charData.strength, speed:charData.speed, intellect:charData.intellect, combat:charData.combat,
     sanity_save:charData.sanity_save, fear_save:charData.fear_save, body_save:charData.body_save,
     max_stress:20, armor_save:charData.armor_save,
     portrait_path: selectedPortraitKey || null,
-    background: bg,
+    background: bg, notes: '', access_code,
     skills:Array.from(charSkills).map(id=>`${SKILL_TREE[id].es} [${TIER_LABEL[SKILL_TREE[id].tier]}]`),
     equipment:info.equipment, trinket, patch, quiz_answers:charData.quizAnswers,
     ship_id: selectedShip?.id || null,
@@ -1925,6 +2090,8 @@ async function generateSheet(){
   }
 
   renderSheet({...record, background:bg, portraitPath:selectedPortraitKey||'', genderLabel, shipName:selectedShip?.name||'', credits, specialRule:info.specialRule, patch});
+  document.getElementById('access-code-display').textContent = access_code;
+  document.getElementById('access-code-box').style.display = 'block';
   showScreen('sheet');
 }
 

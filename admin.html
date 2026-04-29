@@ -701,7 +701,7 @@ function charCard(c) {
         ${c.patch   ? `<div class="card-trinket"><div class="tl">PARCHE</div>${c.patch}</div>` : '<div></div>'}
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.4rem">
-        <div class="card-date">Registrado: ${new Date(c.created_at).toLocaleString('es-ES')}</div>
+        <div class="card-date">Registrado: ${new Date(c.created_at).toLocaleString('es-ES')}${c.access_code ? ` · Código: <strong style="color:var(--green);letter-spacing:.15em">${c.access_code}</strong>` : ''}</div>
         <button class="btn danger" style="font-size:.6rem;padding:.3rem .6rem" onclick="deleteChar('${c.id}')">✕ BORRAR</button>
       </div>
     </div>`;

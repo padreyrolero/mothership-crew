@@ -84,3 +84,9 @@ alter table ships add column if not exists image_url text default '';
 
 -- Trasfondo libre escrito por el jugador (añadida en v6)
 alter table characters add column if not exists background text default '';
+
+-- Código de acceso de 6 caracteres para consultar/editar la ficha (añadida en v7)
+alter table characters add column if not exists access_code text default '';
+
+-- Notas del jugador (añadida en v7)
+alter table characters add column if not exists notes text default '';
