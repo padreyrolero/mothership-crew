@@ -270,7 +270,10 @@
       }
       .ps-logo { font-family: 'Orbitron', sans-serif; font-size: 20pt; font-weight: 900; color: black; letter-spacing: 4pt; line-height: 1; }
       .ps-logo-sub { font-family: 'Share Tech Mono', monospace; font-size: 7pt; color: #555; letter-spacing: 2pt; display: block; margin-top: 0.8mm; }
-      .ps-doc-title { font-family: 'Share Tech Mono', monospace; font-size: 8pt; color: #333; letter-spacing: 2.5pt; text-align: right; }
+      .ps-armacorp { font-family: 'Orbitron', sans-serif; font-size: 14pt; font-weight: 900; color: black; letter-spacing: 3pt; line-height: 1; }
+      .ps-armacorp-sub { font-family: 'Share Tech Mono', monospace; font-size: 5.5pt; color: #555; letter-spacing: 1.5pt; margin-top: 0.5mm; }
+      .ps-armacorp-slogan { font-family: 'Share Tech Mono', monospace; font-size: 6pt; color: #333; letter-spacing: 1pt; margin-top: 0.8mm; font-style: italic; }
+      .ps-doc-title { font-family: 'Share Tech Mono', monospace; font-size: 7pt; color: #333; letter-spacing: 2.5pt; }
 
       /* Cabecera personaje */
       .ps-top {
@@ -284,35 +287,35 @@
       }
       .ps-portrait { width: 64pt; height: 85pt; border: 0.5pt solid black; overflow: hidden; flex-shrink: 0; }
       .ps-portrait img { display: block; width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.1); }
-      .ps-char-name { font-family: 'Orbitron', sans-serif; font-size: 17pt; color: black; }
-      .ps-char-class { font-size: 8pt; color: #444; margin-top: 0.8mm; letter-spacing: 2pt; }
-      .ps-char-player { font-size: 7.5pt; color: #555; }
+      .ps-char-name { font-family: 'Orbitron', sans-serif; font-size: 20pt; color: black; }
+      .ps-char-class { font-size: 9pt; color: #444; margin-top: 0.8mm; letter-spacing: 2pt; }
+      .ps-char-player { font-size: 8.5pt; color: #555; }
       .ps-class-badge { border: 0.5pt solid black; padding: 1.5mm 2.5mm; text-align: center; }
-      .ps-badge-label { font-size: 6.5pt; color: #555; letter-spacing: 1pt; }
-      .ps-badge-class { font-family: 'Orbitron', sans-serif; font-size: 10pt; color: black; }
+      .ps-badge-label { font-size: 7pt; color: #555; letter-spacing: 1pt; }
+      .ps-badge-class { font-family: 'Orbitron', sans-serif; font-size: 12pt; color: black; }
 
       /* Secciones */
-      .ps-section-label { font-size: 7pt; color: #444; letter-spacing: 2.5pt; margin-bottom: 1.5mm; margin-top: 1.5mm; flex-shrink: 0; }
+      .ps-section-label { font-size: 8pt; color: #444; letter-spacing: 2.5pt; margin-bottom: 1mm; margin-top: 1mm; flex-shrink: 0; }
 
       /* Stats */
       .ps-stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.5mm; margin-bottom: 0; flex-shrink: 0; }
       .ps-stat { border: 0.5pt solid black; padding: 1mm 1.5mm; text-align: center; }
-      .ps-stat .s-label { font-size: 6.5pt; color: #555; margin-bottom: 0.8mm; }
-      .ps-stat .s-val { font-family: 'Orbitron', sans-serif; font-size: 20pt; color: black; }
+      .ps-stat .s-label { font-size: 7pt; color: #555; margin-bottom: 0.8mm; }
+      .ps-stat .s-val { font-family: 'Orbitron', sans-serif; font-size: 24pt; color: black; }
 
       /* Saves */
       .ps-saves-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.5mm; margin-bottom: 0; flex-shrink: 0; }
       .ps-save { border: 0.5pt solid black; padding: 1mm 1.5mm; text-align: center; }
-      .ps-save .sv-label { font-size: 6.5pt; color: #555; margin-bottom: 0.8mm; }
-      .ps-save .sv-val { font-family: 'Orbitron', sans-serif; font-size: 16pt; color: black; }
+      .ps-save .sv-label { font-size: 7pt; color: #555; margin-bottom: 0.8mm; }
+      .ps-save .sv-val { font-family: 'Orbitron', sans-serif; font-size: 20pt; color: black; }
 
       /* Regla especial */
       .ps-special-rule {
         color: black;
         border-left: 1.5pt solid black;
-        font-size: 8pt;
+        font-size: 9pt;
         padding: 1mm 2.5mm;
-        margin: 1.5mm 0;
+        margin: 1mm 0;
         line-height: 1.4;
         flex-shrink: 0;
       }
@@ -327,21 +330,21 @@
         min-height: 0;
       }
       .ps-section { border: 0.5pt solid black; padding: 2mm 2.5mm; }
-      .ps-section .sec-title { font-size: 6.5pt; color: #444; border-bottom: 0.5pt solid #aaa; padding-bottom: 0.8mm; margin-bottom: 1mm; letter-spacing: 2pt; }
-      .ps-section ul { list-style: none; font-size: 10pt; color: black; line-height: 1.5; padding: 0; margin: 0; }
+      .ps-section .sec-title { font-size: 8pt; color: #444; border-bottom: 0.5pt solid #aaa; padding-bottom: 0.8mm; margin-bottom: 1mm; letter-spacing: 2pt; }
+      .ps-section ul { list-style: none; font-size: 12pt; color: black; line-height: 1.45; padding: 0; margin: 0; }
       .ps-section ul li::before { content: '▸ '; }
       .ps-skill-t, .ps-skill-e, .ps-skill-m { color: #333; font-size: .65em; }
 
-      .ps-trinket { border: 0.5pt solid black; padding: 1.5mm 2.5mm; font-size: 10pt; color: black; }
-      .ps-trinket .sec-title { font-size: 6.5pt; color: #444; margin-bottom: 0.8mm; letter-spacing: 2pt; }
+      .ps-trinket { border: 0.5pt solid black; padding: 1.5mm 2.5mm; font-size: 12pt; color: black; }
+      .ps-trinket .sec-title { font-size: 8pt; color: #444; margin-bottom: 0.8mm; letter-spacing: 2pt; }
 
       .ps-stress { border: 0.5pt solid black; padding: 2mm 2.5mm; }
-      .ps-stress .sec-title { font-size: 6.5pt; color: #444; letter-spacing: 2pt; margin-bottom: 1.5mm; }
+      .ps-stress .sec-title { font-size: 8pt; color: #444; letter-spacing: 2pt; margin-bottom: 1mm; }
       .ps-stress-boxes { display: flex; flex-wrap: wrap; gap: 1mm; }
       .ps-stress-box { width: 12pt; height: 12pt; border: 0.5pt solid black; font-size: 5.5pt; display: flex; align-items: center; justify-content: center; color: #666; }
 
       .ps-notes { grid-column: 1 / -1; border: 0.5pt solid black; padding: 2mm 2.5mm; flex: 1; display: flex; flex-direction: column; }
-      .ps-notes .sec-title { font-size: 6.5pt; color: #444; border-bottom: 0.5pt solid #aaa; padding-bottom: 0.8mm; margin-bottom: 0; letter-spacing: 2pt; }
+      .ps-notes .sec-title { font-size: 8pt; color: #444; border-bottom: 0.5pt solid #aaa; padding-bottom: 0.8mm; margin-bottom: 0; letter-spacing: 2pt; }
       .ps-notes-lines { flex: 1; display: flex; flex-direction: column; justify-content: space-around; padding-top: 1mm; }
       .ps-notes-line { border-bottom: 0.3pt solid #ccc; height: 6mm; }
 
@@ -349,9 +352,9 @@
       .ps-back {
         page-break-before: always;
         font-family: 'Share Tech Mono', monospace;
-        font-size: 7pt;
+        font-size: 8pt;
         color: black;
-        line-height: 1.28;
+        line-height: 1.25;
         height: 277mm;
         box-sizing: border-box;
         overflow: hidden;
@@ -365,22 +368,22 @@
         margin-bottom: 2mm;
       }
       .ps-back-logo { font-family: 'Orbitron', sans-serif; font-size: 12pt; font-weight: 900; letter-spacing: 3pt; line-height: 1; }
-      .ps-back-logo span { display: block; font-family: 'Share Tech Mono', monospace; font-size: 6pt; letter-spacing: 1.5pt; color: #444; margin-top: 0.5mm; font-weight: 400; }
-      .ps-back-title { font-size: 7pt; letter-spacing: 2.5pt; color: #333; text-align: right; }
+      .ps-back-logo span { display: block; font-family: 'Share Tech Mono', monospace; font-size: 6.5pt; letter-spacing: 1.5pt; color: #444; margin-top: 0.5mm; font-weight: 400; }
+      .ps-back-title { font-size: 8pt; letter-spacing: 2.5pt; color: #333; text-align: right; }
       .ps-back-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
       .ps-back-col { display: flex; flex-direction: column; }
       .ps-back-h {
-        font-family: 'Orbitron', sans-serif; font-size: 6.5pt; letter-spacing: 1.5pt; font-weight: 700;
-        border-bottom: 0.5pt solid black; padding-bottom: 0.3mm; margin-top: 1.5mm; margin-bottom: 0.6mm;
+        font-family: 'Orbitron', sans-serif; font-size: 7pt; letter-spacing: 1.5pt; font-weight: 700;
+        border-bottom: 0.5pt solid black; padding-bottom: 0.3mm; margin-top: 1.2mm; margin-bottom: 0.5mm;
       }
       .ps-back-col:first-child .ps-back-h:first-child { margin-top: 0; }
-      .ps-back p { margin: 0 0 0.6mm; }
-      .ps-back ul { margin: 0 0 0.6mm; padding-left: 3.5mm; }
+      .ps-back p { margin: 0 0 0.5mm; }
+      .ps-back ul { margin: 0 0 0.5mm; padding-left: 3.5mm; }
       .ps-back li { margin-bottom: 0.2mm; }
       .ps-back strong { font-weight: bold; }
-      .ps-bt { width: 100%; margin: 0.3mm 0 0.8mm; }
-      .ps-bt-row { display: grid; grid-template-columns: 22mm 1fr; gap: 1mm; border-bottom: 0.3pt solid #ddd; padding: 0.3mm 0; font-size: 7pt; }
-      .ps-bt-row.ps-bt-head { font-weight: bold; border-bottom: 0.5pt solid black; font-size: 6.5pt; letter-spacing: 0.5pt; }
+      .ps-bt { width: 100%; margin: 0.2mm 0 0.6mm; }
+      .ps-bt-row { display: grid; grid-template-columns: 22mm 1fr; gap: 1mm; border-bottom: 0.3pt solid #ddd; padding: 0.25mm 0; font-size: 8pt; }
+      .ps-bt-row.ps-bt-head { font-weight: bold; border-bottom: 0.5pt solid black; font-size: 7pt; letter-spacing: 0.5pt; }
       .ps-panic .ps-bt-row { grid-template-columns: 14mm 1fr; }
     }
   </style>
@@ -402,6 +405,7 @@
   <div>
     <h1>PANEL DE GM — ARMACORP</h1>
     <div class="sub">GESTIÓN DE TRIPULACIONES · MISIÓN ALX-7734</div>
+    <div style="font-size:.55rem;letter-spacing:.25em;color:rgba(0,255,65,.35);margin-top:.3rem;font-style:italic">TU SACRIFICIO, NUESTRO ACTIVO.</div>
   </div>
   <div class="admin-actions">
     <button class="btn" onclick="loadAll()">↻ ACTUALIZAR</button>
@@ -753,7 +757,12 @@ function renderAdminSheet(c) {
         <div class="ps-logo">MOTHERSHIP</div>
         <span class="ps-logo-sub">SCI-FI HORROR ROLEPLAYING GAME · 0E EDITION</span>
       </div>
-      <div class="ps-doc-title">FICHA DE TRIPULACIÓN</div>
+      <div style="text-align:right">
+        <div class="ps-armacorp">ARMACORP</div>
+        <div class="ps-armacorp-sub">LOGISTICS &amp; DEEP SPACE RECOVERY INC.</div>
+        <div class="ps-armacorp-slogan">TU SACRIFICIO, NUESTRO ACTIVO.</div>
+        <div class="ps-doc-title" style="margin-top:1.5mm">FICHA DE TRIPULACIÓN</div>
+      </div>
     </div>
 
     <div class="ps-top">
