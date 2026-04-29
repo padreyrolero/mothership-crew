@@ -1711,7 +1711,6 @@ function selectGender(g, btn){
   document.querySelectorAll('.gender-btn').forEach(b=>b.classList.remove('selected'));
   btn.classList.add('selected');
   document.getElementById('portrait-section').style.display='block';
-  document.getElementById('bg-section').style.display='none';
   renderPortraits(charData.class, g);
   checkGenBtn();
 }
