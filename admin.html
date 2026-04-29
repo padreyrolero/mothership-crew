@@ -230,18 +230,158 @@
     }
     .card-check-label:hover { color: var(--green); }
 
+    /* ── PRINT CONTAINER (oculto en pantalla) ── */
+    #print-container { display: none; }
+
     /* ── PRINT ── */
     @media print {
-      body { background: white; color: black; padding: 1rem; }
-      body::after { display: none; }
-      .admin-header, .admin-actions, #status, .section-block, .ship-log, .btn { display: none; }
-      .card-check-row { display: none; }
-      :root { --green: #007700; --dim: #555; --border: #ccc; --amber: #996600; --black: white; }
-      .chars-subgrid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-      .char-card { display: none; border-color: #ccc; break-inside: avoid; }
-      .char-card.will-print { display: block; }
-      .ship-section-header .btn { display: none; }
-      .ship-section { break-inside: avoid; }
+      /* Ocultar todo el panel de admin */
+      body > *:not(#print-container) { display: none !important; }
+      body::after { display: none !important; }
+      body { background: white !important; color: black !important; margin: 0; padding: 0; }
+
+      #print-container { display: block !important; }
+
+      @page { size: A4 portrait; margin: 10mm 12mm; }
+
+      /* ══ FICHA — página frontal ══ */
+      .ps-sheet {
+        border: 1pt solid black;
+        background: white;
+        padding: 3mm 4mm;
+        height: 263mm;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+        page-break-inside: avoid;
+        font-family: 'Share Tech Mono', monospace;
+        color: black;
+      }
+
+      /* Header con logo */
+      .ps-print-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        border-bottom: 1.5pt solid black;
+        padding-bottom: 2mm;
+        margin-bottom: 3mm;
+        flex-shrink: 0;
+      }
+      .ps-logo { font-family: 'Orbitron', sans-serif; font-size: 16pt; font-weight: 900; color: black; letter-spacing: 4pt; line-height: 1; }
+      .ps-logo-sub { font-family: 'Share Tech Mono', monospace; font-size: 5.5pt; color: #555; letter-spacing: 2pt; display: block; margin-top: 0.8mm; }
+      .ps-doc-title { font-family: 'Share Tech Mono', monospace; font-size: 6.5pt; color: #333; letter-spacing: 2.5pt; text-align: right; }
+
+      /* Cabecera personaje */
+      .ps-top {
+        display: grid;
+        grid-template-columns: 64pt 1fr auto;
+        gap: 2.5mm;
+        padding-bottom: 2.5mm;
+        margin-bottom: 2.5mm;
+        border-bottom: 0.5pt solid #888;
+        flex-shrink: 0;
+      }
+      .ps-portrait { width: 64pt; height: 85pt; border: 0.5pt solid black; overflow: hidden; flex-shrink: 0; }
+      .ps-portrait img { display: block; width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.1); }
+      .ps-char-name { font-family: 'Orbitron', sans-serif; font-size: 13pt; color: black; }
+      .ps-char-class { font-size: 6.5pt; color: #444; margin-top: 0.8mm; letter-spacing: 2pt; }
+      .ps-char-player { font-size: 6pt; color: #555; }
+      .ps-class-badge { border: 0.5pt solid black; padding: 1.5mm 2.5mm; text-align: center; }
+      .ps-badge-label { font-size: 5pt; color: #555; letter-spacing: 1pt; }
+      .ps-badge-class { font-family: 'Orbitron', sans-serif; font-size: 8pt; color: black; }
+
+      /* Secciones */
+      .ps-section-label { font-size: 5.5pt; color: #444; letter-spacing: 2.5pt; margin-bottom: 1.5mm; margin-top: 1.5mm; flex-shrink: 0; }
+
+      /* Stats */
+      .ps-stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.5mm; margin-bottom: 0; flex-shrink: 0; }
+      .ps-stat { border: 0.5pt solid black; padding: 1mm 1.5mm; text-align: center; }
+      .ps-stat .s-label { font-size: 5pt; color: #555; margin-bottom: 0.8mm; }
+      .ps-stat .s-val { font-family: 'Orbitron', sans-serif; font-size: 16pt; color: black; }
+
+      /* Saves */
+      .ps-saves-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.5mm; margin-bottom: 0; flex-shrink: 0; }
+      .ps-save { border: 0.5pt solid black; padding: 1mm 1.5mm; text-align: center; }
+      .ps-save .sv-label { font-size: 5pt; color: #555; margin-bottom: 0.8mm; }
+      .ps-save .sv-val { font-family: 'Orbitron', sans-serif; font-size: 13pt; color: black; }
+
+      /* Regla especial */
+      .ps-special-rule {
+        color: black;
+        border-left: 1.5pt solid black;
+        font-size: 6.5pt;
+        padding: 1mm 2.5mm;
+        margin: 1.5mm 0;
+        line-height: 1.4;
+        flex-shrink: 0;
+      }
+
+      /* Sección inferior */
+      .ps-bottom {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5mm;
+        flex: 1;
+        grid-template-rows: auto auto auto 1fr;
+        min-height: 0;
+      }
+      .ps-section { border: 0.5pt solid black; padding: 2mm 2.5mm; }
+      .ps-section .sec-title { font-size: 5pt; color: #444; border-bottom: 0.5pt solid #aaa; padding-bottom: 0.8mm; margin-bottom: 1mm; letter-spacing: 2pt; }
+      .ps-section ul { list-style: none; font-size: 7pt; color: black; line-height: 1.55; padding: 0; margin: 0; }
+      .ps-section ul li::before { content: '▸ '; }
+      .ps-skill-t, .ps-skill-e, .ps-skill-m { color: #333; font-size: .65em; }
+
+      .ps-trinket { border: 0.5pt solid black; padding: 1.5mm 2.5mm; font-size: 7pt; color: black; }
+      .ps-trinket .sec-title { font-size: 5pt; color: #444; margin-bottom: 0.8mm; letter-spacing: 2pt; }
+
+      .ps-stress { border: 0.5pt solid black; padding: 2mm 2.5mm; }
+      .ps-stress .sec-title { font-size: 5pt; color: #444; letter-spacing: 2pt; margin-bottom: 1.5mm; }
+      .ps-stress-boxes { display: flex; flex-wrap: wrap; gap: 1mm; }
+      .ps-stress-box { width: 12pt; height: 12pt; border: 0.5pt solid black; font-size: 4.5pt; display: flex; align-items: center; justify-content: center; color: #666; }
+
+      .ps-notes { grid-column: 1 / -1; border: 0.5pt solid black; padding: 2mm 2.5mm; flex: 1; display: flex; flex-direction: column; }
+      .ps-notes .sec-title { font-size: 5pt; color: #444; border-bottom: 0.5pt solid #aaa; padding-bottom: 0.8mm; margin-bottom: 0; letter-spacing: 2pt; }
+      .ps-notes-lines { flex: 1; display: flex; flex-direction: column; justify-content: space-around; padding-top: 1mm; }
+      .ps-notes-line { border-bottom: 0.3pt solid #ccc; height: 6mm; }
+
+      /* ══ REVERSO — página 2 ══ */
+      .ps-back {
+        page-break-before: always;
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 6pt;
+        color: black;
+        line-height: 1.35;
+        height: 277mm;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+      .ps-back-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        border-bottom: 1.5pt solid black;
+        padding-bottom: 1.5mm;
+        margin-bottom: 2.5mm;
+      }
+      .ps-back-logo { font-family: 'Orbitron', sans-serif; font-size: 12pt; font-weight: 900; letter-spacing: 3pt; line-height: 1; }
+      .ps-back-logo span { display: block; font-family: 'Share Tech Mono', monospace; font-size: 5pt; letter-spacing: 1.5pt; color: #444; margin-top: 0.5mm; font-weight: 400; }
+      .ps-back-title { font-size: 6pt; letter-spacing: 2.5pt; color: #333; text-align: right; }
+      .ps-back-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+      .ps-back-col { display: flex; flex-direction: column; }
+      .ps-back-h {
+        font-family: 'Orbitron', sans-serif; font-size: 5.5pt; letter-spacing: 1.5pt; font-weight: 700;
+        border-bottom: 0.5pt solid black; padding-bottom: 0.5mm; margin-top: 2mm; margin-bottom: 0.8mm;
+      }
+      .ps-back-col:first-child .ps-back-h:first-child { margin-top: 0; }
+      .ps-back p { margin: 0 0 0.8mm; }
+      .ps-back ul { margin: 0 0 0.8mm; padding-left: 3.5mm; }
+      .ps-back li { margin-bottom: 0.3mm; }
+      .ps-back strong { font-weight: bold; }
+      .ps-bt { width: 100%; margin: 0.5mm 0 1mm; }
+      .ps-bt-row { display: grid; grid-template-columns: 22mm 1fr; gap: 1mm; border-bottom: 0.3pt solid #ddd; padding: 0.4mm 0; font-size: 5.8pt; }
+      .ps-bt-row.ps-bt-head { font-weight: bold; border-bottom: 0.5pt solid black; font-size: 5.5pt; letter-spacing: 0.5pt; }
+      .ps-panic .ps-bt-row { grid-template-columns: 14mm 1fr; }
     }
   </style>
 </head>
@@ -294,6 +434,8 @@
 
 <!-- Naves con tripulaciones -->
 <div class="ships-container" id="ships-container"></div>
+<!-- Contenedor de fichas para imprimir (invisible en pantalla) -->
+<div id="print-container"></div>
 
 <!-- Sin nave asignada -->
 <div class="unassigned-section" id="unassigned-section" style="display:none">
@@ -302,6 +444,8 @@
 </div>
 
 <script>
+let allChars = [];
+
 const SUPA_URL = 'https://vbmftksmuvpbcizvfola.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZibWZ0a3NtdXZwYmNpenZmb2xhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMDUyMDEsImV4cCI6MjA5Mjc4MTIwMX0.J20XCeZlACV_xToBthVtl3aOohj6NDI-pQSVFpy5lXo';
 const HDR = { 'Content-Type':'application/json', 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}` };
@@ -388,6 +532,7 @@ async function createShip() {
 }
 
 function renderAll(ships, chars) {
+  allChars = chars;
   const container = document.getElementById('ships-container');
 
   container.innerHTML = ships.map(ship => {
@@ -572,16 +717,171 @@ async function deleteChar(id) {
 }
 
 function printSelected() {
-  const allCards = document.querySelectorAll('.char-card');
-  const checked  = document.querySelectorAll('.card-check:checked');
+  const checked = document.querySelectorAll('.card-check:checked');
   if (checked.length === 0) {
     alert('Selecciona al menos un personaje para imprimir.');
     return;
   }
-  allCards.forEach(card => card.classList.remove('will-print'));
-  checked.forEach(cb => cb.closest('.char-card').classList.add('will-print'));
+  const container = document.getElementById('print-container');
+  container.innerHTML = '';
+  checked.forEach(cb => {
+    const cardId = cb.closest('.char-card').id.replace('card-', '');
+    const c = allChars.find(ch => ch.id === cardId);
+    if (!c) return;
+    container.innerHTML += renderAdminSheet(c) + sheetBackHTML();
+  });
   window.print();
-  allCards.forEach(card => card.classList.remove('will-print'));
+  container.innerHTML = '';
+}
+
+function renderAdminSheet(c) {
+  const stressBoxes = Array.from({length: 20}, (_, i) => `<div class="ps-stress-box">${i + 1}</div>`).join('');
+  const specialRule = CLASS_RULES[c.class] || '';
+
+  const skillsHTML = (c.skills || []).map(s => {
+    const m = s.match(/^(.*)\s\[(APRENDIZ|EXPERTO|MAESTRO)\]$/);
+    if (!m) return `<li>${s}</li>`;
+    const cls = {APRENDIZ:'ps-skill-t', EXPERTO:'ps-skill-e', MAESTRO:'ps-skill-m'};
+    const bon = {APRENDIZ:'+10%', EXPERTO:'+15%', MAESTRO:'+20%'};
+    return `<li>${m[1]} <span class="${cls[m[2]]}">${m[2]} ${bon[m[2]]}</span></li>`;
+  }).join('');
+
+  return `
+  <div class="ps-sheet">
+    <div class="ps-print-header">
+      <div>
+        <div class="ps-logo">MOTHERSHIP</div>
+        <span class="ps-logo-sub">SCI-FI HORROR ROLEPLAYING GAME · 0E EDITION</span>
+      </div>
+      <div class="ps-doc-title">FICHA DE TRIPULACIÓN</div>
+    </div>
+
+    <div class="ps-top">
+      <div class="ps-portrait">
+        ${c.portrait_path ? `<img src="${c.portrait_path}" alt="" onerror="this.parentNode.style.opacity='.15'">` : ''}
+      </div>
+      <div>
+        <div class="ps-char-name">${c.char_name}</div>
+        <div class="ps-char-class">${c.class.toUpperCase()}</div>
+        <div class="ps-char-player">Jugador: ${c.player_name}</div>
+      </div>
+      <div class="ps-class-badge">
+        <div class="ps-badge-label">CLASE</div>
+        <div class="ps-badge-class">${c.class}</div>
+      </div>
+    </div>
+
+    <div class="ps-section-label">ESTADÍSTICAS PRIMARIAS</div>
+    <div class="ps-stats-row">
+      <div class="ps-stat"><div class="s-label">STRENGTH</div><div class="s-val">${c.strength}</div></div>
+      <div class="ps-stat"><div class="s-label">SPEED</div><div class="s-val">${c.speed}</div></div>
+      <div class="ps-stat"><div class="s-label">INTELLECT</div><div class="s-val">${c.intellect}</div></div>
+      <div class="ps-stat"><div class="s-label">COMBAT</div><div class="s-val">${c.combat}</div></div>
+    </div>
+
+    <div class="ps-section-label">TIRADAS DE SALVACIÓN</div>
+    <div class="ps-saves-row">
+      <div class="ps-save"><div class="sv-label">CUERPO</div><div class="sv-val">${c.body_save}%</div></div>
+      <div class="ps-save"><div class="sv-label">MIEDO</div><div class="sv-val">${c.fear_save}%</div></div>
+      <div class="ps-save"><div class="sv-label">CORDURA</div><div class="sv-val">${c.sanity_save}%</div></div>
+      <div class="ps-save"><div class="sv-label">ARMADURA</div><div class="sv-val">${c.armor_save ?? 25}%</div></div>
+    </div>
+
+    ${specialRule ? `<div class="ps-special-rule">◆ ${specialRule}</div>` : ''}
+
+    <div class="ps-bottom">
+      <div class="ps-section"><div class="sec-title">HABILIDADES</div><ul>${skillsHTML}</ul></div>
+      <div class="ps-section"><div class="sec-title">EQUIPO INICIAL</div><ul>${(c.equipment||[]).map(e=>`<li>${e}</li>`).join('')}</ul></div>
+      <div class="ps-trinket"><div class="sec-title">BARATIJA PERSONAL</div>${c.trinket || '—'}</div>
+      <div class="ps-trinket"><div class="sec-title">PARCHE</div>${c.patch || '—'}</div>
+      <div class="ps-stress">
+        <div class="sec-title">ESTRÉS (MAX 20)</div>
+        <div class="ps-stress-boxes">${stressBoxes}</div>
+      </div>
+      <div class="ps-notes">
+        <div class="sec-title">NOTAS</div>
+        <div class="ps-notes-lines">
+          ${'<div class="ps-notes-line"></div>'.repeat(12)}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function sheetBackHTML() {
+  return `
+  <div class="ps-back">
+    <div class="ps-back-header">
+      <div class="ps-back-logo">MOTHERSHIP <span>SCI-FI HORROR RPG · 0E EDITION</span></div>
+      <div class="ps-back-title">REFERENCIA RÁPIDA DE REGLAS</div>
+    </div>
+    <div class="ps-back-cols">
+      <div class="ps-back-col">
+        <div class="ps-back-h">CHEQUEOS DE ESTADÍSTICA</div>
+        <p>Tira <strong>d%</strong> (dos d10) e intenta sacar <strong>igual o menor</strong> que tu estadística.</p>
+        <p><strong>Ventaja [+]:</strong> tira dos veces, quédate con el mejor resultado.</p>
+        <p><strong>Desventaja [−]:</strong> tira dos veces, quédate con el peor resultado.</p>
+        <p><strong>Crítico:</strong> dígitos iguales (11, 22…). 00 = éxito crítico. 99 = fallo crítico.</p>
+        <p><strong>Chequeo enfrentado:</strong> ambos tiran; gana quien saque más alto sin pasarse de su stat.</p>
+        <div class="ps-back-h">HABILIDADES</div>
+        <div class="ps-bt">
+          <div class="ps-bt-row ps-bt-head"><span>Nivel</span><span>Bono al stat</span></div>
+          <div class="ps-bt-row"><span>Aprendiz (T)</span><span>+10%</span></div>
+          <div class="ps-bt-row"><span>Experto (E)</span><span>+15%</span></div>
+          <div class="ps-bt-row"><span>Maestro (M)</span><span>+20%</span></div>
+        </div>
+        <div class="ps-back-h">TIRADAS DE SALVACIÓN</div>
+        <p>Tira d% igual o menor. Fallo: <strong>+1 Estrés</strong> y consecuencias. Fallo crítico: además Tirada de Pánico.</p>
+        <p>· <strong>Cordura</strong> — lo incomprensible, ilusiones &nbsp;· <strong>Miedo</strong> — terror, trauma</p>
+        <p>· <strong>Cuerpo</strong> — reflejos, enfermedad &nbsp;· <strong>Armadura</strong> — daño físico</p>
+        <div class="ps-back-h">CURACIÓN Y DESCANSO</div>
+        <p>Tras <strong>6 h de descanso</strong>: tira Tirada de salvación de Cuerpo. Éxito: cura stat−resultado PV. Fallo crítico: −1d10 PV. Máx. una vez al día.</p>
+        <p><strong>PV máx. = Fuerza × 2.</strong></p>
+        <div class="ps-back-h">INCONSCIENCIA Y MUERTE</div>
+        <p>A <strong>0 PV</strong>: tira Tirada de salvación de Cuerpo. Fallo = muerte. Éxito = inconsciente.</p>
+        <div class="ps-back-h">ESTRÉS</div>
+        <p>Sube al fallar tiradas, ver morir compañeros, daño crítico, 24 h sin dormir, nave impactada…</p>
+        <p><strong>Reducir estrés:</strong> descanso + Tirada de salvación de Miedo exitosa → −1 Estrés por cada 10 pts de margen.</p>
+      </div>
+      <div class="ps-back-col">
+        <div class="ps-back-h">COMBATE</div>
+        <p><strong>Iniciativa:</strong> chequeo de Velocidad. Éxito → actúas antes. Éxito crítico: acción extra. Fallo crítico: solo 1 acción.</p>
+        <p><strong>Turno:</strong> ~10 s. Tienes <strong>2 acciones</strong> (atacar, recargar, moverse, curar…).</p>
+        <p><strong>Distancia:</strong> Combate [atacante] vs. Armadura [defensor]. Ganador ataca → tira daño.</p>
+        <p><strong>CQC:</strong> defensor opone Armadura, Combate o Cuerpo.</p>
+        <p><strong>Cobertura:</strong> Ventaja en Tirada de salvación de Armadura. <strong>Apuntar:</strong> 2 acciones → Ventaja.</p>
+        <p><strong>Movimiento:</strong> Velocidad ÷ 2 m (1 acción) o Velocidad m (2 acciones).</p>
+        <div class="ps-back-h">RANGOS</div>
+        <div class="ps-bt">
+          <div class="ps-bt-row ps-bt-head"><span>Distancia</span><span>Penalización</span></div>
+          <div class="ps-bt-row"><span>Corto</span><span>Sin penalización</span></div>
+          <div class="ps-bt-row"><span>Medio</span><span>−10%</span></div>
+          <div class="ps-bt-row"><span>Largo</span><span>Desventaja [−]</span></div>
+        </div>
+        <div class="ps-back-h">TIRADA DE PÁNICO</div>
+        <p><strong>Paso 1 — Chequeo de Estrés (2d10):</strong> si resultado &gt; Estrés actual → no Pánico, −1 Estrés. Si igual o menor → Paso 2.</p>
+        <p><strong>Paso 2 — Efecto (2d10 + Estrés):</strong> resta Resolve (máx. −5):</p>
+        <div class="ps-bt ps-panic">
+          <div class="ps-bt-row ps-bt-head"><span>Total</span><span>Efecto</span></div>
+          <div class="ps-bt-row"><span>2–3</span><span>Enfoque total. Ventaja en todo (1d10 h).</span></div>
+          <div class="ps-bt-row"><span>4–5</span><span>Adrenalina. Ventaja en todo (3d10 min).</span></div>
+          <div class="ps-bt-row"><span>6–7</span><span>Adrenalina leve. Ventaja (1d10 min).</span></div>
+          <div class="ps-bt-row"><span>8–9</span><span>Ansioso. +1 Estrés.</span></div>
+          <div class="ps-bt-row"><span>10–11</span><span>Tic nervioso. +2 Estrés; compañero +1.</span></div>
+          <div class="ps-bt-row"><span>12–13</span><span>Cobardía. +1 Estrés; Tirada de salvación de Miedo para combatir.</span></div>
+          <div class="ps-bt-row"><span>14–15</span><span>Alucinaciones. 2d10 h.</span></div>
+          <div class="ps-bt-row"><span>16–17</span><span>Terror. Nueva fobia permanente.</span></div>
+          <div class="ps-bt-row"><span>18–19</span><span>Desbordado. +1d10 Estrés.</span></div>
+          <div class="ps-bt-row"><span>20–21</span><span>Sacudido. Desventaja en todo (2d10 min).</span></div>
+          <div class="ps-bt-row"><span>22–23</span><span>Paranoico. Tirada de salvación de Miedo al reunirse (1d10 días).</span></div>
+          <div class="ps-bt-row"><span>24–25</span><span>Pulsión de muerte / Catatónico.</span></div>
+          <div class="ps-bt-row"><span>26–27</span><span>Roto. Pánico si compañero falla tirada.</span></div>
+          <div class="ps-bt-row"><span>28–29</span><span>Psicótico / Tira dos veces.</span></div>
+          <div class="ps-bt-row"><span>30+</span><span>Colapso permanente o muerte instantánea.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
 }
 
 function toggleSelectAll() {
