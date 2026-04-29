@@ -48,11 +48,12 @@ create policy "Cualquiera puede leer"
 
 -- ── TABLA DE NAVES ────────────────────────────────────────────────────
 create table if not exists ships (
-  id          uuid default gen_random_uuid() primary key,
-  created_at  timestamptz default now(),
-  name        text not null,
-  description text default '',
-  log_md      text default ''
+  id               uuid default gen_random_uuid() primary key,
+  created_at       timestamptz default now(),
+  name             text not null,
+  description      text default '',
+  log_md           text default '',
+  recruitment_text text default ''
 );
 
 alter table ships enable row level security;
