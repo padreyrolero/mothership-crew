@@ -678,14 +678,6 @@
       <button class="cv-save-btn" onclick="printCharView()" style="border-color:var(--dim);color:var(--dim)">⎙ IMPRIMIR FICHA</button>
       <div class="cv-msg" id="cv-save-msg"></div>
     </div>
-    <div class="pdf-callout">
-      <div class="pdf-callout-dot"></div>
-      <div class="pdf-callout-text">
-        <div class="pdf-callout-label">ARCHIVO DISPONIBLE · ARMACORP LOGISTICS</div>
-        <div class="pdf-callout-title">GUÍA DE SUPERVIVENCIA DEL JUGADOR</div>
-      </div>
-      <a class="pdf-callout-btn" href="Mothership - Guia de Supervivencia del Jugador.pdf" download>↓ DESCARGAR</a>
-    </div>
   </div>
 </div>
 
@@ -2276,6 +2268,7 @@ function printCharView(){
   });
   document.getElementById('access-code-box').style.display = 'none';
   showScreen('sheet');
+  setTimeout(doPrint, 300);
 }
 
 async function saveCharChanges(){
