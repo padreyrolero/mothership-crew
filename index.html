@@ -875,7 +875,7 @@
 <div id="sheet" class="screen">
   <div class="sheet-wrap">
     <div class="sheet-actions">
-      <button class="action-btn primary" onclick="window.print()">⎙ IMPRIMIR FICHA</button>
+      <button class="action-btn primary" onclick="doPrint()">⎙ IMPRIMIR FICHA</button>
       <button class="action-btn" onclick="if(confirm('¿Crear una nueva ficha? Se perderá la sesión actual.'))showScreen('splash')">↩ NUEVA FICHA</button>
     </div>
     <div class="pdf-callout">
@@ -1004,6 +1004,13 @@ async function supaInsert(data) {
     throw new Error(err.message || err.details || `HTTP ${res.status}`);
   }
   return res.json();
+}
+
+function doPrint() {
+  const hide = document.querySelectorAll('.pdf-callout, .sheet-actions, .access-code-box');
+  hide.forEach(el => el.style.setProperty('display', 'none', 'important'));
+  window.print();
+  hide.forEach(el => el.style.removeProperty('display'));
 }
 
 // ══ NAVEGACIÓN ══════════════════════════════════════════════════════
