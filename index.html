@@ -443,7 +443,7 @@
     @media print {
       @page { size: A4 portrait; margin: 10mm 12mm; }
 
-      body::after, .sheet-actions { display:none !important; }
+      body::after, .sheet-actions, .pdf-callout { display:none !important; }
       #splash,#ship-select,#recruitment,#quiz,#chargen,#char-view { display:none !important; }
       .access-code-box { display:none !important; }
       .screen { display:none !important; }
@@ -819,6 +819,7 @@
         <div class="stat-box"><div class="stat-name">INTELECTO</div><div class="stat-val" id="st-int">—</div></div>
         <div class="stat-box"><div class="stat-name">COMBATE</div><div class="stat-val" id="st-com">—</div></div>
       </div>
+      <div class="roll-assessment" id="roll-assessment"></div>
     </div>
 
     <!-- Saves -->
@@ -1668,13 +1669,16 @@ async function loadShips(){
     const ships = await shipsRes.json();
     const chars = await charsRes.json();
 
+    if (!Array.isArray(ships)) throw new Error('Bad ships response');
+    if (!Array.isArray(chars)) console.warn('characters query failed (active column missing?)', chars);
+
     if (!ships.length) {
       el.innerHTML = '<div style="color:var(--dim);font-size:.75rem;letter-spacing:.2em;padding:1rem 0">NO HAY NAVES REGISTRADAS. EL GM DEBE CREAR UNA PRIMERO.</div>';
       return;
     }
 
     const countByShip = {};
-    chars.forEach(c => { if(c.ship_id) countByShip[c.ship_id] = (countByShip[c.ship_id]||0)+1; });
+    (Array.isArray(chars) ? chars : []).forEach(c => { if(c.ship_id) countByShip[c.ship_id] = (countByShip[c.ship_id]||0)+1; });
 
     el.innerHTML = ships.map(s => {
       const count = countByShip[s.id] || 0;
@@ -2200,6 +2204,7 @@ async function rollStats(){
   document.getElementById('sv-san').textContent=sv.sanity;
   document.getElementById('sv-armor').textContent=sv.armor;
   charData={...charData,...rolls,body_save:sv.body,fear_save:sv.fear,sanity_save:sv.sanity,armor_save:sv.armor};
+  document.getElementById('roll-assessment').textContent = getRollAssessment(rolls);
   updateRollCounter();
   checkGenBtn();
 }

@@ -811,11 +811,11 @@ function charCard(c) {
       <div class="card-lists">
         <div class="cl-sec">
           <div class="cl-title">HABILIDADES</div>
-          <ul>${c.skills.map(formatSkill).join('')}</ul>
+          <ul>${(c.skills||[]).map(formatSkill).join('')}</ul>
         </div>
         <div class="cl-sec">
           <div class="cl-title">EQUIPO</div>
-          <ul>${c.equipment.map(e=>`<li>${e}</li>`).join('')}</ul>
+          <ul>${(c.equipment||[]).map(e=>`<li>${e}</li>`).join('')}</ul>
         </div>
       </div>
       <div class="card-items-row">
