@@ -1006,12 +1006,7 @@ async function supaInsert(data) {
   return res.json();
 }
 
-function doPrint() {
-  const hide = document.querySelectorAll('.pdf-callout, .sheet-actions, .access-code-box');
-  hide.forEach(el => el.style.setProperty('display', 'none', 'important'));
-  window.print();
-  hide.forEach(el => el.style.removeProperty('display'));
-}
+function doPrint() { window.print(); }
 
 // ══ NAVEGACIÓN ══════════════════════════════════════════════════════
 function showScreen(id) {
@@ -2433,6 +2428,15 @@ function renderSheet(r){
     </div>
   `;
 }
+
+// ══ IMPRESIÓN ═══════════════════════════════════════════════════════
+const PRINT_HIDE_SEL = '.pdf-callout, .sheet-actions, .access-code-box';
+window.addEventListener('beforeprint', () => {
+  document.querySelectorAll(PRINT_HIDE_SEL).forEach(el => el.style.setProperty('display','none','important'));
+});
+window.addEventListener('afterprint', () => {
+  document.querySelectorAll(PRINT_HIDE_SEL).forEach(el => el.style.removeProperty('display'));
+});
 </script>
 </body>
 </html>
