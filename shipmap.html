@@ -1,0 +1,2025 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOTHERSHIP // SHIP MAPPER</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #000d00;
+  --bg2:      #000800;
+  --green:    #00ff41;
+  --dim:      #00cc33;
+  --dark:     #007a1f;
+  --darker:   #005500;
+  --panel:    #001500;
+  --border:   #003300;
+  --border2:  #005500;
+  --amber:    #ffb000;
+  --red:      #ff3300;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--green);
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 9000;
+}
+
+/* CRT flicker */
+@keyframes flicker {
+  0%,100% { opacity:1; }
+  92%      { opacity:1; }
+  93%      { opacity:0.92; }
+  94%      { opacity:1; }
+  97%      { opacity:0.96; }
+  98%      { opacity:1; }
+}
+body { animation: flicker 8s infinite; }
+
+/* HEADER */
+header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border2);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+header h1 {
+  font-size: 15px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 8px var(--green);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+header h1 span { color: var(--dim); }
+
+.ship-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.label {
+  color: var(--dim);
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+select, button, input[type=checkbox] {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+}
+
+select {
+  background: var(--bg2);
+  color: var(--green);
+  border: 1px solid var(--border2);
+  padding: 3px 6px;
+  outline: none;
+  cursor: pointer;
+  min-width: 140px;
+}
+select:focus { border-color: var(--green); }
+
+button {
+  background: transparent;
+  color: var(--green);
+  border: 1px solid var(--border2);
+  padding: 3px 9px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.1s;
+  white-space: nowrap;
+}
+button:hover { background: var(--border); border-color: var(--green); }
+button:active { background: var(--border2); }
+button:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
+
+button.accent {
+  color: var(--amber);
+  border-color: var(--amber);
+  text-shadow: 0 0 6px var(--amber);
+}
+button.accent:hover { background: rgba(255,176,0,0.12); }
+
+button.danger {
+  color: var(--red);
+  border-color: var(--red);
+}
+button.danger:hover { background: rgba(255,51,0,0.12); }
+
+button.active {
+  background: var(--darker);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* TOOLBAR */
+#toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  min-height: 34px;
+}
+
+#palette {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.tile-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  font-size: 10px;
+  border-color: var(--border);
+  color: var(--dim);
+}
+.tile-btn:hover { border-color: var(--dim); color: var(--green); }
+.tile-btn.selected {
+  background: var(--green);
+  border-color: var(--green);
+  color: #000d00;
+}
+
+.swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border: 1px solid;
+  flex-shrink: 0;
+}
+
+.sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.tool-btn {
+  font-size: 10px;
+  padding: 2px 7px;
+}
+
+/* LEVELS BAR */
+#levels-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  min-height: 30px;
+}
+
+.level-tab {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-color: var(--border);
+  color: var(--dim);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.level-tab.active {
+  border-color: var(--green);
+  color: var(--green);
+  background: var(--border);
+}
+.level-tab-del {
+  color: var(--red);
+  font-size: 9px;
+  cursor: pointer;
+  padding: 0 2px;
+  border: none;
+  background: none;
+  font-family: monospace;
+  line-height: 1;
+}
+.level-tab-del:hover { color: #ff6633; }
+
+#level-tabs {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  overflow-x: auto;
+}
+
+/* SQL hint */
+#sql-hint {
+  padding: 3px 12px;
+  font-size: 9px;
+  color: #003300;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+}
+
+/* MAIN AREA */
+#main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+#left-panel {
+  width: 380px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border2);
+  background: var(--panel);
+  overflow: hidden;
+}
+
+#right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.panel-header {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--dim);
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--bg2);
+}
+
+#editor-wrap {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 10px;
+}
+
+#iso-wrap {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 10px;
+}
+
+canvas {
+  user-select: none;
+  display: block;
+  image-rendering: pixelated;
+}
+
+#editor-canvas {
+  cursor: crosshair;
+  border: 1px solid var(--border);
+}
+
+#iso-canvas {
+  border: 1px solid var(--border);
+}
+
+/* STATUS BAR */
+#statusbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 3px 12px;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--dim);
+}
+#statusbar span { letter-spacing: 0.5px; }
+#status-pos { min-width: 120px; }
+#status-tile { min-width: 120px; }
+#status-ship { color: var(--amber); }
+
+/* VIEW MODE OVERLAY */
+#view-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: #000;
+  flex-direction: column;
+}
+#view-overlay.active { display: flex; }
+
+#view-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border2);
+  background: var(--panel);
+  flex-shrink: 0;
+}
+
+#view-shipname {
+  font-size: 20px;
+  letter-spacing: 4px;
+  text-shadow: 0 0 12px var(--green), 0 0 24px var(--green);
+}
+
+#view-level-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+#view-level-label {
+  min-width: 120px;
+  text-align: center;
+  color: var(--dim);
+}
+
+#view-canvas-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#view-canvas {
+  display: block;
+}
+
+#view-canvas-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,0.06) 3px,
+    rgba(0,0,0,0.06) 6px
+  );
+  pointer-events: none;
+}
+
+#view-credit {
+  position: absolute;
+  bottom: 10px;
+  left: 14px;
+  font-size: 9px;
+  color: #003300;
+  letter-spacing: 1px;
+}
+
+#btn-view {
+  margin-left: auto;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border2); }
+::-webkit-scrollbar-thumb:hover { background: var(--darker); }
+
+/* Texture panel */
+#tex-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 590;
+}
+#tex-backdrop.active { display: block; }
+
+#tex-overlay {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 600;
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  width: min(600px, 94vw);
+  max-height: 80vh;
+  overflow: hidden;
+  flex-direction: column;
+  box-shadow: 0 0 40px rgba(0,255,65,0.12);
+}
+#tex-overlay.active { display: flex; }
+
+#tex-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+.glow-dim { color: var(--dim); text-shadow: 0 0 6px var(--dim); }
+
+#tex-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.tex-card {
+  border: 1px solid var(--border);
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg2);
+  transition: border-color 0.1s;
+}
+.tex-card:hover { border-color: var(--border2); }
+.tex-card.has-img { border-color: var(--dark); }
+
+.tex-preview {
+  width: 72px;
+  height: 72px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: var(--dark);
+  letter-spacing: 0.5px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.tex-preview canvas {
+  width: 72px;
+  height: 36px;   /* iso preview height */
+  display: block;
+  border: none;
+}
+
+.tex-label {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--dim);
+  text-align: center;
+}
+.tex-swatch {
+  width: 8px;
+  height: 8px;
+  border: 1px solid currentColor;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 3px;
+}
+
+.tex-btns {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
+.tex-btns button {
+  flex: 1;
+  font-size: 9px;
+  padding: 2px 4px;
+  letter-spacing: 0.5px;
+}
+
+.tex-library-label {
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  color: var(--darker);
+  width: 100%;
+  margin-top: 5px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+.tex-library-row {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: 3px;
+}
+.tex-preset-thumb {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  opacity: 0.65;
+  display: block;
+  background: var(--bg);
+  transition: opacity 0.1s, border-color 0.1s;
+}
+.tex-preset-thumb:hover {
+  opacity: 1;
+  border-color: var(--green);
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>MOTHERSHIP <span>//</span> SHIP MAPPER</h1>
+  <div class="ship-row">
+    <span class="label">NAVE:</span>
+    <select id="ship-select"><option value="">— Local —</option></select>
+    <button id="btn-load">Cargar</button>
+    <button id="btn-save" class="accent">Guardar</button>
+    <button id="btn-new">Nuevo</button>
+    <div class="sep"></div>
+    <span class="label">TAMAÑO:</span>
+    <input type="number" id="inp-gridw" value="20" min="5" max="40" style="width:38px;background:var(--bg2);color:var(--green);border:1px solid var(--border2);padding:2px 4px;font-family:monospace;font-size:11px;">
+    <span style="color:var(--dim)">×</span>
+    <input type="number" id="inp-gridh" value="20" min="5" max="40" style="width:38px;background:var(--bg2);color:var(--green);border:1px solid var(--border2);padding:2px 4px;font-family:monospace;font-size:11px;">
+    <button id="btn-resize">Aplicar</button>
+  </div>
+  <button id="btn-view" class="accent">&#9654; Modo Partida</button>
+</header>
+
+<div id="toolbar">
+  <span class="label">TILE:</span>
+  <div id="palette"></div>
+  <div class="sep"></div>
+  <span class="label">HERR:</span>
+  <button id="tool-draw" class="tool-btn active">Pintar</button>
+  <button id="tool-erase" class="tool-btn">Borrar</button>
+  <button id="tool-fill" class="tool-btn">Relleno</button>
+  <div class="sep"></div>
+  <button id="btn-textures">Texturas</button>
+  <div class="sep"></div>
+  <button id="btn-clear" class="danger">Limpiar</button>
+  <div class="sep"></div>
+  <label style="display:flex;align-items:center;gap:5px;font-size:10px;cursor:pointer;">
+    <input type="checkbox" id="chk-live" checked> Auto
+  </label>
+  <button id="btn-render">Renderizar</button>
+</div>
+
+<div id="levels-bar">
+  <span class="label" style="flex-shrink:0">CUBIERTA:</span>
+  <div id="level-tabs"></div>
+  <button id="btn-add-level" style="flex-shrink:0">+ Nivel</button>
+</div>
+
+<div id="sql-hint">
+  SQL (ejecutar en Supabase): ALTER TABLE ships ADD COLUMN IF NOT EXISTS map_data jsonb;
+</div>
+
+<div id="main">
+  <div id="left-panel">
+    <div class="panel-header">// PLANO 2D</div>
+    <div id="editor-wrap">
+      <canvas id="editor-canvas"></canvas>
+    </div>
+  </div>
+  <div id="right-panel">
+    <div class="panel-header">// VISTA ISOMÉTRICA</div>
+    <div id="iso-wrap">
+      <canvas id="iso-canvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<div id="statusbar">
+  <span id="status-pos">Col: —  Row: —</span>
+  <span>|</span>
+  <span id="status-tile">Tile: —</span>
+  <span>|</span>
+  <span id="status-ship">Nave: Sin guardar</span>
+</div>
+
+<!-- View Mode Overlay -->
+<div id="view-overlay">
+  <div id="view-topbar">
+    <div id="view-shipname">SIN NOMBRE</div>
+    <div id="view-level-nav">
+      <button id="btn-vprev">&#9664;</button>
+      <span id="view-level-label">Cubierta 1</span>
+      <button id="btn-vnext">&#9654;</button>
+    </div>
+    <button id="btn-exit-view" class="danger">&#10005; Cerrar</button>
+  </div>
+  <div id="view-canvas-wrap">
+    <canvas id="view-canvas"></canvas>
+    <div id="view-credit">MOTHERSHIP // SHIP MAPPER</div>
+  </div>
+</div>
+
+<!-- Texture panel -->
+<div id="tex-overlay">
+  <div id="tex-header">
+    <span class="glow-dim">// TEXTURAS DE TILES</span>
+    <span style="font-size:9px;color:var(--dark);margin-left:8px;">(guardadas en este navegador)</span>
+    <button id="btn-close-tex" style="margin-left:auto;">✕ Cerrar</button>
+  </div>
+  <div id="tex-grid"></div>
+</div>
+<div id="tex-backdrop"></div>
+
+<script>
+// ─── Supabase config ───────────────────────────────────────────────────────
+const SUPA_URL = 'https://vbmftksmuvpbcizvfola.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZibWZ0a3NtdXZwYmNpenZmb2xhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMDUyMDEsImV4cCI6MjA5Mjc4MTIwMX0.J20XCeZlACV_xToBthVtl3aOohj6NDI-pQSVFpy5lXo';
+const HDR = {
+  'Content-Type': 'application/json',
+  'apikey': SUPA_KEY,
+  'Authorization': `Bearer ${SUPA_KEY}`
+};
+
+// ─── Constants ─────────────────────────────────────────────────────────────
+const TW   = 64;   // iso tile diamond width
+const TH   = 32;   // iso tile diamond height (TW/2)
+const WH   = 22;   // pixels per wall height unit
+const CELL = 18;   // 2D editor cell px
+
+// ─── Tile definitions ──────────────────────────────────────────────────────
+const TILES = {
+  empty:   { label:'Vacío',       wallUnits:0, baseColor:null,      editorColor:'#000800' },
+  floor:   { label:'Suelo',       wallUnits:0, baseColor:'#002d0e', editorColor:'#003a10' },
+  wall:    { label:'Muro',        wallUnits:3, baseColor:'#00aa33', editorColor:'#00aa33' },
+  lowwall: { label:'M.Bajo',      wallUnits:1, baseColor:'#006622', editorColor:'#006622' },
+  door:    { label:'Puerta',      wallUnits:1, baseColor:'#00ffaa', editorColor:'#00bb77' },
+  airlock: { label:'Esclusa',     wallUnits:2, baseColor:'#00eeff', editorColor:'#0088aa' },
+  console: { label:'Consola',     wallUnits:1, baseColor:'#44ff00', editorColor:'#33aa00' },
+  engine:  { label:'Motor',       wallUnits:2, baseColor:'#88ff00', editorColor:'#558800' },
+  cryo:    { label:'Criocápsula', wallUnits:1, baseColor:'#00ff88', editorColor:'#008844' },
+  hatch:   { label:'Escotilla',   wallUnits:0, baseColor:'#00cc55', editorColor:'#005522' },
+};
+
+// ─── Texture presets (Poly Haven CC0) ─────────────────────────────────────
+const PH = 'https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/';
+const TILE_PRESETS = {
+  floor: [
+    { name: 'Placa metálica',     url: PH + 'metal_plate/metal_plate_diff_1k.jpg' },
+    { name: 'Placa azul',         url: PH + 'blue_metal_plate/blue_metal_plate_diff_1k.jpg' },
+    { name: 'Acero corrugado',    url: PH + 'metal_plate_02/metal_plate_02_diff_1k.jpg' },
+  ],
+  wall: [
+    { name: 'Hierro corrugado',   url: PH + 'corrugated_iron/corrugated_iron_diff_1k.jpg' },
+    { name: 'Hierro corrugado 2', url: PH + 'corrugated_iron_02/corrugated_iron_02_diff_1k.jpg' },
+    { name: 'Metal oxidado',      url: PH + 'rusty_metal_02/rusty_metal_02_diff_1k.jpg' },
+  ],
+  lowwall: [
+    { name: 'Hierro corrugado',   url: PH + 'corrugated_iron/corrugated_iron_diff_1k.jpg' },
+    { name: 'Metal oxidado',      url: PH + 'rusty_metal_02/rusty_metal_02_diff_1k.jpg' },
+    { name: 'Persiana pintada',   url: PH + 'painted_metal_shutter/painted_metal_shutter_diff_1k.jpg' },
+  ],
+  door: [
+    { name: 'Persiana metálica',  url: PH + 'painted_metal_shutter/painted_metal_shutter_diff_1k.jpg' },
+    { name: 'Persiana oxidada',   url: PH + 'rusty_metal_shutter/rusty_metal_shutter_diff_1k.jpg' },
+    { name: 'Persiana desgastada',url: PH + 'worn_shutter/worn_shutter_diff_1k.jpg' },
+  ],
+  airlock: [
+    { name: 'Persiana metálica',  url: PH + 'painted_metal_shutter/painted_metal_shutter_diff_1k.jpg' },
+    { name: 'Lateral contenedor', url: PH + 'container_side/container_side_diff_1k.jpg' },
+    { name: 'Persiana oxidada',   url: PH + 'rusty_metal_shutter/rusty_metal_shutter_diff_1k.jpg' },
+  ],
+  console: [
+    { name: 'Placa metálica',     url: PH + 'metal_plate/metal_plate_diff_1k.jpg' },
+    { name: 'Metal oxidado',      url: PH + 'rusty_metal_02/rusty_metal_02_diff_1k.jpg' },
+    { name: 'Placa azul',         url: PH + 'blue_metal_plate/blue_metal_plate_diff_1k.jpg' },
+  ],
+  engine: [
+    { name: 'Metal verde oxidado',url: PH + 'green_metal_rust/green_metal_rust_diff_1k.jpg' },
+    { name: 'Metal oxidado',      url: PH + 'rusty_metal/rusty_metal_diff_1k.jpg' },
+    { name: 'Hierro corrugado',   url: PH + 'corrugated_iron/corrugated_iron_diff_1k.jpg' },
+  ],
+  cryo: [
+    { name: 'Placa azul',         url: PH + 'blue_metal_plate/blue_metal_plate_diff_1k.jpg' },
+    { name: 'Placa metálica',     url: PH + 'metal_plate/metal_plate_diff_1k.jpg' },
+  ],
+  hatch: [
+    { name: 'Rejilla oxidada',    url: PH + 'rusty_metal_grid/rusty_metal_grid_diff_1k.jpg' },
+    { name: 'Enrejado metálico',  url: PH + 'metal_grate_rusty/metal_grate_rusty_diff_1k.jpg' },
+  ],
+};
+
+// ─── Tile textures ─────────────────────────────────────────────────────────
+const tileImages = {};  // key: tile type → HTMLImageElement
+
+function saveTextureToStorage(type, dataURL) {
+  try {
+    localStorage.setItem(`shipmap_tex_${type}`, dataURL);
+  } catch(e) {
+    alert('Imagen demasiado grande para guardar localmente. Intenta comprimir la imagen.');
+  }
+}
+
+function loadTexturesFromStorage() {
+  Object.keys(TILES).forEach(type => {
+    const dataURL = localStorage.getItem(`shipmap_tex_${type}`);
+    if (!dataURL) return;
+    const img = new Image();
+    img.onload = () => { tileImages[type] = img; renderISO_main(); };
+    img.src = dataURL;
+  });
+}
+
+function clearTexture(type) {
+  delete tileImages[type];
+  localStorage.removeItem(`shipmap_tex_${type}`);
+  updateTexturePanelCard(type);
+  renderISO_main();
+}
+
+function uploadTexture(type) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.onchange = () => {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        tileImages[type] = img;
+        saveTextureToStorage(type, e.target.result);
+        updateTexturePanelCard(type);
+        renderISO_main();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
+
+function applyPresetTexture(type, url) {
+  const img = new Image();
+  img.onload = () => {
+    tileImages[type] = img;
+    try { localStorage.setItem(`shipmap_tex_${type}`, url); } catch(e) {}
+    updateTexturePanelCard(type);
+    renderISO_main();
+  };
+  img.onerror = () => alert('No se pudo cargar el preset. Puede ser un problema de red.');
+  img.src = url;
+}
+
+function uploadTextureFromURL(type) {
+  const url = prompt('Pega la URL de la imagen (jpg, png, webp...):');
+  if (!url || !url.trim()) return;
+  const img = new Image();
+  img.onload = () => {
+    tileImages[type] = img;
+    try {
+      localStorage.setItem(`shipmap_tex_${type}`, url.trim());
+    } catch(e) {
+      alert('No se pudo guardar la URL localmente.');
+    }
+    updateTexturePanelCard(type);
+    renderISO_main();
+  };
+  img.onerror = () => alert('No se pudo cargar la imagen. Verifica la URL.');
+  img.src = url.trim();
+}
+
+function openTexturePanel() {
+  buildTexturePanelGrid();
+  document.getElementById('tex-overlay').classList.add('active');
+  document.getElementById('tex-backdrop').classList.add('active');
+}
+
+function closeTexturePanel() {
+  document.getElementById('tex-overlay').classList.remove('active');
+  document.getElementById('tex-backdrop').classList.remove('active');
+}
+
+function buildTexturePanelGrid() {
+  const grid = document.getElementById('tex-grid');
+  grid.innerHTML = '';
+  Object.entries(TILES).forEach(([type, tdef]) => {
+    if (type === 'empty') return;
+    const card = document.createElement('div');
+    card.className = 'tex-card' + (tileImages[type] ? ' has-img' : '');
+    card.id = `texcard-${type}`;
+
+    // Preview
+    const preview = document.createElement('div');
+    preview.className = 'tex-preview';
+    preview.id = `texprev-${type}`;
+    const img = tileImages[type];
+    if (img) {
+      // Show iso preview: small canvas with texture mapped onto a diamond
+      const pc = document.createElement('canvas');
+      pc.width = 72; pc.height = 36;
+      const pctx = pc.getContext('2d');
+      pctx.fillStyle = '#000800';
+      pctx.fillRect(0, 0, 72, 36);
+      // Draw mini iso tile: diamond centered at (36, 22), hw=28, hh=14
+      const mhw = 28, mhh = 14, mcx = 36, mcy = 22;
+      const S = Math.max(img.naturalWidth, img.naturalHeight);
+      pctx.save();
+      pctx.beginPath();
+      pctx.moveTo(mcx, mcy - mhh);
+      pctx.lineTo(mcx + mhw, mcy);
+      pctx.lineTo(mcx, mcy + mhh);
+      pctx.lineTo(mcx - mhw, mcy);
+      pctx.closePath();
+      pctx.clip();
+      pctx.transform(mhw/S, -mhh/S, mhw/S, mhh/S, mcx - mhw, mcy);
+      pctx.drawImage(img, 0, 0, S, S);
+      pctx.restore();
+      // Outline
+      pctx.strokeStyle = shadeColor(tdef.baseColor || '#00aa33', 1.8);
+      pctx.lineWidth = 0.5;
+      pctx.beginPath();
+      pctx.moveTo(mcx, mcy - mhh);
+      pctx.lineTo(mcx + mhw, mcy);
+      pctx.lineTo(mcx, mcy + mhh);
+      pctx.lineTo(mcx - mhw, mcy);
+      pctx.closePath();
+      pctx.stroke();
+      preview.appendChild(pc);
+    } else {
+      preview.textContent = 'Sin imagen';
+    }
+
+    // Label row
+    const labelRow = document.createElement('div');
+    labelRow.className = 'tex-label';
+    labelRow.innerHTML = `<span class="tex-swatch" style="background:${tdef.editorColor};border-color:${tdef.editorColor}"></span>${tdef.label}`;
+
+    // Buttons
+    const btns = document.createElement('div');
+    btns.className = 'tex-btns';
+
+    const upBtn = document.createElement('button');
+    upBtn.textContent = '↑ Archivo';
+    upBtn.onclick = () => uploadTexture(type);
+
+    const urlBtn = document.createElement('button');
+    urlBtn.textContent = '🔗 URL';
+    urlBtn.title = 'Cargar desde URL';
+    urlBtn.onclick = () => uploadTextureFromURL(type);
+
+    const clrBtn = document.createElement('button');
+    clrBtn.textContent = '✕';
+    clrBtn.className = 'danger';
+    clrBtn.title = 'Borrar imagen';
+    clrBtn.disabled = !tileImages[type];
+    clrBtn.onclick = () => clearTexture(type);
+
+    btns.appendChild(upBtn);
+    btns.appendChild(urlBtn);
+    btns.appendChild(clrBtn);
+    card.appendChild(preview);
+    card.appendChild(labelRow);
+    card.appendChild(btns);
+
+    // Built-in preset library
+    const presets = TILE_PRESETS[type];
+    if (presets && presets.length) {
+      const libLabel = document.createElement('div');
+      libLabel.className = 'tex-library-label';
+      libLabel.textContent = 'BIBLIOTECA';
+      card.appendChild(libLabel);
+
+      const libRow = document.createElement('div');
+      libRow.className = 'tex-library-row';
+      presets.forEach(p => {
+        const thumb = document.createElement('img');
+        thumb.className = 'tex-preset-thumb';
+        thumb.src = p.url;
+        thumb.title = p.name;
+        thumb.addEventListener('click', () => applyPresetTexture(type, p.url));
+        libRow.appendChild(thumb);
+      });
+      card.appendChild(libRow);
+    }
+
+    grid.appendChild(card);
+  });
+}
+
+// Update just one card after upload/clear (avoids full rebuild)
+function updateTexturePanelCard(type) {
+  const card = document.getElementById(`texcard-${type}`);
+  if (!card) return; // panel not open
+  // Easiest: just rebuild the whole grid
+  buildTexturePanelGrid();
+}
+
+// ─── State ─────────────────────────────────────────────────────────────────
+let gridW = 20;
+let gridH = 20;
+
+function newGrid() {
+  return Array.from({length: gridH}, () =>
+    Array.from({length: gridW}, () => ({type: 'empty'})));
+}
+
+let levels = [{ name: 'Cubierta 1', grid: newGrid() }];
+let currentLevelIdx = 0;
+let viewLevelIdx    = 0;
+
+function currentGrid() { return levels[currentLevelIdx].grid; }
+
+let selectedTile  = 'floor';
+let currentTool   = 'draw';  // 'draw' | 'erase' | 'fill'
+let isPainting    = false;
+let livePreview   = true;
+let currentShipId   = null;
+let currentShipName = '';
+let ships = [];
+
+// ─── Canvas references ─────────────────────────────────────────────────────
+const editorCanvas = document.getElementById('editor-canvas');
+const isoCanvas    = document.getElementById('iso-canvas');
+const editorCtx    = editorCanvas.getContext('2d');
+const isoCtx       = isoCanvas.getContext('2d');
+
+// ─── Dynamic sizing ────────────────────────────────────────────────────────
+function getIsoSize() {
+  return {
+    w: (gridW + gridH) * TW / 2 + TW,
+    h: (gridW + gridH) * TH / 2 + WH * 4 + TH * 2
+  };
+}
+
+function resizeIsoCanvas() {
+  const {w, h} = getIsoSize();
+  isoCanvas.width  = w;
+  isoCanvas.height = h;
+}
+
+function syncEditorCanvas() {
+  editorCanvas.width  = gridW * CELL;
+  editorCanvas.height = gridH * CELL;
+}
+
+// ─── Color utilities ───────────────────────────────────────────────────────
+function shadeColor(hex, factor) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgb(${Math.min(255, Math.round(r * factor))},${Math.min(255, Math.round(g * factor))},${Math.min(255, Math.round(b * factor))})`;
+}
+
+// ─── Isometric math ────────────────────────────────────────────────────────
+function gridToScreen(col, row, heightUnits = 0) {
+  const offsetX = gridH * TW / 2;
+  const offsetY = TH + WH * 3;
+  return {
+    x: offsetX + (col - row) * TW / 2,
+    y: offsetY + (col + row) * TH / 2 - heightUnits * WH
+  };
+}
+
+// ─── Tile marker icons ─────────────────────────────────────────────────────
+function drawTileMarker(ctx, mx, my, type) {
+  ctx.save();
+  ctx.lineCap  = 'round';
+  ctx.lineJoin = 'round';
+  const C = '#00ffcc';
+  ctx.strokeStyle = C;
+  ctx.fillStyle   = C;
+
+  switch (type) {
+
+    case 'door': {
+      ctx.lineWidth = 1.8;
+      // Door frame
+      ctx.beginPath();
+      ctx.moveTo(mx - 14, my + 7);
+      ctx.lineTo(mx - 14, my - 6);
+      ctx.lineTo(mx + 14, my - 6);
+      ctx.lineTo(mx + 14, my + 7);
+      ctx.stroke();
+      // Panel fill
+      ctx.globalAlpha = 0.28;
+      ctx.fillRect(mx - 12, my - 5, 24, 12);
+      ctx.globalAlpha = 1;
+      // Horizontal ribs
+      ctx.lineWidth = 0.5;
+      ctx.globalAlpha = 0.55;
+      [my - 2, my + 2].forEach(ry => {
+        ctx.beginPath();
+        ctx.moveTo(mx - 11, ry); ctx.lineTo(mx + 11, ry); ctx.stroke();
+      });
+      ctx.globalAlpha = 1;
+      // Hinge bolts (left side)
+      [my - 3, my + 4].forEach(hy => {
+        ctx.beginPath(); ctx.arc(mx - 11, hy, 1.5, 0, Math.PI * 2); ctx.fill();
+      });
+      // Handle bar
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(mx + 7, my - 1); ctx.lineTo(mx + 7, my + 3); ctx.stroke();
+      ctx.beginPath(); ctx.arc(mx + 9, my + 1, 1.5, 0, Math.PI * 2); ctx.fill();
+      // Opening direction arc
+      ctx.lineWidth = 0.7;
+      ctx.globalAlpha = 0.35;
+      ctx.beginPath();
+      ctx.arc(mx + 14, my + 7, 12, -Math.PI * 0.7, -Math.PI * 0.15);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      break;
+    }
+
+    case 'airlock': {
+      const R = 10, r = 5;
+      ctx.lineWidth = 2;
+      // Outer ring
+      ctx.beginPath();
+      ctx.ellipse(mx, my, R, R * 0.52, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      // Inner ring
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.ellipse(mx, my, r, r * 0.52, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      // Cross-hairs
+      ctx.lineWidth = 0.5;
+      ctx.globalAlpha = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(mx - R, my); ctx.lineTo(mx + R, my);
+      ctx.moveTo(mx, my - R * 0.52); ctx.lineTo(mx, my + R * 0.52);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      // 4 bolts
+      ctx.lineWidth = 0;
+      [[R * 0.95, 0], [-R * 0.95, 0], [0, -R * 0.49], [0, R * 0.49]].forEach(([bx, by]) => {
+        ctx.beginPath();
+        ctx.arc(mx + bx, my + by, 2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      break;
+    }
+
+    case 'console': {
+      const sw = 24, sh = 14;
+      ctx.lineWidth = 1.5;
+      // Main screen border
+      ctx.strokeRect(mx - sw / 2, my - sh - 2, sw, sh);
+      // Screen fill
+      ctx.globalAlpha = 0.12;
+      ctx.fillRect(mx - sw / 2 + 1, my - sh - 1, sw - 2, sh - 2);
+      ctx.globalAlpha = 1;
+      // Text lines on screen
+      ctx.lineWidth = 0.5;
+      ctx.globalAlpha = 0.7;
+      [0, 2.5, 5, 7.5].forEach((offset, i) => {
+        const lineW = i % 2 === 0 ? sw - 8 : sw - 14;
+        ctx.beginPath();
+        ctx.moveTo(mx - sw / 2 + 3, my - sh + 2 + offset);
+        ctx.lineTo(mx - sw / 2 + 3 + lineW, my - sh + 2 + offset);
+        ctx.stroke();
+      });
+      ctx.globalAlpha = 1;
+      // 3 LED indicators (right side of screen)
+      const ledCols = ['#00ffcc', '#ff3300', '#00ffcc'];
+      ledCols.forEach((lc, i) => {
+        ctx.fillStyle = lc;
+        ctx.globalAlpha = 0.9;
+        ctx.beginPath();
+        ctx.arc(mx + sw / 2 - 3, my - sh + 3 + i * 4, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.fillStyle = C;
+      ctx.globalAlpha = 1;
+      // Keyboard row
+      ctx.lineWidth = 0.6;
+      ctx.strokeRect(mx - sw / 2 + 2, my - 2, sw - 4, 4);
+      // Stand + base
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(mx, my - 2); ctx.lineTo(mx, my + 3);
+      ctx.moveTo(mx - 7, my + 3); ctx.lineTo(mx + 7, my + 3);
+      ctx.stroke();
+      break;
+    }
+
+    case 'engine': {
+      const NR = 7, GAP = 11;
+      // Connecting pipe between nozzles
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.3;
+      ctx.beginPath();
+      ctx.moveTo(mx - GAP, my); ctx.lineTo(mx + GAP, my);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = 1.5;
+      [-1, 0, 1].forEach(i => {
+        const nx = mx + i * GAP;
+        const ny = my + i * 1.5;
+        // Outer ring
+        ctx.beginPath();
+        ctx.ellipse(nx, ny, NR, NR * 0.55, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        // Inner ring
+        ctx.lineWidth = 0.6;
+        ctx.beginPath();
+        ctx.ellipse(nx, ny, NR * 0.52, NR * 0.52 * 0.55, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        // Heat glow core (orange/red gradient)
+        const g = ctx.createRadialGradient(nx, ny, 0, nx, ny, NR * 0.45);
+        g.addColorStop(0, 'rgba(255,160,20,0.95)');
+        g.addColorStop(0.5, 'rgba(255,60,0,0.5)');
+        g.addColorStop(1, 'rgba(255,30,0,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.ellipse(nx, ny, NR * 0.45, NR * 0.45 * 0.55, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Heat shimmer lines above nozzle
+        ctx.strokeStyle = C;
+        ctx.fillStyle = C;
+        ctx.lineWidth = 0.4;
+        ctx.globalAlpha = 0.25;
+        [-3, 0, 3].forEach(dx => {
+          ctx.beginPath();
+          ctx.moveTo(nx + dx, ny - NR * 0.55 - 1);
+          ctx.lineTo(nx + dx + (dx > 0 ? 1 : dx < 0 ? -1 : 0), ny - NR * 0.55 - 5);
+          ctx.stroke();
+        });
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = 1.5;
+      });
+      break;
+    }
+
+    case 'cryo': {
+      const PW = 18, PH = 8;
+      ctx.lineWidth = 1.5;
+      // Pod body
+      ctx.beginPath();
+      ctx.ellipse(mx, my, PW, PH, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      // Head dome
+      ctx.beginPath();
+      ctx.ellipse(mx - PW + 4, my, PH * 0.7, PH * 0.7, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      // Human silhouette inside pod
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.6;
+      // head
+      ctx.beginPath();
+      ctx.arc(mx - PW + 5, my - 1, 2.2, 0, Math.PI * 2); ctx.stroke();
+      // body + limbs
+      ctx.beginPath();
+      ctx.moveTo(mx - PW + 5, my + 1.5); ctx.lineTo(mx - PW + 5, my + 5.5);
+      ctx.moveTo(mx - PW + 2, my + 3.5); ctx.lineTo(mx - PW + 8, my + 3.5);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      // Status LED (green = alive)
+      ctx.fillStyle = '#00ff88';
+      ctx.globalAlpha = 0.9;
+      ctx.beginPath();
+      ctx.arc(mx + PW - 3, my - PH + 2, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = C; ctx.globalAlpha = 1;
+      // Frost / stasis lines
+      ctx.lineWidth = 0.4;
+      ctx.globalAlpha = 0.4;
+      [-PH * 0.4, 0, PH * 0.4].forEach(dy => {
+        ctx.beginPath();
+        ctx.moveTo(mx - PW + 9, my + dy); ctx.lineTo(mx + PW - 4, my + dy);
+        ctx.stroke();
+      });
+      ctx.globalAlpha = 1;
+      break;
+    }
+
+    case 'hatch': {
+      const HW = 12, HH = 8;
+      ctx.lineWidth = 1.5;
+      // Outer frame
+      ctx.strokeRect(mx - HW, my - HH / 2, HW * 2, HH);
+      // Rungs
+      ctx.lineWidth = 1;
+      const rungCount = 3;
+      for (let i = 1; i < rungCount; i++) {
+        const x = mx - HW + i * (HW * 2 / rungCount);
+        ctx.beginPath();
+        ctx.moveTo(x, my - HH / 2);
+        ctx.lineTo(x, my + HH / 2);
+        ctx.stroke();
+      }
+      // Up arrow
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.9;
+      ctx.beginPath();
+      ctx.moveTo(mx - HW - 5, my + 3);
+      ctx.lineTo(mx - HW - 5, my - 5);
+      ctx.lineTo(mx - HW - 8, my - 2);
+      ctx.moveTo(mx - HW - 5, my - 5);
+      ctx.lineTo(mx - HW - 2, my - 2);
+      ctx.stroke();
+      // Down arrow
+      ctx.beginPath();
+      ctx.moveTo(mx + HW + 5, my - 3);
+      ctx.lineTo(mx + HW + 5, my + 5);
+      ctx.lineTo(mx + HW + 8, my + 2);
+      ctx.moveTo(mx + HW + 5, my + 5);
+      ctx.lineTo(mx + HW + 2, my + 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      break;
+    }
+  }
+
+  ctx.restore();
+}
+
+// ─── Custom tile top faces ─────────────────────────────────────────────────
+function drawAirlockTop(ctx, cx, topY, hw, hh, tdef) {
+  const baseColor = tdef.baseColor;
+  const img = tileImages.airlock;
+  const hasTexture = img && img.complete && img.naturalWidth > 0;
+
+  // Filled surface — texture or solid
+  if (hasTexture) {
+    const S = Math.max(img.naturalWidth, img.naturalHeight);
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(cx, topY, hw, hh, 0, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.transform(hw / S, -hh / S, hw / S, hh / S, cx - hw, topY);
+    ctx.drawImage(img, 0, 0, S, S);
+    ctx.restore();
+  } else {
+    ctx.beginPath();
+    ctx.ellipse(cx, topY, hw, hh, 0, 0, Math.PI * 2);
+    ctx.fillStyle = baseColor;
+    ctx.fill();
+  }
+
+  // Outer ring
+  ctx.beginPath();
+  ctx.ellipse(cx, topY, hw * 0.94, hh * 0.94, 0, 0, Math.PI * 2);
+  ctx.strokeStyle = shadeColor(baseColor, 2.6);
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
+
+  // Inner ring
+  ctx.beginPath();
+  ctx.ellipse(cx, topY, hw * 0.54, hh * 0.54, 0, 0, Math.PI * 2);
+  ctx.strokeStyle = shadeColor(baseColor, 1.7);
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // 8 bolts around the ring
+  ctx.fillStyle = shadeColor(baseColor, 2.3);
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.arc(cx + Math.cos(a) * hw * 0.82, topY + Math.sin(a) * hh * 0.82, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Cross handle (opening wheel)
+  ctx.strokeStyle = shadeColor(baseColor, 1.9);
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.moveTo(cx - hw * 0.38, topY); ctx.lineTo(cx + hw * 0.38, topY);
+  ctx.moveTo(cx, topY - hh * 0.38); ctx.lineTo(cx, topY + hh * 0.38);
+  ctx.stroke();
+}
+
+// ─── ISO tile drawing ──────────────────────────────────────────────────────
+function drawISOTile(ctx, col, row, type, tdef) {
+  const pixelH = tdef.wallUnits * WH;
+  const base = gridToScreen(col, row, 0);
+  const cx = base.x, cy = base.y;
+  const topY = cy - pixelH;
+  const baseColor = tdef.baseColor;
+
+  const isStructural = (type === 'wall' || type === 'lowwall');
+  // Walls are thin slabs (28% width); all other tiles are full width
+  const wScale = isStructural ? 0.28 : 1.0;
+  const hw = TW / 2 * wScale;   // half horizontal extent
+  const hh = TH / 2 * wScale;   // half vertical extent of diamond
+
+  // --- Side faces (only when has height) ---
+  if (pixelH > 0) {
+    const wallImg = isStructural ? tileImages[type] : null;
+    const hasWallTex = wallImg && wallImg.complete && wallImg.naturalWidth > 0;
+
+    if (hasWallTex) {
+      const S = Math.max(wallImg.naturalWidth, wallImg.naturalHeight);
+
+      // Left face (SW) — textured + dark overlay for depth
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(cx - hw, topY);
+      ctx.lineTo(cx,      topY + hh);
+      ctx.lineTo(cx,      cy   + hh);
+      ctx.lineTo(cx - hw, cy);
+      ctx.closePath();
+      ctx.clip();
+      ctx.transform(hw / S, hh / S, 0, pixelH / S, cx - hw, topY);
+      ctx.globalAlpha = 0.75;
+      ctx.drawImage(wallImg, 0, 0, S, S);
+      ctx.restore();
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx - hw, topY);
+      ctx.lineTo(cx,      topY + hh);
+      ctx.lineTo(cx,      cy   + hh);
+      ctx.lineTo(cx - hw, cy);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(0,0,0,0.32)';
+      ctx.fill();
+
+      // Right face (SE) — textured + lighter overlay
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(cx,      topY + hh);
+      ctx.lineTo(cx + hw, topY);
+      ctx.lineTo(cx + hw, cy);
+      ctx.lineTo(cx,      cy   + hh);
+      ctx.closePath();
+      ctx.clip();
+      ctx.transform(hw / S, -hh / S, 0, pixelH / S, cx, topY + hh);
+      ctx.globalAlpha = 0.88;
+      ctx.drawImage(wallImg, 0, 0, S, S);
+      ctx.restore();
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx,      topY + hh);
+      ctx.lineTo(cx + hw, topY);
+      ctx.lineTo(cx + hw, cy);
+      ctx.lineTo(cx,      cy   + hh);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(0,0,0,0.10)';
+      ctx.fill();
+    } else {
+      // Left face (SW) — solid color
+      ctx.beginPath();
+      ctx.moveTo(cx - hw, topY);
+      ctx.lineTo(cx,      topY + hh);
+      ctx.lineTo(cx,      cy   + hh);
+      ctx.lineTo(cx - hw, cy);
+      ctx.closePath();
+      ctx.fillStyle = shadeColor(baseColor, 0.55);
+      ctx.globalAlpha = isStructural ? 0.88 : 1.0;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      // Right face (SE) — solid color
+      ctx.beginPath();
+      ctx.moveTo(cx,      topY + hh);
+      ctx.lineTo(cx + hw, topY);
+      ctx.lineTo(cx + hw, cy);
+      ctx.lineTo(cx,      cy   + hh);
+      ctx.closePath();
+      ctx.fillStyle = shadeColor(baseColor, 0.75);
+      ctx.globalAlpha = isStructural ? 0.88 : 1.0;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    // Edge highlight on the vertical center ridge — makes borders look sharper
+    if (isStructural) {
+      ctx.strokeStyle = shadeColor(baseColor, 2.2);
+      ctx.lineWidth = 0.8;
+      ctx.globalAlpha = 0.55;
+      ctx.beginPath();
+      ctx.moveTo(cx, topY + hh);
+      ctx.lineTo(cx, cy   + hh);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // --- Top face ---
+  if (type === 'airlock') return drawAirlockTop(ctx, cx, topY, hw, hh, tdef);
+  ctx.beginPath();
+  ctx.moveTo(cx,      topY - hh);   // top vertex
+  ctx.lineTo(cx + hw, topY);         // right vertex
+  ctx.lineTo(cx,      topY + hh);   // bottom vertex
+  ctx.lineTo(cx - hw, topY);         // left vertex
+  ctx.closePath();
+
+  if (isStructural) {
+    // Semi-transparent fill + bright outline
+    ctx.fillStyle = baseColor;
+    ctx.globalAlpha = 0.22;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = shadeColor(baseColor, 2.0);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  } else {
+    // Non-structural: use texture if available, otherwise programmatic
+    const img = tileImages[type];
+    const hasTexture = img && img.complete && img.naturalWidth > 0;
+
+    if (hasTexture) {
+      const S = Math.max(img.naturalWidth, img.naturalHeight);
+      ctx.save();
+      // Clip to diamond shape
+      ctx.beginPath();
+      ctx.moveTo(cx,       topY - hh);
+      ctx.lineTo(cx + hw,  topY);
+      ctx.lineTo(cx,       topY + hh);
+      ctx.lineTo(cx - hw,  topY);
+      ctx.closePath();
+      ctx.clip();
+      // Isometric affine transform: maps square image to diamond
+      ctx.transform(hw / S, -hh / S, hw / S, hh / S, cx - hw, topY);
+      ctx.drawImage(img, 0, 0, S, S);
+      ctx.restore();
+      // Overlay the marker on top of the texture (so icons are still visible)
+      if (!['floor', 'empty'].includes(type)) {
+        drawTileMarker(ctx, cx, topY, type);
+      }
+    } else {
+      // Solid fill + subtle outline
+      ctx.fillStyle = baseColor;
+      ctx.fill();
+      ctx.strokeStyle = shadeColor(baseColor, 1.8);
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+      // Draw icon marker for special tiles
+      if (!['floor', 'empty'].includes(type)) {
+        drawTileMarker(ctx, cx, topY, type);
+      }
+    }
+  }
+}
+
+// ─── ISO rendering ─────────────────────────────────────────────────────────
+function renderISOToCtx(ctx, w, h, gridData) {
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#000800';
+  ctx.fillRect(0, 0, w, h);
+
+  // Painter's algorithm: render back-to-front along diagonals
+  for (let diag = 0; diag < gridW + gridH - 1; diag++) {
+    for (let col = Math.min(diag, gridW - 1); col >= Math.max(0, diag - gridH + 1); col--) {
+      const row = diag - col;
+      if (row < 0 || row >= gridH) continue;
+      const cell = gridData[row][col];
+      const tdef = TILES[cell.type];
+      if (!tdef || !tdef.baseColor) continue;
+      drawISOTile(ctx, col, row, cell.type, tdef);
+    }
+  }
+}
+
+function renderISO_main() {
+  renderISOToCtx(isoCtx, isoCanvas.width, isoCanvas.height, currentGrid());
+}
+
+// ─── 2D Editor rendering ───────────────────────────────────────────────────
+function drawEditor() {
+  const ctx = editorCtx;
+  ctx.clearRect(0, 0, editorCanvas.width, editorCanvas.height);
+  ctx.fillStyle = '#000800';
+  ctx.fillRect(0, 0, editorCanvas.width, editorCanvas.height);
+
+  const g = currentGrid();
+  for (let row = 0; row < gridH; row++) {
+    for (let col = 0; col < gridW; col++) {
+      const cell = g[row][col];
+      const tdef = TILES[cell.type];
+      if (!tdef) continue;
+
+      const x = col * CELL;
+      const y = row * CELL;
+
+      if (cell.type !== 'empty') {
+        ctx.globalAlpha = 0.85;
+        ctx.fillStyle = tdef.editorColor;
+        ctx.fillRect(x + 1, y + 1, CELL - 2, CELL - 2);
+        ctx.globalAlpha = 1;
+
+        // Label first letter for special tiles
+        if (!['empty', 'floor', 'wall', 'lowwall'].includes(cell.type)) {
+          ctx.fillStyle = '#000d00';
+          ctx.font = `bold ${CELL * 0.55}px Courier New`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(tdef.label[0].toUpperCase(), x + CELL / 2, y + CELL / 2);
+        }
+      }
+    }
+  }
+
+  // Grid lines
+  ctx.strokeStyle = '#001800';
+  ctx.lineWidth = 0.5;
+  for (let col = 0; col <= gridW; col++) {
+    ctx.beginPath();
+    ctx.moveTo(col * CELL, 0);
+    ctx.lineTo(col * CELL, gridH * CELL);
+    ctx.stroke();
+  }
+  for (let row = 0; row <= gridH; row++) {
+    ctx.beginPath();
+    ctx.moveTo(0, row * CELL);
+    ctx.lineTo(gridW * CELL, row * CELL);
+    ctx.stroke();
+  }
+}
+
+// ─── Palette builder ────────────────────────────────────────────────────────
+function buildPalette() {
+  const palette = document.getElementById('palette');
+  palette.innerHTML = '';
+  Object.entries(TILES).forEach(([key, tdef]) => {
+    const btn = document.createElement('button');
+    btn.className = 'tile-btn';
+    btn.dataset.tile = key;
+    const swatchBg = tdef.editorColor || '#000800';
+    btn.innerHTML = `<span class="swatch" style="background:${swatchBg};border-color:${swatchBg}"></span>${tdef.label}`;
+    btn.addEventListener('click', () => {
+      selectedTile = key;
+      currentTool = 'draw';
+      updateUI();
+    });
+    palette.appendChild(btn);
+  });
+}
+
+// ─── Level tabs ─────────────────────────────────────────────────────────────
+function buildLevelTabs() {
+  const container = document.getElementById('level-tabs');
+  container.innerHTML = '';
+  levels.forEach((lv, idx) => {
+    const tab = document.createElement('button');
+    tab.className = 'level-tab' + (idx === currentLevelIdx ? ' active' : '');
+    tab.dataset.idx = idx;
+
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = lv.name;
+    // Double-click to rename
+    nameSpan.addEventListener('dblclick', () => {
+      const newName = prompt('Nombre de cubierta:', lv.name);
+      if (newName && newName.trim()) {
+        lv.name = newName.trim();
+        buildLevelTabs();
+      }
+    });
+    tab.appendChild(nameSpan);
+
+    // Delete button (only if more than 1 level)
+    if (levels.length > 1) {
+      const del = document.createElement('span');
+      del.className = 'level-tab-del';
+      del.textContent = '✕';
+      del.title = 'Eliminar cubierta';
+      del.addEventListener('click', e => {
+        e.stopPropagation();
+        if (!confirm(`¿Eliminar "${lv.name}"?`)) return;
+        levels.splice(idx, 1);
+        currentLevelIdx = Math.min(currentLevelIdx, levels.length - 1);
+        buildLevelTabs();
+        syncEditorCanvas();
+        drawEditor();
+        renderISO_main();
+      });
+      tab.appendChild(del);
+    }
+
+    tab.addEventListener('click', () => {
+      currentLevelIdx = idx;
+      buildLevelTabs();
+      drawEditor();
+      renderISO_main();
+    });
+
+    container.appendChild(tab);
+  });
+}
+
+document.getElementById('btn-add-level').addEventListener('click', () => {
+  const name = `Cubierta ${levels.length + 1}`;
+  levels.push({ name, grid: newGrid() });
+  currentLevelIdx = levels.length - 1;
+  buildLevelTabs();
+  syncEditorCanvas();
+  drawEditor();
+  renderISO_main();
+});
+
+// ─── Grid resize ────────────────────────────────────────────────────────────
+document.getElementById('btn-resize').addEventListener('click', () => {
+  const newW = parseInt(document.getElementById('inp-gridw').value, 10);
+  const newH = parseInt(document.getElementById('inp-gridh').value, 10);
+  if (isNaN(newW) || isNaN(newH) || newW < 5 || newH < 5 || newW > 40 || newH > 40) {
+    alert('Tamaño inválido (5–40).');
+    return;
+  }
+  if (!confirm(`¿Cambiar tamaño a ${newW}×${newH}? Se perderán las celdas fuera del área.`)) return;
+
+  // Resize each level's grid
+  levels.forEach(lv => {
+    const old = lv.grid;
+    lv.grid = Array.from({length: newH}, (_, r) =>
+      Array.from({length: newW}, (_, c) => {
+        const saved = old[r] && old[r][c];
+        return saved ? {...saved} : {type: 'empty'};
+      })
+    );
+  });
+
+  gridW = newW;
+  gridH = newH;
+  syncEditorCanvas();
+  resizeIsoCanvas();
+  drawEditor();
+  renderISO_main();
+});
+
+// ─── UI state sync ─────────────────────────────────────────────────────────
+function updateUI() {
+  document.querySelectorAll('.tile-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.tile === selectedTile);
+  });
+
+  document.getElementById('tool-draw').classList.toggle('active', currentTool === 'draw');
+  document.getElementById('tool-erase').classList.toggle('active', currentTool === 'erase');
+  document.getElementById('tool-fill').classList.toggle('active', currentTool === 'fill');
+
+  document.getElementById('status-ship').textContent =
+    'Nave: ' + (currentShipName || 'Sin guardar');
+}
+
+function updateStatusTile(type) {
+  const tdef = TILES[type];
+  document.getElementById('status-tile').textContent =
+    'Tile: ' + (tdef ? tdef.label : '—');
+}
+
+function updateStatusPos(col, row) {
+  document.getElementById('status-pos').textContent =
+    `Col: ${col}  Row: ${row}`;
+}
+
+// ─── Editor interactions ────────────────────────────────────────────────────
+function getCellFromEvent(e) {
+  const rect  = editorCanvas.getBoundingClientRect();
+  const scaleX = editorCanvas.width  / rect.width;
+  const scaleY = editorCanvas.height / rect.height;
+  const px = (e.clientX - rect.left) * scaleX;
+  const py = (e.clientY - rect.top)  * scaleY;
+  const col = Math.floor(px / CELL);
+  const row = Math.floor(py / CELL);
+  if (col < 0 || col >= gridW || row < 0 || row >= gridH) return null;
+  return { col, row };
+}
+
+function applyTool(col, row) {
+  const g = currentGrid();
+  if (currentTool === 'draw') {
+    g[row][col].type = selectedTile;
+  } else if (currentTool === 'erase') {
+    g[row][col].type = 'empty';
+  } else if (currentTool === 'fill') {
+    floodFill(col, row, g[row][col].type, selectedTile);
+    return;
+  }
+  drawEditor();
+  if (livePreview) renderISO_main();
+}
+
+function floodFill(startCol, startRow, fromType, toType) {
+  if (fromType === toType) return;
+  const g = currentGrid();
+  const stack   = [[startCol, startRow]];
+  const visited = new Set();
+  while (stack.length) {
+    const [c, r] = stack.pop();
+    if (c < 0 || c >= gridW || r < 0 || r >= gridH) continue;
+    const key = `${c},${r}`;
+    if (visited.has(key)) continue;
+    if (g[r][c].type !== fromType) continue;
+    visited.add(key);
+    g[r][c].type = toType;
+    stack.push([c + 1, r], [c - 1, r], [c, r + 1], [c, r - 1]);
+  }
+  drawEditor();
+  if (livePreview) renderISO_main();
+}
+
+editorCanvas.addEventListener('mousedown', e => {
+  e.preventDefault();
+  isPainting = true;
+  const cell = getCellFromEvent(e);
+  if (!cell) return;
+
+  if (e.button === 2 && currentTool === 'draw') {
+    currentGrid()[cell.row][cell.col].type = 'empty';
+    drawEditor();
+    if (livePreview) renderISO_main();
+    return;
+  }
+
+  applyTool(cell.col, cell.row);
+});
+
+editorCanvas.addEventListener('mousemove', e => {
+  const cell = getCellFromEvent(e);
+  if (cell) {
+    updateStatusPos(cell.col, cell.row);
+    updateStatusTile(currentGrid()[cell.row][cell.col].type);
+  }
+  if (!isPainting) return;
+  if (!cell) return;
+  if (currentTool === 'fill') return;
+  applyTool(cell.col, cell.row);
+});
+
+editorCanvas.addEventListener('mouseup',    () => { isPainting = false; });
+editorCanvas.addEventListener('mouseleave', () => { isPainting = false; });
+editorCanvas.addEventListener('contextmenu', e => e.preventDefault());
+
+// ─── Toolbar buttons ────────────────────────────────────────────────────────
+document.getElementById('tool-draw').addEventListener('click', () => {
+  currentTool = 'draw';
+  updateUI();
+});
+document.getElementById('tool-erase').addEventListener('click', () => {
+  currentTool = 'erase';
+  updateUI();
+});
+document.getElementById('tool-fill').addEventListener('click', () => {
+  currentTool = 'fill';
+  updateUI();
+});
+
+document.getElementById('chk-live').addEventListener('change', e => {
+  livePreview = e.target.checked;
+  if (livePreview) renderISO_main();
+});
+
+document.getElementById('btn-render').addEventListener('click', () => {
+  renderISO_main();
+});
+
+document.getElementById('btn-clear').addEventListener('click', () => {
+  if (!confirm('¿Limpiar la cubierta actual?')) return;
+  levels[currentLevelIdx].grid = newGrid();
+  drawEditor();
+  if (livePreview) renderISO_main();
+});
+
+document.getElementById('btn-textures').addEventListener('click', openTexturePanel);
+document.getElementById('btn-close-tex').addEventListener('click', closeTexturePanel);
+document.getElementById('tex-backdrop').addEventListener('click', closeTexturePanel);
+
+// ─── Save/load helpers ─────────────────────────────────────────────────────
+function normaliseGrid(saved, w, h) {
+  return Array.from({length: h}, (_, r) =>
+    Array.from({length: w}, (_, c) => {
+      const cell = saved[r] && saved[r][c];
+      return (cell && TILES[cell.type]) ? { type: cell.type } : { type: 'empty' };
+    })
+  );
+}
+
+// ─── Supabase integration ──────────────────────────────────────────────────
+async function loadShips() {
+  const res = await fetch(
+    `${SUPA_URL}/rest/v1/ships?select=id,name&order=name`,
+    { headers: HDR }
+  );
+  if (!res.ok) throw new Error('Failed to load ships');
+  ships = await res.json();
+
+  const sel = document.getElementById('ship-select');
+  sel.innerHTML = '<option value="">— Local —</option>';
+  ships.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = s.name;
+    sel.appendChild(opt);
+  });
+}
+
+document.getElementById('btn-load').addEventListener('click', async () => {
+  const id = document.getElementById('ship-select').value;
+  if (!id) { alert('Selecciona una nave primero.'); return; }
+  try {
+    const res = await fetch(
+      `${SUPA_URL}/rest/v1/ships?id=eq.${id}&select=id,name,map_data`,
+      { headers: HDR }
+    );
+    if (!res.ok) throw new Error('Error al cargar');
+    const data = await res.json();
+    if (!data.length) { alert('Nave no encontrada.'); return; }
+    const ship = data[0];
+    currentShipId   = ship.id;
+    currentShipName = ship.name;
+    currentLevelIdx = 0;
+
+    if (Array.isArray(ship.map_data)) {
+      // Old format: single level grid
+      gridW = 20; gridH = 20;
+      levels = [{ name: 'Cubierta 1', grid: normaliseGrid(ship.map_data, 20, 20) }];
+    } else if (ship.map_data && ship.map_data.levels) {
+      gridW = ship.map_data.gridW || 20;
+      gridH = ship.map_data.gridH || 20;
+      levels = ship.map_data.levels.map(lv => ({
+        name: lv.name,
+        grid: normaliseGrid(lv.grid, gridW, gridH)
+      }));
+    } else {
+      gridW = 20; gridH = 20;
+      levels = [{ name: 'Cubierta 1', grid: newGrid() }];
+    }
+
+    document.getElementById('inp-gridw').value = gridW;
+    document.getElementById('inp-gridh').value = gridH;
+
+    syncEditorCanvas();
+    resizeIsoCanvas();
+    buildLevelTabs();
+    drawEditor();
+    renderISO_main();
+    updateUI();
+  } catch (err) {
+    alert('Error al cargar: ' + err.message);
+  }
+});
+
+document.getElementById('btn-save').addEventListener('click', async () => {
+  const id = document.getElementById('ship-select').value;
+  if (!id) { alert('Selecciona una nave primero para guardar.'); return; }
+  try {
+    const body = JSON.stringify({ map_data: { gridW, gridH, levels } });
+    const res = await fetch(
+      `${SUPA_URL}/rest/v1/ships?id=eq.${id}`,
+      {
+        method: 'PATCH',
+        headers: { ...HDR, 'Prefer': 'return=minimal' },
+        body
+      }
+    );
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(txt);
+    }
+    const ship = ships.find(s => String(s.id) === String(id));
+    currentShipId   = id;
+    currentShipName = ship ? ship.name : '';
+    updateUI();
+    const btn = document.getElementById('btn-save');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Guardado';
+    setTimeout(() => { btn.textContent = orig; }, 1500);
+  } catch (err) {
+    alert('Error al guardar: ' + err.message);
+  }
+});
+
+document.getElementById('btn-new').addEventListener('click', () => {
+  if (!confirm('¿Nuevo mapa? Se perderán cambios sin guardar.')) return;
+  gridW = 20; gridH = 20;
+  levels = [{ name: 'Cubierta 1', grid: newGrid() }];
+  currentLevelIdx = 0;
+  currentShipId   = null;
+  currentShipName = '';
+  document.getElementById('ship-select').value = '';
+  document.getElementById('inp-gridw').value = 20;
+  document.getElementById('inp-gridh').value = 20;
+  syncEditorCanvas();
+  resizeIsoCanvas();
+  buildLevelTabs();
+  drawEditor();
+  if (livePreview) renderISO_main();
+  updateUI();
+});
+
+// ─── View Mode ─────────────────────────────────────────────────────────────
+function openViewMode() {
+  viewLevelIdx = currentLevelIdx;
+  document.getElementById('view-shipname').textContent = currentShipName || 'SIN NOMBRE';
+  document.getElementById('view-overlay').classList.add('active');
+  updateViewLevelUI();
+  renderViewMode();
+}
+
+function updateViewLevelUI() {
+  document.getElementById('view-level-label').textContent = levels[viewLevelIdx].name;
+  document.getElementById('btn-vprev').disabled = viewLevelIdx === 0;
+  document.getElementById('btn-vnext').disabled = viewLevelIdx === levels.length - 1;
+}
+
+function renderViewMode() {
+  const {w, h} = getIsoSize();
+  const tmp = document.createElement('canvas');
+  tmp.width  = w;
+  tmp.height = h;
+  renderISOToCtx(tmp.getContext('2d'), w, h, levels[viewLevelIdx].grid);
+
+  const wrap  = document.getElementById('view-canvas-wrap');
+  const areaW = wrap.clientWidth  || window.innerWidth;
+  const areaH = wrap.clientHeight || window.innerHeight - 60;
+  const scale = Math.min(areaW / w, areaH / h) * 0.95;
+  const scaledW = Math.round(w * scale);
+  const scaledH = Math.round(h * scale);
+
+  const vc = document.getElementById('view-canvas');
+  vc.width  = areaW;
+  vc.height = areaH;
+  const vctx = vc.getContext('2d');
+  vctx.fillStyle = '#000800';
+  vctx.fillRect(0, 0, areaW, areaH);
+  vctx.imageSmoothingEnabled = false;
+  vctx.drawImage(tmp,
+    Math.round((areaW - scaledW) / 2),
+    Math.round((areaH - scaledH) / 2),
+    scaledW, scaledH);
+}
+
+document.getElementById('btn-view').addEventListener('click', openViewMode);
+
+document.getElementById('btn-exit-view').addEventListener('click', () => {
+  document.getElementById('view-overlay').classList.remove('active');
+});
+
+document.getElementById('btn-vprev').addEventListener('click', () => {
+  if (viewLevelIdx > 0) {
+    viewLevelIdx--;
+    updateViewLevelUI();
+    renderViewMode();
+  }
+});
+
+document.getElementById('btn-vnext').addEventListener('click', () => {
+  if (viewLevelIdx < levels.length - 1) {
+    viewLevelIdx++;
+    updateViewLevelUI();
+    renderViewMode();
+  }
+});
+
+window.addEventListener('resize', () => {
+  if (document.getElementById('view-overlay').classList.contains('active')) {
+    renderViewMode();
+  }
+});
+
+// ─── Init ──────────────────────────────────────────────────────────────────
+buildPalette();
+buildLevelTabs();
+updateUI();
+syncEditorCanvas();
+resizeIsoCanvas();
+drawEditor();
+renderISO_main();
+loadTexturesFromStorage();
+loadShips().catch(() => {});
+</script>
+</body>
+</html>

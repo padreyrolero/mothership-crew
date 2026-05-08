@@ -601,6 +601,7 @@ function renderAll(ships, chars) {
 
   container.innerHTML = ships.map(ship => {
     const crew = chars.filter(c => c.ship_id === ship.id);
+    const activeCrew = crew.filter(c => c.active !== false);
     return `
       <div class="ship-section" id="ship-${ship.id}">
         <div class="ship-section-header">
@@ -614,7 +615,7 @@ function renderAll(ships, chars) {
             </div>
           </div>
           <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:.5rem">
-            <div class="ship-crew-count">${crew.length}/${MAX_CREW} tripulante${crew.length!==1?'s':''}${crew.length>=MAX_CREW?' · COMPLETA':''}</div>
+            <div class="ship-crew-count">${activeCrew.length}/${MAX_CREW} activo${activeCrew.length!==1?'s':''}${crew.length > activeCrew.length ? ` · ${crew.length - activeCrew.length} retirado${crew.length - activeCrew.length!==1?'s':''}` : ''}${activeCrew.length>=MAX_CREW?' · COMPLETA':''}</div>
             <div class="ship-section-meta">Registrada: ${new Date(ship.created_at).toLocaleString('es-ES')}</div>
             <button class="btn danger" style="font-size:.6rem;padding:.3rem .7rem" onclick="deleteShip('${ship.id}','${ship.name.replace(/'/g,"\\'")}')">✕ BORRAR NAVE</button>
           </div>
@@ -774,12 +775,13 @@ function formatSkill(s) {
 }
 
 function charCard(c) {
+  const isActive = c.active !== false;
   const portrait = c.portrait_path
     ? `<div class="card-portrait"><img src="${c.portrait_path}" alt="" onerror="this.parentNode.className='card-portrait-empty'"></div>`
     : `<div class="card-portrait-empty"></div>`;
   const specialRule = CLASS_RULES[c.class] || '';
   return `
-    <div class="char-card" id="card-${c.id}">
+    <div class="char-card" id="card-${c.id}" style="${isActive ? '' : 'opacity:.45;filter:grayscale(.8)'}"">
       <div class="card-check-row">
         <label class="card-check-label">
           <input type="checkbox" class="card-check"> INCLUIR EN IMPRESIÓN
@@ -824,6 +826,7 @@ function charCard(c) {
         <div class="card-date">Registrado: ${new Date(c.created_at).toLocaleString('es-ES')}${c.access_code ? ` · Código: <strong style="color:var(--green);letter-spacing:.15em">${c.access_code}</strong>` : ''}</div>
         <div style="display:flex;gap:.4rem">
           <button class="btn primary" style="font-size:.6rem;padding:.3rem .6rem" onclick="openEditModal('${c.id}')">✎ EDITAR</button>
+          <button class="btn" style="font-size:.6rem;padding:.3rem .6rem" onclick="toggleActive('${c.id}',${isActive})" title="${isActive ? 'Retirar del servicio activo' : 'Reactivar tripulante'}">${isActive ? '☠ RETIRAR' : '↺ REACTIVAR'}</button>
           <button class="btn danger" style="font-size:.6rem;padding:.3rem .6rem" onclick="deleteChar('${c.id}')">✕ BORRAR</button>
         </div>
       </div>
@@ -841,6 +844,15 @@ async function deleteChar(id) {
   await fetch(`${SUPA_URL}/rest/v1/characters?id=eq.${id}`, {
     method: 'DELETE',
     headers: HDR
+  });
+  loadAll();
+}
+
+async function toggleActive(id, currentlyActive) {
+  await fetch(`${SUPA_URL}/rest/v1/characters?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: { ...HDR, 'Prefer':'return=minimal' },
+    body: JSON.stringify({ active: !currentlyActive })
   });
   loadAll();
 }

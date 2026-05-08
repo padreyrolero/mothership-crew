@@ -751,6 +751,13 @@
   <div class="chargen-wrap">
     <div class="chargen-title">GENERANDO PERFIL DE TRIPULACIÓN</div>
     <div class="cg-ship-badge" id="cg-ship-badge">—</div>
+    <div id="draft-banner" style="display:none;background:rgba(0,255,65,.06);border:1px solid rgba(0,255,65,.25);padding:.6rem 1rem;margin-bottom:1rem;font-size:.65rem;letter-spacing:.2em;display:none;justify-content:space-between;align-items:center">
+      <span>▸ BORRADOR GUARDADO ENCONTRADO</span>
+      <div style="display:flex;gap:.5rem">
+        <button class="code-submit-btn" onclick="restoreDraft()" style="font-size:.6rem">↺ RESTAURAR</button>
+        <button class="code-submit-btn" onclick="clearDraft();document.getElementById('draft-banner').style.display='none'" style="font-size:.6rem;opacity:.5">✕</button>
+      </div>
+    </div>
 
     <!-- Clase -->
     <div class="class-result">
@@ -789,11 +796,11 @@
     <div class="name-inputs">
       <div class="input-group">
         <label>NOMBRE DEL JUGADOR</label>
-        <input type="text" id="inp-player" placeholder="Tu nombre" maxlength="30">
+        <input type="text" id="inp-player" placeholder="Tu nombre" maxlength="30" oninput="checkGenBtn()">
       </div>
       <div class="input-group">
         <label>NOMBRE DEL PERSONAJE</label>
-        <input type="text" id="inp-char" placeholder="Nombre de tripulante" maxlength="30">
+        <input type="text" id="inp-char" placeholder="Nombre de tripulante" maxlength="30" oninput="checkGenBtn()">
       </div>
     </div>
 
@@ -829,7 +836,10 @@
     <div id="skill-section">
       <div class="skill-hdr-row">
         <span class="section-label" style="margin:0">ÁRBOL DE HABILIDADES</span>
-        <span class="pts-badge" id="pts-badge">— ptos</span>
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <button id="undo-skill-btn" onclick="undoSkill()" title="Deshacer última habilidad" disabled style="background:none;border:1px solid var(--border);color:var(--dim);font-size:.65rem;padding:.1rem .4rem;cursor:pointer;letter-spacing:.1em;opacity:.4">↩ DESHACER</button>
+          <span class="pts-badge" id="pts-badge">— ptos</span>
+        </div>
       </div>
       <div id="skill-start-wrap"></div>
       <div id="skill-tree-wrap"></div>
@@ -855,6 +865,7 @@
     </div>
 
     <button class="generate-btn" id="gen-btn" onclick="generateSheet()" disabled>GENERAR FICHA Y GUARDAR →</button>
+    <div id="gen-hints" style="font-size:.62rem;color:var(--dim);letter-spacing:.15em;margin-top:.7rem;display:none;line-height:1.9;border-left:2px solid var(--border);padding-left:.8rem"></div>
   </div>
 </div>
 
@@ -863,7 +874,7 @@
   <div class="sheet-wrap">
     <div class="sheet-actions">
       <button class="action-btn primary" onclick="window.print()">⎙ IMPRIMIR FICHA</button>
-      <button class="action-btn" onclick="showScreen('splash')">↩ NUEVA FICHA</button>
+      <button class="action-btn" onclick="if(confirm('¿Crear una nueva ficha? Se perderá la sesión actual.'))showScreen('splash')">↩ NUEVA FICHA</button>
     </div>
     <div class="pdf-callout">
       <div class="pdf-callout-dot"></div>
@@ -1652,7 +1663,7 @@ async function loadShips(){
   try {
     const [shipsRes, charsRes] = await Promise.all([
       fetch(`${SUPA_URL}/rest/v1/ships?select=id,name,description,recruitment_text,image_url&order=created_at.asc`, { headers:{ 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}` } }),
-      fetch(`${SUPA_URL}/rest/v1/characters?select=ship_id`, { headers:{ 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}` } }),
+      fetch(`${SUPA_URL}/rest/v1/characters?select=ship_id&active=eq.true`, { headers:{ 'apikey':SUPA_KEY, 'Authorization':`Bearer ${SUPA_KEY}` } }),
     ]);
     const ships = await shipsRes.json();
     const chars = await charsRes.json();
@@ -1682,7 +1693,7 @@ async function loadShips(){
         </button>`;
     }).join('');
   } catch(e) {
-    el.innerHTML = '<div style="color:var(--dim)">ERROR AL CARGAR NAVES.</div>';
+    el.innerHTML = '<div style="color:var(--dim);font-size:.75rem;letter-spacing:.2em;padding:1rem 0">ERROR AL CARGAR NAVES. COMPRUEBA TU CONEXIÓN.<br><br><button class="code-submit-btn" onclick="loadShips()" style="margin-top:.5rem">↺ REINTENTAR</button></div>';
   }
 }
 
@@ -1724,6 +1735,7 @@ let charSkills    = new Set();
 let paidSkills    = new Map();
 let startChosen   = new Set();
 let skillPoints   = 0;
+let skillHistory  = [];
 // Baratija y parche
 let selectedTrinket = null;
 let selectedPatch   = null;
@@ -1732,7 +1744,7 @@ function initChargen(cls){
   charData={class:cls, quizAnswers};
   selectedGender=null; selectedPortraitKey=null; selectedBackground=null;
   rollsLeft=3;
-  charSkills=new Set(); paidSkills=new Map(); startChosen=new Set();
+  charSkills=new Set(); paidSkills=new Map(); startChosen=new Set(); skillHistory=[];
   selectedTrinket=null; selectedPatch=null;
   const info=CLASSES[cls];
 
@@ -1777,6 +1789,14 @@ function initChargen(cls){
   document.getElementById('roll-assessment').textContent='';
   updateRollCounter();
   document.getElementById('gen-btn').disabled=true;
+
+  // Ofrecer restaurar borrador si existe para esta clase
+  const raw = localStorage.getItem('ms-draft');
+  const banner = document.getElementById('draft-banner');
+  if(raw && banner){
+    try{ const d = JSON.parse(raw); if(d.class === cls) banner.style.display='flex'; else banner.style.display='none'; }
+    catch(e){ banner.style.display='none'; }
+  } else if(banner){ banner.style.display='none'; }
 }
 
 function selectGender(g, btn){
@@ -1835,7 +1855,100 @@ function checkGenBtn(){
   const ptsSpent    = skillPoints === 0;
   const hasTrinket  = selectedTrinket !== null;
   const hasPatch    = selectedPatch !== null;
-  document.getElementById('gen-btn').disabled = !(hasBg && hasPortrait && hasGender && hasStats && choicesDone && ptsSpent && hasTrinket && hasPatch);
+  const hasNames    = (document.getElementById('inp-player')?.value||'').trim().length > 0 &&
+                      (document.getElementById('inp-char')?.value||'').trim().length > 0;
+  const ready = hasBg && hasPortrait && hasGender && hasStats && choicesDone && ptsSpent && hasTrinket && hasPatch && hasNames;
+  document.getElementById('gen-btn').disabled = !ready;
+
+  const hints = [];
+  if(!hasNames)     hints.push('▸ Nombre del jugador y del personaje');
+  if(!hasGender)    hints.push('▸ Selecciona género');
+  if(!hasPortrait)  hints.push('▸ Elige un retrato');
+  if(!hasStats)     hints.push('▸ Tira los dados de estadísticas');
+  if(!choicesDone)  hints.push('▸ Completa las habilidades de inicio');
+  if(!ptsSpent)     hints.push(`▸ Gasta los ${skillPoints} punto${skillPoints!==1?'s':''} de habilidad restante${skillPoints!==1?'s':''}`);
+  if(!hasBg)        hints.push('▸ Escribe o elige un trasfondo');
+  if(!hasTrinket)   hints.push('▸ Tira la baratija (D100)');
+  if(!hasPatch)     hints.push('▸ Tira el parche (D100)');
+  const hintsEl = document.getElementById('gen-hints');
+  if(hintsEl){ hintsEl.innerHTML = hints.join('<br>'); hintsEl.style.display = hints.length && !ready ? 'block' : 'none'; }
+
+  saveDraft();
+}
+
+// ── BORRADOR ──
+function saveDraft(){
+  if(!charData.class) return;
+  try {
+    localStorage.setItem('ms-draft', JSON.stringify({
+      class: charData.class,
+      playerName: document.getElementById('inp-player')?.value || '',
+      charName: document.getElementById('inp-char')?.value || '',
+      bgText: document.getElementById('bg-custom')?.value || '',
+      selectedGender, selectedBackground, selectedTrinket, selectedPatch,
+      charData: {...charData},
+      charSkills: [...charSkills],
+      paidSkills: [...paidSkills.entries()],
+      startChosen: [...startChosen],
+      skillPoints, rollsLeft
+    }));
+  } catch(e){}
+}
+
+function clearDraft(){
+  try{ localStorage.removeItem('ms-draft'); } catch(e){}
+}
+
+function restoreDraft(){
+  const raw = localStorage.getItem('ms-draft');
+  if(!raw) return;
+  try{
+    const d = JSON.parse(raw);
+    if(d.playerName) document.getElementById('inp-player').value = d.playerName;
+    if(d.charName)   document.getElementById('inp-char').value   = d.charName;
+    if(d.bgText)     document.getElementById('bg-custom').value  = d.bgText;
+    if(d.charData?.strength){
+      charData = {...charData, ...d.charData};
+      document.getElementById('st-str').textContent = charData.strength;
+      document.getElementById('st-spd').textContent = charData.speed;
+      document.getElementById('st-int').textContent = charData.intellect;
+      document.getElementById('st-com').textContent = charData.combat;
+      document.getElementById('sv-body').textContent  = charData.body_save;
+      document.getElementById('sv-fear').textContent  = charData.fear_save;
+      document.getElementById('sv-san').textContent   = charData.sanity_save;
+      document.getElementById('sv-armor').textContent = charData.armor_save;
+    }
+    if(d.rollsLeft !== undefined){ rollsLeft = d.rollsLeft; updateRollCounter(); }
+    charSkills  = new Set(d.charSkills  || []);
+    paidSkills  = new Map(d.paidSkills  || []);
+    startChosen = new Set(d.startChosen || []);
+    skillPoints = d.skillPoints ?? skillPoints;
+    selectedBackground = d.selectedBackground;
+    selectedTrinket    = d.selectedTrinket;
+    selectedPatch      = d.selectedPatch;
+    if(d.selectedTrinket){
+      document.getElementById('trinket-result').textContent = d.selectedTrinket;
+      document.getElementById('trinket-btn').className = 'ri-btn done';
+      document.getElementById('trinket-btn').textContent = '⚄ RETIRAR';
+    }
+    if(d.selectedPatch){
+      document.getElementById('patch-result').textContent = d.selectedPatch;
+      document.getElementById('patch-btn').className = 'ri-btn done';
+      document.getElementById('patch-btn').textContent = '⚄ RETIRAR';
+    }
+    if(d.selectedGender && d.class !== 'Android'){
+      selectedGender = d.selectedGender;
+      document.querySelectorAll('.gender-btn').forEach(b => {
+        if(b.getAttribute('onclick')?.includes(`'${d.selectedGender}'`)) b.classList.add('selected');
+      });
+      document.getElementById('portrait-section').style.display = 'block';
+      renderPortraits(d.class, d.selectedGender);
+    }
+    renderSkillTree(d.class);
+    renderBackgrounds(d.class);
+    document.getElementById('draft-banner').style.display = 'none';
+    checkGenBtn();
+  } catch(e){}
 }
 
 // ── BARATIJA Y PARCHE ──
@@ -1879,7 +1992,7 @@ function startingChoicesDone(){
 
 function initSkillState(cls){
   const info = CLASSES[cls];
-  charSkills.clear(); paidSkills.clear(); startChosen.clear();
+  charSkills.clear(); paidSkills.clear(); startChosen.clear(); skillHistory = [];
   skillPoints = info.freePoints;
   // Add fixed starting skills
   for(const id of info.startingFixed) charSkills.add(id);
@@ -1888,7 +2001,7 @@ function initSkillState(cls){
 function prereqsMet(id){
   const s = SKILL_TREE[id];
   if(!s.req.length) return true;
-  return s.req.some(r => charSkills.has(r));
+  return s.req.every(r => charSkills.has(r));
 }
 
 function cascadeRemove(id){
@@ -1961,6 +2074,7 @@ function toggleSkillTree(id){
     // Add
     if(!prereqsMet(id)) return;
     if(skillPoints < cost) return;
+    skillHistory.push({ charSkills: new Set(charSkills), paidSkills: new Map(paidSkills), startChosen: new Set(startChosen), skillPoints });
     charSkills.add(id);
     paidSkills.set(id, cost);
     skillPoints -= cost;
@@ -2017,6 +2131,19 @@ function updatePtsBadge(){
   if(!el) return;
   el.textContent = skillPoints > 0 ? `${skillPoints} pto${skillPoints!==1?'s':''} disponible${skillPoints!==1?'s':''}` : 'puntos gastados ✓';
   el.className = 'pts-badge' + (skillPoints===0 ? ' zero' : skillPoints>0 ? ' warn' : '');
+  const undoBtn = document.getElementById('undo-skill-btn');
+  if(undoBtn){ undoBtn.disabled = skillHistory.length === 0; undoBtn.style.opacity = skillHistory.length ? '1' : '.4'; }
+}
+
+function undoSkill(){
+  if(!skillHistory.length) return;
+  const snap = skillHistory.pop();
+  charSkills = snap.charSkills;
+  paidSkills = snap.paidSkills;
+  startChosen = snap.startChosen;
+  skillPoints = snap.skillPoints;
+  renderSkillTree(charData.class);
+  checkGenBtn();
 }
 
 // ── TIRADAS ──
@@ -2208,6 +2335,7 @@ async function generateSheet(){
   renderSheet({...record, background:bg, portraitPath:selectedPortraitKey||'', genderLabel, shipName:selectedShip?.name||'', credits, specialRule:info.specialRule, patch, access_code});
   document.getElementById('access-code-display').textContent = access_code;
   document.getElementById('access-code-box').style.display = 'block';
+  clearDraft();
   showScreen('sheet');
 }
 

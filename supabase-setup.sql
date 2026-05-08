@@ -90,3 +90,7 @@ alter table characters add column if not exists access_code text default '';
 
 -- Notas del jugador (añadida en v7)
 alter table characters add column if not exists notes text default '';
+
+-- Campo activo: permite retirar personajes muertos sin borrarlos (añadida en v8)
+-- Los personajes retirados no cuentan hacia el límite de tripulación por nave
+alter table characters add column if not exists active boolean not null default true;
