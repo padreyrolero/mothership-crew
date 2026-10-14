@@ -273,7 +273,18 @@
     .ship-proceed:disabled { opacity:.3; cursor:not-allowed; }
     .ship-crew-badge { font-size:.65rem; letter-spacing:.2em; color:var(--amber); white-space:nowrap; }
     .ship-crew-badge.full { color:#aa2200; }
-    .ship-opt.full { opacity:.4; cursor:not-allowed; }
+    .ship-opt.full { cursor:not-allowed; position:relative; border-color:#3a1410; }
+    .ship-opt.full .ship-opt-img, .ship-opt.full .ship-opt-body { opacity:.35; }
+    .ship-opt.full:hover { border-color:#3a1410; }
+    .ship-mission {
+      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-6deg);
+      padding:.35rem 1.1rem; border:2px solid #cc2200; color:#ff3b1f; background:rgba(10,0,0,.82);
+      font-family:'Orbitron',monospace; font-size:.85rem; letter-spacing:.35em; white-space:nowrap;
+      text-shadow:0 0 8px rgba(255,40,0,.6); box-shadow:0 0 14px rgba(204,34,0,.35); pointer-events:none;
+    }
+    .ship-mission small { display:block; font-family:'Share Tech Mono',monospace; font-size:.55rem; letter-spacing:.25em; color:#aa4433; text-align:center; margin-top:.15rem; }
+    .ship-mission .dot { display:inline-block; width:.5rem; height:.5rem; border-radius:50%; background:#ff2200; margin-right:.5rem; vertical-align:middle; animation:mission-blink 1.2s steps(2) infinite; }
+    @keyframes mission-blink { 50% { opacity:0; } }
     .ship-opt:disabled { cursor:not-allowed; }
 
     /* Trasfondos */
@@ -1675,6 +1686,9 @@ async function loadShips(){
     const countByShip = {};
     (Array.isArray(chars) ? chars : []).forEach(c => { if(c.ship_id) countByShip[c.ship_id] = (countByShip[c.ship_id]||0)+1; });
 
+    // Naves con plazas libres primero; las que están en misión, al final
+    ships.sort((a, b) => ((countByShip[a.id]||0) >= MAX_CREW) - ((countByShip[b.id]||0) >= MAX_CREW));
+
     el.innerHTML = ships.map(s => {
       const count = countByShip[s.id] || 0;
       const full = count >= MAX_CREW;
@@ -1685,10 +1699,11 @@ async function loadShips(){
           <div class="ship-opt-body">
             <div style="display:flex;justify-content:space-between;align-items:center">
               <div class="ship-opt-name">${s.name}</div>
-              <div class="ship-crew-badge${full?' full':''}">${count}/${MAX_CREW}${full?' · COMPLETA':''}</div>
+              <div class="ship-crew-badge${full?' full':''}">${count}/${MAX_CREW}${full?' · TRIPULACIÓN COMPLETA':''}</div>
             </div>
             ${s.description ? `<div class="ship-opt-desc">${s.description}</div>` : ''}
           </div>
+          ${full ? `<div class="ship-mission"><span class="dot"></span>EN MISIÓN<small>SIN CONTACTO · NO ADMITE RECLUTAS</small></div>` : ''}
         </button>`;
     }).join('');
   } catch(e) {
